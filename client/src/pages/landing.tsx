@@ -38,8 +38,8 @@ export default function Landing() {
     setShowUserTypeModal(true);
   };
 
-  const handleLogin = () => {
-    // In development mode, go directly to home page
+  const handleDirectAccess = () => {
+    // Direct access to application
     setLocation("/home");
   };
 
@@ -62,8 +62,8 @@ export default function Landing() {
               <a href="#parceiros" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Parceiros
               </a>
-              <Button onClick={handleLogin} className="bg-azul-celeste hover:bg-blue-800">
-                Entrar
+              <Button onClick={handleDirectAccess} className="bg-azul-celeste hover:bg-blue-800">
+                Acessar Plataforma
               </Button>
             </div>
           </div>

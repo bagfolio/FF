@@ -14,14 +14,11 @@ import VerificationBadge from "@/components/ui/verification-badge";
 
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
-  const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
-  const { data: athlete, isLoading: athleteLoading } = useQuery({ queryKey: ["/api/athletes/me"] });
-  const { data: tests, isLoading: testsLoading } = useQuery({ 
-    queryKey: ["/api/tests/athlete", athlete?.id],
-    enabled: !!athlete?.id
-  });
-
-  const isLoading = athleteLoading || testsLoading;
+  
+  // Use mock data instead of API calls
+  const athlete = generateRealisticAthlete();
+  const tests = []; // Mock empty tests array
+  const isLoading = false;
 
   // Generate realistic data
   const [realisticStats, setRealisticStats] = useState(() => generateRealisticAthlete());
@@ -38,9 +35,10 @@ export default function AthleteDashboard() {
     return () => clearTimeout(timer);
   }, [profileCompletion]);
 
-  const verificationLevel = (athlete?.verificationLevel || realisticStats.verificationLevel) as "bronze" | "silver" | "gold" | "platinum";
+  const verificationLevel = (athlete.verificationLevel || realisticStats.verificationLevel) as "bronze" | "silver" | "gold" | "platinum";
 
-  if (!athlete) {
+  // Always show the dashboard since we're using mock data
+  if (false) {
     return (
       <div className="min-h-screen bg-cinza-claro">
         <Navigation />
@@ -80,7 +78,7 @@ export default function AthleteDashboard() {
             </div>
             <div>
               <h1 className="font-bebas text-4xl azul-celeste">{athlete.fullName || realisticStats.fullName}</h1>
-              <p className="text-gray-600 text-lg">{athlete.position || realisticStats.position} • {athlete.currentTeam || realisticStats.team}</p>
+              <p className="text-gray-600 text-lg">{athlete.position || realisticStats.position} • {athlete.team || realisticStats.team}</p>
               <div className="mt-2 flex items-center gap-2">
                 <VerificationBadge level={verificationLevel} />
                 <span className="text-sm text-gray-500">{athlete.city || realisticStats.city}, {athlete.state || realisticStats.state}</span>
