@@ -1,16 +1,15 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+// Auth system removed for development
 import { insertAthleteSchema, insertScoutSchema, insertTestSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Auth middleware disabled for development
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
       // DEVELOPMENT MODE - ALWAYS RETURN MOCK USER
       const mockUser = {
@@ -51,25 +50,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Set user type
-  app.post('/api/auth/user-type', isAuthenticated, async (req: any, res) => {
+  app.post('/api/auth/user-type', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      // DEVELOPMENT MODE - Mock user type setting
       const { userType } = req.body;
       
       if (!['athlete', 'scout'].includes(userType)) {
         return res.status(400).json({ message: "Invalid user type" });
       }
       
-      const user = await storage.upsertUser({
-        id: userId,
-        email: req.user.claims.email,
-        firstName: req.user.claims.first_name,
-        lastName: req.user.claims.last_name,
-        profileImageUrl: req.user.claims.profile_image_url,
+      const mockUser = {
+        id: "dev-user-123",
+        email: "dev@futebol-futuro.com",
+        firstName: "João",
+        lastName: "Silva",
+        profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
         userType,
-      });
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roleData: null
+      };
       
-      res.json(user);
+      res.json(mockUser);
     } catch (error) {
       console.error("Error setting user type:", error);
       res.status(500).json({ message: "Failed to set user type" });
@@ -77,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Athlete routes
-  app.post('/api/athletes', isAuthenticated, async (req: any, res) => {
+  app.post('/api/athletes', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const athleteData = insertAthleteSchema.parse({ ...req.body, userId });
@@ -93,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/athletes/me', isAuthenticated, async (req: any, res) => {
+  app.get('/api/athletes/me', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const athlete = await storage.getAthleteByUserId(userId);
@@ -109,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/athletes/:id', isAuthenticated, async (req, res) => {
+  app.get('/api/athletes/:id', async (req, res) => {
     try {
       const athleteId = parseInt(req.params.id);
       const athlete = await storage.getAthlete(athleteId);
@@ -125,7 +127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/athletes', isAuthenticated, async (req, res) => {
+  app.get('/api/athletes', async (req, res) => {
     try {
       const filters = req.query;
       const athletes = await storage.searchAthletes(filters);
@@ -137,7 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Scout routes
-  app.post('/api/scouts', isAuthenticated, async (req: any, res) => {
+  app.post('/api/scouts', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const scoutData = insertScoutSchema.parse({ ...req.body, userId });

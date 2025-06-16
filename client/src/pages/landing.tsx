@@ -109,15 +109,15 @@ export default function Landing() {
           {/* Stats row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-4xl mx-auto">
             <div className="text-center fade-in">
-              <StatCounter target={1300000} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
-              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Jovens Talentos</div>
+              <StatCounter target={1247} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
+              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Atletas Cadastrados</div>
             </div>
             <div className="text-center fade-in">
-              <StatCounter target={50000} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
-              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Testes Verificados</div>
+              <StatCounter target={3856} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
+              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Testes Realizados</div>
             </div>
             <div className="text-center fade-in">
-              <StatCounter target={2500} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
+              <StatCounter target={127} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
               <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Scouts Ativos</div>
             </div>
           </div>
