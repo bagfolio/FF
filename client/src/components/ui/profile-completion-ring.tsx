@@ -1,9 +1,13 @@
+// ARQUIVO ATUALIZADO: client/src/components/ui/profile-completion-ring.tsx
+
 import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile'; // Usaremos um hook para detectar mobile
 
 interface ProfileCompletionRingProps {
   percentage: number;
-  size?: number;
+  size?: number; // Tamanho para desktop
+  mdSize?: number; // Tamanho para telas maiores, opcional (usará 'size' se não fornecido)
   strokeWidth?: number;
   className?: string;
   children?: React.ReactNode;
@@ -11,15 +15,19 @@ interface ProfileCompletionRingProps {
 
 export default function ProfileCompletionRing({
   percentage,
-  size = 144,
+  size = 100,
+  mdSize,
   strokeWidth = 8,
   className,
   children
 }: ProfileCompletionRingProps) {
+  const isMobile = useIsMobile();
+  const currentSize = isMobile ? size : (mdSize || size);
+
   const progressRef = useRef<SVGCircleElement>(null);
-  const radius = (size - strokeWidth) / 2;
+  const radius = (currentSize - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  
+
   useEffect(() => {
     if (progressRef.current) {
       const offset = circumference - (percentage / 100) * circumference;
@@ -28,28 +36,25 @@ export default function ProfileCompletionRing({
   }, [percentage, circumference]);
 
   return (
-    <div className={cn("relative inline-flex items-center justify-center", className)}>
+    <div className={cn("relative inline-flex items-center justify-center", className)} style={{ width: currentSize, height: currentSize }}>
       <svg
-        width={size}
-        height={size}
+        width={currentSize}
+        height={currentSize}
         className="transform -rotate-90"
       >
-        {/* Background circle */}
         <circle
-          cx={size / 2}
-          cy={size / 2}
+          cx={currentSize / 2}
+          cy={currentSize / 2}
           r={radius}
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          className="text-gray-200"
+          className="text-white/20"
         />
-        
-        {/* Progress circle */}
         <circle
           ref={progressRef}
-          cx={size / 2}
-          cy={size / 2}
+          cx={currentSize / 2}
+          cy={currentSize / 2}
           r={radius}
           fill="none"
           stroke="url(#gradient)"
@@ -59,8 +64,6 @@ export default function ProfileCompletionRing({
           strokeDashoffset={circumference}
           className="transition-all duration-1000 ease-out"
         />
-        
-        {/* Gradient definition */}
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#009C3B" />
@@ -69,8 +72,6 @@ export default function ProfileCompletionRing({
           </linearGradient>
         </defs>
       </svg>
-      
-      {/* Center content */}
       <div className="absolute inset-0 flex items-center justify-center">
         {children}
       </div>
