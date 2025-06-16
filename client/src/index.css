@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap');
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(142, 100%, 31%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+
+  /* Brazilian Colors */
+  --verde-brasil: hsl(142, 100%, 31%);
+  --amarelo-ouro: hsl(52, 100%, 50%);
+  --azul-celeste: hsl(218, 100%, 23%);
+  --cinza-claro: hsl(0, 0%, 96%);
+  --cinza-medio: hsl(0, 0%, 61%);
+  --verde-sucesso: hsl(158, 64%, 52%);
+  --vermelho-alerta: hsl(0, 74%, 42%);
+  --laranja-destaque: hsl(25, 95%, 53%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(142, 100%, 31%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-inter antialiased bg-background text-foreground;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bebas tracking-wide;
+  }
+}
+
+@layer utilities {
+  .font-bebas {
+    font-family: 'Bebas Neue', cursive;
+  }
+  
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .font-oswald {
+    font-family: 'Oswald', sans-serif;
+  }
+
+  .verde-brasil {
+    color: var(--verde-brasil);
+  }
+  
+  .bg-verde-brasil {
+    background-color: var(--verde-brasil);
+  }
+  
+  .amarelo-ouro {
+    color: var(--amarelo-ouro);
+  }
+  
+  .bg-amarelo-ouro {
+    background-color: var(--amarelo-ouro);
+  }
+  
+  .azul-celeste {
+    color: var(--azul-celeste);
+  }
+  
+  .bg-azul-celeste {
+    background-color: var(--azul-celeste);
+  }
+
+  .bg-brasil-gradient {
+    background: linear-gradient(135deg, var(--verde-brasil) 0%, var(--amarelo-ouro) 50%, var(--azul-celeste) 100%);
+  }
+  
+  .bg-sunset-gradient {
+    background: linear-gradient(135deg, #FF6B35 0%, #F7931E 25%, var(--amarelo-ouro) 50%, var(--verde-brasil) 75%, var(--azul-celeste) 100%);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--verde-brasil) 0%, var(--verde-sucesso) 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, hsl(142, 100%, 26%) 0%, hsl(158, 64%, 47%) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px hsla(142, 100%, 31%, 0.3);
+  }
+  
+  .btn-secondary {
+    background: linear-gradient(135deg, var(--amarelo-ouro) 0%, var(--laranja-destaque) 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-secondary:hover {
+    background: linear-gradient(135deg, hsl(52, 100%, 45%) 0%, hsl(25, 95%, 48%) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px hsla(52, 100%, 50%, 0.3);
+  }
+
+  .card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  .hero-video-overlay {
+    background: linear-gradient(135deg, hsla(142, 100%, 31%, 0.8) 0%, hsla(52, 100%, 50%, 0.6) 50%, hsla(218, 100%, 23%, 0.8) 100%);
+  }
+}

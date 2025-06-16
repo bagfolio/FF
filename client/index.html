@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Futebol Futuro - Seu Talento Merece Ser Visto</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="A primeira plataforma brasileira que usa IA para verificar talentos do futebol. Democratizando oportunidades do Amazonas a São Paulo. Conectando jovens atletas com scouts profissionais através de dados objetivos.">
+    <meta name="keywords" content="futebol, talentos, scouts, atletas, brasil, inteligência artificial, descoberta de talentos, futebol brasileiro">
+    <meta name="author" content="Futebol Futuro">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://futebol-futuro.com/">
+    <meta property="og:title" content="Futebol Futuro - Seu Talento Merece Ser Visto">
+    <meta property="og:description" content="A primeira plataforma brasileira que usa IA para verificar talentos do futebol. Democratizando oportunidades para jovens atletas.">
+    <meta property="og:image" content="https://futebol-futuro.com/og-image.jpg">
+    <meta property="og:locale" content="pt_BR">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://futebol-futuro.com/">
+    <meta property="twitter:title" content="Futebol Futuro - Seu Talento Merece Ser Visto">
+    <meta property="twitter:description" content="A primeira plataforma brasileira que usa IA para verificar talentos do futebol.">
+    <meta property="twitter:image" content="https://futebol-futuro.com/og-image.jpg">
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#009C3B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Futebol Futuro">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%23009C3B'/><polygon points='30,30 70,30 50,70' fill='%23FFDF00'/></svg>">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%23009C3B'/><circle cx='90' cy='90' r='60' fill='%23FFDF00'/><polygon points='60,60 120,60 90,120' fill='%23002776'/></svg>">
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://images.unsplash.com">
+    
+    <!-- Brazilian Color Scheme for browsers -->
+    <meta name="color-scheme" content="light">
+    <style>
+      /* Critical CSS for faster loading */
+      body {
+        margin: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #F5F5F5;
+      }
+      
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #009C3B 0%, #FFDF00 50%, #002776 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        color: white;
+        font-family: 'Bebas Neue', cursive;
+        font-size: 2rem;
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 1rem;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div id="initial-loading" class="loading-screen">
+      <div class="loading-spinner"></div>
+      FUTEBOL FUTURO
+    </div>
+    
+    <!-- Main App Container -->
+    <div id="root"></div>
+    
+    <!-- App Script -->
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Remove loading screen when app loads -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const loading = document.getElementById('initial-loading');
+          if (loading) {
+            loading.style.opacity = '0';
+            loading.style.transition = 'opacity 0.5s ease-out';
+            setTimeout(function() {
+              loading.remove();
+            }, 500);
+          }
+        }, 1000);
+      });
+    </script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+              console.log('SW registered: ', registration);
+            })
+            .catch(function(registrationError) {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+    
+    <!-- Replit Development Banner -->
+    <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+  </body>
+</html>
