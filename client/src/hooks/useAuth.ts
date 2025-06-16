@@ -1,32 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export function useAuth() {
-  const { data: user, isLoading, error, isSuccess } = useQuery({
+  const token = localStorage.getItem('auth_token');
+  
+  const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user"],
-    retry: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 10, // 10 minutes
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    // Set initial data to prevent loading on subsequent page loads
-    initialData: () => {
-      // Check if we have cached user data
-      const cached = localStorage.getItem('auth-user-cache');
-      return cached ? JSON.parse(cached) : undefined;
+    queryFn: async () => {
+      if (!token) return null;
+      
+      try {
+        return await apiRequest("/api/auth/user", {
+          method: "GET",
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      } catch (error) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth-user-cache');
+        throw error;
+      }
     },
+    retry: false,
+    enabled: !!token,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
-
-  // Cache user data for faster subsequent loads
-  if (user && !error) {
-    localStorage.setItem('auth-user-cache', JSON.stringify(user));
-  }
-
-  // In development mode, always treat as authenticated if we get any user data
-  const isAuthenticated = isSuccess && !!user && !error;
 
   return {
     user,
     isLoading,
-    isAuthenticated,
+    isAuthenticated: !!user && !!token && !error,
   };
 }
