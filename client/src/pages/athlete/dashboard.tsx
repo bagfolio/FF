@@ -23,78 +23,81 @@ export default function AthleteDashboard() {
   }, [profileCompletion]);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header do Atleta */}
-      <div className="mb-8">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-20 h-20 bg-gradient-to-br from-verde-brasil to-green-600 rounded-full flex items-center justify-center shadow-lg">
-            <User className="w-10 h-10 text-white" />
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header do Atleta - Responsivo */}
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4 p-4 sm:p-6 bg-white rounded-2xl shadow-lg">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-verde-brasil to-green-600 rounded-full flex items-center justify-center shadow-lg mx-auto sm:mx-0">
+            <User className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
           </div>
-          <div>
-            <h1 className="font-bebas text-4xl azul-celeste">{athleteData.fullName}</h1>
-            <p className="text-gray-600 text-lg">{athleteData.position} • {athleteData.team}</p>
-            <div className="mt-2 flex items-center gap-2">
-              <Badge className="bg-green-100 text-green-700">{athleteData.verificationLevel}</Badge>
-              <span className="text-sm text-gray-500">{athleteData.city}, {athleteData.state}</span>
+          <div className="text-center sm:text-left flex-1 min-w-0">
+            <h1 className="font-bebas text-2xl sm:text-3xl lg:text-4xl azul-celeste truncate">{athleteData.fullName}</h1>
+            <p className="text-gray-600 text-sm sm:text-lg">{athleteData.position} • {athleteData.team}</p>
+            <div className="mt-2 flex flex-col sm:flex-row items-center gap-2">
+              <Badge className="bg-green-100 text-green-700 text-xs sm:text-sm">{athleteData.verificationLevel}</Badge>
+              <span className="text-xs sm:text-sm text-gray-500">{athleteData.city}, {athleteData.state}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card className="hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Testes Realizados</CardTitle>
+      {/* Cards de Estatísticas - Mobile Responsivo */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+        <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-blue-50">
+          <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Testes</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold azul-celeste">3</div>
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-bold azul-celeste flex items-center gap-1 sm:gap-2">
+              <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>3</span>
+            </div>
             <p className="text-xs text-gray-500 mt-1">+2 este mês</p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Visualizações</CardTitle>
+        <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-blue-50">
+          <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Views</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold azul-celeste flex items-center gap-2">
-              <Eye className="w-5 h-5" />
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-bold azul-celeste flex items-center gap-1 sm:gap-2">
+              <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>{athleteData.profileViews}</span>
             </div>
-            <p className="text-xs text-gray-500 mt-1">+{Math.floor(athleteData.profileViews * 0.15)} esta semana</p>
+            <p className="text-xs text-gray-500 mt-1">+{Math.floor(athleteData.profileViews * 0.15)} semana</p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Percentil</CardTitle>
+        <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-green-50">
+          <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Percentil</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold verde-brasil flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-bold verde-brasil flex items-center gap-1 sm:gap-2">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>{athleteData.percentile}%</span>
             </div>
-            <p className="text-xs text-gray-500 mt-1">Top {100 - athleteData.percentile}% nacional</p>
+            <p className="text-xs text-gray-500 mt-1">Top {100 - athleteData.percentile}%</p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Conquistas</CardTitle>
+        <Card className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-white to-yellow-50">
+          <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+            <CardTitle className="text-xs sm:text-sm font-medium text-gray-600">Conquistas</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold amarelo-ouro flex items-center gap-2">
-              <Trophy className="w-5 h-5" />
+          <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-bold amarelo-ouro flex items-center gap-1 sm:gap-2">
+              <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>5</span>
             </div>
-            <p className="text-xs text-gray-500 mt-1">2 próximas disponíveis</p>
+            <p className="text-xs text-gray-500 mt-1">2 próximas</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Conteúdo Principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Conteúdo Principal - Responsivo */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Combine Digital */}
         <div className="lg:col-span-2">
           <Card>
