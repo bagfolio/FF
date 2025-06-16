@@ -1,69 +1,47 @@
-import { Request, Response, NextFunction } from 'express';
-import { storage } from '../storage';
+// ARQUIVO ATUALIZADO (MODO DE DEPURAÇÃO): server/controllers/auth.controller.ts
 
-// Mock user state for demonstration (would be replaced by real auth in production)
-let mockUserState = {
-    id: "mock-user-123",
-    email: "user@example.com", 
+import { Request, Response, NextFunction } from 'express';
+
+// Mock DEFINITIVO e SIMPLES para o usuário de desenvolvimento.
+const devUser = {
+    id: "dev-user-123",
+    email: "dev@futebol-futuro.com",
     firstName: "João",
     lastName: "Silva",
-    profileImageUrl: "",
-    userType: null as string | null,
-    createdAt: new Date(),
-    updatedAt: new Date()
+    profileImageUrl: "https://i.pravatar.cc/150?u=dev-user-123",
+    userType: 'athlete', // Definindo um tipo padrão para evitar problemas
+    roleData: {
+        id: 1,
+        userId: "dev-user-123",
+        fullName: "João Silva",
+        position: "Atacante",
+        city: "São Paulo",
+        state: "SP",
+        verificationLevel: "bronze"
+    }
 };
 
+export async function getCurrentUser(req: Request, res: Response, next: NextFunction) {
+    // Ignora tudo e apenas retorna o usuário mockado.
+    // Isso garante que o problema NÃO está no backend.
+    console.log("INFO: Endpoint /api/auth/user chamado, retornando usuário mockado.");
+    res.status(200).json(devUser);
+}
+
+// As outras funções permanecem, mas não serão usadas por enquanto.
+// Manteremos a estrutura para quando reativarmos.
 export async function register(req: Request, res: Response, next: NextFunction) {
-    try {
-        // Mock registration for now
-        const { email, password, firstName } = req.body;
-        res.status(201).json({ message: "Usuário registrado com sucesso.", userId: "mock-user-id" });
-    } catch (error) {
-        next(error);
-    }
+    res.status(501).json({ message: "Registro desabilitado em modo de depuração." });
 }
 
 export async function login(req: Request, res: Response, next: NextFunction) {
-    try {
-        // Mock login for now
-        const { email, password } = req.body;
-        res.status(200).json({ message: "Login bem-sucedido." });
-    } catch (error) {
-        next(error);
-    }
+     res.status(501).json({ message: "Login desabilitado em modo de depuração." });
 }
 
 export async function logout(req: Request, res: Response) {
-    res.status(200).json({ message: "Logout bem-sucedido." });
-}
-
-export async function getCurrentUser(req: Request, res: Response, next: NextFunction) {
-    try {
-        // In production, this would get the actual authenticated user
-        // For now, return mock user state
-        res.status(200).json(mockUserState);
-    } catch (error) {
-        next(error);
-    }
+    res.status(200).json({ message: "Logout." });
 }
 
 export async function setUserType(req: Request, res: Response, next: NextFunction) {
-    try {
-        const { userType } = req.body;
-        
-        if (!['athlete', 'scout'].includes(userType)) {
-            return res.status(400).json({ message: "Tipo de usuário inválido." });
-        }
-
-        // Update mock user state
-        mockUserState = {
-            ...mockUserState,
-            userType,
-            updatedAt: new Date()
-        };
-
-        res.status(200).json(mockUserState);
-    } catch (error) {
-        next(error);
-    }
+    res.status(200).json(devUser);
 }
