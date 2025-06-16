@@ -78,47 +78,47 @@ export default function Landing() {
           <div className="absolute inset-0 hero-video-overlay"></div>
         </div>
         
-        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-          <h1 className="font-bebas text-5xl md:text-7xl lg:text-8xl leading-tight mb-6">
+        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+          <h1 className="font-bebas text-6xl md:text-8xl lg:text-9xl leading-none mb-8 tracking-wider">
             SEU TALENTO<br />
-            <span className="amarelo-ouro">MERECE SER VISTO</span>
+            <span className="amarelo-ouro drop-shadow-lg">MERECE SER VISTO</span>
           </h1>
           
-          <p className="text-xl md:text-2xl mb-8 font-light max-w-3xl mx-auto">
-            A primeira plataforma brasileira que usa IA para verificar talentos do futebol. 
-            Democratizando oportunidades do Amazonas a São Paulo.
+          <p className="text-lg md:text-xl lg:text-2xl mb-10 font-light max-w-4xl mx-auto leading-relaxed drop-shadow-md">
+            A primeira plataforma brasileira que usa IA para verificar talentos do futebol.<br />
+            <span className="font-medium">Democratizando oportunidades do Amazonas a São Paulo.</span>
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             <Button 
               onClick={() => handleCTAClick("athlete")}
-              className="btn-primary text-white px-8 py-4 text-lg flex items-center gap-3 min-w-[200px] h-auto rounded-xl"
+              className="btn-primary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105"
             >
-              <Terminal className="w-5 h-5" />
+              <Terminal className="w-6 h-6" />
               SOU ATLETA
             </Button>
             <Button 
               onClick={() => handleCTAClick("scout")}
-              className="btn-secondary azul-celeste px-8 py-4 text-lg flex items-center gap-3 min-w-[200px] h-auto rounded-xl"
+              className="btn-secondary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-6 h-6" />
               SOU SCOUT
             </Button>
           </div>
           
           {/* Stats row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-4xl mx-auto">
             <div className="text-center fade-in">
-              <StatCounter target={1300000} suffix="+" className="text-3xl md:text-4xl font-bold amarelo-ouro font-oswald" />
-              <div className="text-sm uppercase tracking-wide">Jovens Talentos</div>
+              <StatCounter target={1300000} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
+              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Jovens Talentos</div>
             </div>
             <div className="text-center fade-in">
-              <StatCounter target={50000} suffix="+" className="text-3xl md:text-4xl font-bold amarelo-ouro font-oswald" />
-              <div className="text-sm uppercase tracking-wide">Testes Verificados</div>
+              <StatCounter target={50000} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
+              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Testes Verificados</div>
             </div>
             <div className="text-center fade-in">
-              <StatCounter target={2500} suffix="+" className="text-3xl md:text-4xl font-bold amarelo-ouro font-oswald" />
-              <div className="text-sm uppercase tracking-wide">Scouts Ativos</div>
+              <StatCounter target={2500} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
+              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Scouts Ativos</div>
             </div>
           </div>
         </div>
