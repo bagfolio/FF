@@ -87,6 +87,57 @@ body {
   }
 }
 
+/* Mobile Touch Optimizations */
+@media (max-width: 768px) {
+  /* Increase touch targets for mobile */
+  .btn, button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve text readability on mobile */
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  /* Optimize spacing for mobile */
+  .mobile-spacing {
+    padding: 1rem;
+  }
+  
+  /* Hide elements on mobile when needed */
+  .mobile-hidden {
+    display: none;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tablet-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Improved mobile navigation */
+@media (max-width: 1023px) {
+  .mobile-nav-spacing {
+    padding-bottom: 80px; /* Space for bottom navigation */
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) {
+  /* Remove hover effects on touch devices */
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  .hover\:shadow-lg:hover {
+    box-shadow: none;
+  }
+}
+
 .dark {
   --background: hsl(240, 10%, 3.9%);
   --foreground: hsl(0, 0%, 98%);

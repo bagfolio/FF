@@ -45,13 +45,15 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
+      {/* Navigation Responsiva */}
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-md shadow-lg z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center">
-              <h1 className="font-bebas text-2xl verde-brasil">FUTEBOL FUTURO</h1>
+              <h1 className="font-bebas text-xl sm:text-2xl verde-brasil">FUTEBOL FUTURO</h1>
             </div>
+            
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
               <a href="#como-funciona" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Como Funciona
@@ -62,8 +64,15 @@ export default function Landing() {
               <a href="#parceiros" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Parceiros
               </a>
-              <Button onClick={handleDirectAccess} className="bg-azul-celeste hover:bg-blue-800">
+              <Button onClick={handleDirectAccess} className="bg-azul-celeste hover:bg-blue-800 text-sm px-4 py-2">
                 Acessar Plataforma
+              </Button>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="md:hidden">
+              <Button onClick={handleDirectAccess} className="bg-azul-celeste hover:bg-blue-800 text-xs px-3 py-2">
+                Entrar
               </Button>
             </div>
           </div>
@@ -81,30 +90,30 @@ export default function Landing() {
           <div className="absolute inset-0 hero-video-overlay"></div>
         </div>
         
-        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
-          <h1 className="font-bebas text-6xl md:text-8xl lg:text-9xl leading-none mb-8 tracking-wider">
+        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pt-16 sm:pt-20">
+          <h1 className="font-bebas text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl leading-none mb-6 sm:mb-8 tracking-wider">
             SEU TALENTO<br />
             <span className="amarelo-ouro drop-shadow-lg">MERECE SER VISTO</span>
           </h1>
           
-          <p className="text-lg md:text-xl lg:text-2xl mb-10 font-light max-w-4xl mx-auto leading-relaxed drop-shadow-md">
-            A primeira plataforma brasileira que usa IA para verificar talentos do futebol.<br />
+          <p className="text-sm sm:text-lg md:text-xl lg:text-2xl mb-8 sm:mb-10 font-light max-w-4xl mx-auto leading-relaxed drop-shadow-md">
+            A primeira plataforma brasileira que usa IA para verificar talentos do futebol.<br className="hidden sm:block" />
             <span className="font-medium">Democratizando oportunidades do Amazonas a São Paulo.</span>
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+          <div className="flex flex-col gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16">
             <Button 
               onClick={() => setLocation("/athlete/dashboard")}
-              className="btn-primary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105"
+              className="btn-primary text-white px-8 sm:px-10 py-4 sm:py-5 text-lg sm:text-xl font-semibold flex items-center gap-2 sm:gap-3 w-full sm:w-auto sm:min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105"
             >
-              <Terminal className="w-6 h-6" />
+              <Terminal className="w-5 h-5 sm:w-6 sm:h-6" />
               SOU ATLETA
             </Button>
             <Button 
               onClick={() => setLocation("/scout/dashboard")}
-              className="btn-secondary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105"
+              className="btn-secondary text-white px-8 sm:px-10 py-4 sm:py-5 text-lg sm:text-xl font-semibold flex items-center gap-2 sm:gap-3 w-full sm:w-auto sm:min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105"
             >
-              <Search className="w-6 h-6" />
+              <Search className="w-5 h-5 sm:w-6 sm:h-6" />
               SOU SCOUT
             </Button>
           </div>

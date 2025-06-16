@@ -15,6 +15,7 @@ import {
   Bell
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import MobileBottomNav from "./MobileBottomNav";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -195,13 +196,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
         {/* Conteúdo da Página */}
         <main className={`
           flex-1 overflow-auto bg-cinza-claro
-          ${isMobile ? 'p-4' : 'p-6'}
+          ${isMobile ? 'p-4 pb-20' : 'p-6'}
         `}>
           <div className="container-responsive">
             {children}
           </div>
         </main>
       </div>
+
+      {/* Navegação Inferior Mobile */}
+      <MobileBottomNav />
 
       {/* Overlay Mobile */}
       {isMobile && sidebarOpen && (

@@ -17,7 +17,7 @@ export default function ScoutDashboard() {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header do Scout */}
       <div className="mb-8">
         <h1 className="font-bebas text-4xl azul-celeste mb-2">DASHBOARD DO SCOUT</h1>
