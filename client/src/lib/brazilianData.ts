@@ -1,4 +1,5 @@
 // Realistic Brazilian data for mock content
+import { Trophy, Zap, Star, Flame, Medal, Target, Award, TrendingUp, Crown } from "lucide-react";
 
 export const brazilianNames = {
   first: [
@@ -130,43 +131,75 @@ export const recentActivities = [
 export const achievements = [
   {
     id: "first_test",
-    title: "Primeiros Passos",
+    name: "Primeiros Passos",
     description: "Complete seu primeiro teste verificado",
-    icon: "🏃‍♂️",
+    icon: Target,
     points: 100,
     color: "from-green-400 to-green-600"
   },
   {
     id: "speed_demon",
-    title: "Relâmpago",
+    name: "Relâmpago",
     description: "Entre no top 10% de velocidade da sua idade",
-    icon: "⚡",
+    icon: Zap,
     points: 500,
     color: "from-yellow-400 to-orange-500"
   },
   {
     id: "complete_profile",
-    title: "Profissional",
+    name: "Profissional",
     description: "Complete 100% do seu perfil",
-    icon: "⭐",
+    icon: Star,
     points: 200,
     color: "from-blue-400 to-blue-600"
   },
   {
     id: "week_streak",
-    title: "Dedicação",
+    name: "Dedicação",
     description: "Treine por 7 dias consecutivos",
-    icon: "🔥",
+    icon: Flame,
     points: 300,
     color: "from-red-400 to-red-600"
   },
   {
     id: "verified_gold",
-    title: "Ouro Olímpico",
+    name: "Ouro Olímpico",
     description: "Alcance o nível Ouro de verificação",
-    icon: "🥇",
+    icon: Crown,
     points: 1000,
     color: "from-yellow-400 to-yellow-600"
+  },
+  {
+    id: "team_player",
+    name: "Trabalho em Equipe",
+    description: "Receba 5 endossos de treinadores",
+    icon: Award,
+    points: 400,
+    color: "from-purple-400 to-purple-600"
+  },
+  {
+    id: "rising_star",
+    name: "Estrela em Ascensão",
+    description: "Seja visualizado por 10 olheiros",
+    icon: TrendingUp,
+    points: 600,
+    color: "from-pink-400 to-pink-600"
+  },
+  {
+    id: "champion",
+    name: "Campeão",
+    description: "Alcance o top 5% nacional",
+    icon: Trophy,
+    points: 1500,
+    color: "from-indigo-400 to-indigo-600"
+  },
+  {
+    id: "verified_athlete",
+    name: "Atleta Verificado",
+    description: "Complete todos os testes do Combine Digital",
+    icon: Medal,
+    points: 800,
+    color: "from-teal-400 to-teal-600"
   }
 ];
 
@@ -197,7 +230,12 @@ export function generateRealisticAthlete() {
     speed20m: parseFloat(speed),
     verificationLevel,
     profileViews: Math.floor(Math.random() * 500) + 50,
-    percentile: Math.floor(Math.random() * 30) + 70
+    percentile: Math.floor(Math.random() * 30) + 70,
+    // Additional performance metrics
+    speed: Math.floor(Math.random() * 30) + 70,
+    agility: Math.floor(Math.random() * 30) + 65,
+    technique: Math.floor(Math.random() * 30) + 60,
+    endurance: Math.floor(Math.random() * 30) + 65
   };
 }
 

@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(npm run dev:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(true)",
+      "Bash(npm run:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

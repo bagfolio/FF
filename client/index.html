@@ -46,13 +46,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://images.unsplash.com">
     
+    <!-- Preload critical fonts -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&family=Inter:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&family=Inter:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap"></noscript>
+    
     <!-- Brazilian Color Scheme for browsers -->
     <meta name="color-scheme" content="light">
     <style>
       /* Critical CSS for faster loading */
       body {
         margin: 0;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
         background-color: #F5F5F5;
       }
       
@@ -68,7 +72,9 @@
         justify-content: center;
         z-index: 9999;
         color: white;
-        font-family: 'Bebas Neue', cursive;
+        font-family: 'Bebas Neue', Arial, sans-serif;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
         font-size: 2rem;
       }
       
@@ -102,18 +108,17 @@
     
     <!-- Remove loading screen when app loads -->
     <script>
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          const loading = document.getElementById('initial-loading');
-          if (loading) {
-            loading.style.opacity = '0';
-            loading.style.transition = 'opacity 0.5s ease-out';
-            setTimeout(function() {
-              loading.remove();
-            }, 500);
-          }
-        }, 1000);
-      });
+      // Remove loading screen as soon as React mounts
+      window.removeInitialLoading = function() {
+        const loading = document.getElementById('initial-loading');
+        if (loading) {
+          loading.style.opacity = '0';
+          loading.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(function() {
+            loading.remove();
+          }, 300);
+        }
+      };
     </script>
     
     <!-- Service Worker Registration -->

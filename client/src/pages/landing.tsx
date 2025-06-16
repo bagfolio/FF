@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import StatCounter from "@/components/features/StatCounter";
@@ -6,6 +7,7 @@ import UserTypeModal from "@/components/features/UserTypeModal";
 import { Play, Search, Terminal, Video, Bot, Handshake, Check, Medal, Star, Crown, Trophy } from "lucide-react";
 
 export default function Landing() {
+  const [, setLocation] = useLocation();
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
   const [selectedUserType, setSelectedUserType] = useState<"athlete" | "scout" | null>(null);
 
@@ -38,7 +40,7 @@ export default function Landing() {
 
   const handleLogin = () => {
     // In development mode, go directly to home page
-    window.location.href = "/home";
+    setLocation("/home");
   };
 
   return (
@@ -92,14 +94,14 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             <Button 
-              onClick={() => window.location.href = "/home"}
+              onClick={() => setLocation("/home")}
               className="btn-primary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105"
             >
               <Terminal className="w-6 h-6" />
               SOU ATLETA
             </Button>
             <Button 
-              onClick={() => window.location.href = "/home"}
+              onClick={() => setLocation("/home")}
               className="btn-secondary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105"
             >
               <Search className="w-6 h-6" />
@@ -337,14 +339,14 @@ export default function Landing() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <Button 
-                onClick={() => window.location.href = "/home"}
+                onClick={() => setLocation("/home")}
                 className="bg-white azul-celeste px-8 py-4 text-lg flex items-center gap-3 hover:bg-gray-100 min-w-[200px] h-auto rounded-xl"
               >
                 <Terminal className="w-5 h-5" />
                 COMEÇAR AGORA
               </Button>
               <Button 
-                onClick={() => window.location.href = "/home"}
+                onClick={() => setLocation("/home")}
                 variant="outline"
                 className="border-2 border-white text-white px-8 py-4 text-lg flex items-center gap-3 hover:bg-white hover:text-blue-900 min-w-[200px] h-auto rounded-xl"
               >

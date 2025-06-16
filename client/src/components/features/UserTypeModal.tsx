@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +17,7 @@ interface UserTypeModalProps {
 
 export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTypeModalProps) {
   const [localSelectedType, setLocalSelectedType] = useState<"athlete" | "scout" | null>(selectedType);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -33,9 +35,9 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
       
       // Redirect to appropriate dashboard
       if (localSelectedType === "athlete") {
-        window.location.href = "/athlete/dashboard";
+        setLocation("/athlete/dashboard");
       } else {
-        window.location.href = "/scout/dashboard";
+        setLocation("/scout/dashboard");
       }
     },
     onError: (error) => {

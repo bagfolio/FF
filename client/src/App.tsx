@@ -13,14 +13,10 @@ import ScoutSearch from "@/pages/scout/search";
 import NotFound from "@/pages/not-found";
 import LoadingScreen from "@/components/ui/loading-screen";
 import TestPage from "@/pages/test";
+import TrustPyramidDemo from "@/pages/trust-pyramid-demo";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
+  // Remove loading screen check since we have cached data
   return (
     <Switch>
       {/* Public routes */}
@@ -35,6 +31,7 @@ function Router() {
       
       {/* Development test page */}
       <Route path="/test" component={TestPage} />
+      <Route path="/trust-pyramid-demo" component={TrustPyramidDemo} />
       
       {/* 404 */}
       <Route component={NotFound} />

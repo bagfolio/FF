@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import LoadingScreen from "@/components/ui/loading-screen";
 import UserTypeModal from "@/components/features/UserTypeModal";
 import { Button } from "@/components/ui/button";
@@ -8,25 +9,23 @@ import { Trophy, Search, Users, Target } from "lucide-react";
 
 export default function Home() {
   const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [selectedType, setSelectedType] = useState<"athlete" | "scout" | null>(null);
 
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
+  useEffect(() => {
+    if (!isLoading && user) {
+      // If user already has a type, redirect to their dashboard
+      if ((user as any).userType === "athlete") {
+        setLocation("/athlete/dashboard");
+      } else if ((user as any).userType === "scout") {
+        setLocation("/scout/dashboard");
+      }
+    }
+  }, [user, isLoading, setLocation]);
 
-  if (!user) {
-    return <LoadingScreen />;
-  }
-
-  // If user already has a type, redirect to their dashboard
-  if ((user as any).userType === "athlete") {
-    window.location.href = "/athlete/dashboard";
-    return <LoadingScreen />;
-  }
-  
-  if ((user as any).userType === "scout") {
-    window.location.href = "/scout/dashboard";
+  // Show loading screen only while auth is loading or if user has a type (during redirect)
+  if (isLoading || !user || (user as any).userType) {
     return <LoadingScreen />;
   }
 

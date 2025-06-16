@@ -8,11 +8,17 @@ export function useAuth() {
     gcTime: 1000 * 60 * 10, // 10 minutes
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+    // Set initial data to prevent loading on subsequent page loads
+    initialData: () => {
+      // Check if we have cached user data
+      const cached = localStorage.getItem('auth-user-cache');
+      return cached ? JSON.parse(cached) : undefined;
+    },
   });
 
-  // Debug logging for development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Auth state:', { user, isLoading, error, isSuccess });
+  // Cache user data for faster subsequent loads
+  if (user && !error) {
+    localStorage.setItem('auth-user-cache', JSON.stringify(user));
   }
 
   // In development mode, always treat as authenticated if we get any user data

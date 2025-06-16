@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import Navigation from "@/components/layout/Navigation";
 import { Search, Filter, MapPin, Medal, Star, Crown, Trophy, Grid, List, Eye } from "lucide-react";
+import VerificationBadge from "@/components/ui/verification-badge";
 
 const positions = [
   "Goleiro", "Zagueiro", "Lateral Direito", "Lateral Esquerdo", 
@@ -36,20 +37,6 @@ export default function ScoutSearch() {
     keepPreviousData: true,
   });
 
-  const getVerificationBadge = (level: string) => {
-    switch (level) {
-      case "bronze":
-        return <Badge variant="outline" className="text-orange-600"><Medal className="w-3 h-3 mr-1" />Bronze</Badge>;
-      case "silver":
-        return <Badge variant="outline" className="text-gray-600"><Star className="w-3 h-3 mr-1" />Prata</Badge>;
-      case "gold":
-        return <Badge variant="outline" className="text-yellow-600"><Crown className="w-3 h-3 mr-1" />Ouro</Badge>;
-      case "platinum":
-        return <Badge variant="outline" className="text-purple-600"><Trophy className="w-3 h-3 mr-1" />Platina</Badge>;
-      default:
-        return <Badge variant="outline"><Medal className="w-3 h-3 mr-1" />Bronze</Badge>;
-    }
-  };
 
   return (
     <div className="min-h-screen bg-cinza-claro">
@@ -200,7 +187,7 @@ export default function ScoutSearch() {
                         </div>
                         <h3 className="font-semibold text-lg azul-celeste">{athlete.fullName}</h3>
                         <p className="text-gray-600">{athlete.position}</p>
-                        {getVerificationBadge(athlete.verificationLevel)}
+                        <VerificationBadge level={athlete.verificationLevel as "bronze" | "silver" | "gold" | "platinum"} size="sm" />
                       </div>
                       
                       <div className="space-y-2 text-sm">
@@ -247,7 +234,7 @@ export default function ScoutSearch() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-1">
                               <h3 className="font-semibold text-lg azul-celeste">{athlete.fullName}</h3>
-                              {getVerificationBadge(athlete.verificationLevel)}
+                              <VerificationBadge level={athlete.verificationLevel as "bronze" | "silver" | "gold" | "platinum"} size="sm" />
                             </div>
                             <p className="text-gray-600">{athlete.position} • {athlete.city}, {athlete.state}</p>
                             <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">

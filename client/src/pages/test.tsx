@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function TestPage() {
+  const [, setLocation] = useLocation();
   const { user, isLoading, isAuthenticated } = useAuth();
   const [testResults, setTestResults] = useState<any>({});
   const [testing, setTesting] = useState(false);
@@ -121,39 +123,45 @@ export default function TestPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Button 
                 variant="outline"
-                onClick={() => window.location.href = '/'}
+                onClick={() => setLocation('/')}
               >
                 Landing Page
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => window.location.href = '/home'}
+                onClick={() => setLocation('/home')}
               >
                 Home (Seleção)
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => window.location.href = '/athlete/dashboard'}
+                onClick={() => setLocation('/athlete/dashboard')}
               >
                 Dashboard Atleta
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => window.location.href = '/scout/dashboard'}
+                onClick={() => setLocation('/scout/dashboard')}
               >
                 Dashboard Scout
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => window.location.href = '/athlete/onboarding'}
+                onClick={() => setLocation('/athlete/onboarding')}
               >
                 Onboarding Atleta
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => window.location.href = '/scout/search'}
+                onClick={() => setLocation('/scout/search')}
               >
                 Busca Scout
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setLocation('/trust-pyramid-demo')}
+              >
+                Pirâmide Demo
               </Button>
               <Button 
                 variant="outline"

@@ -10,6 +10,7 @@ import { AthleteCardSkeleton, DashboardStatsSkeleton } from "@/components/ui/ske
 import { generateRealisticAthlete } from "@/lib/brazilianData";
 import { Search, Users, Eye, TrendingUp, Filter, MapPin, Medal, Star, Crown, Trophy } from "lucide-react";
 import { useLocation } from "wouter";
+import VerificationBadge from "@/components/ui/verification-badge";
 
 export default function ScoutDashboard() {
   const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
@@ -43,40 +44,6 @@ export default function ScoutDashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  const getVerificationBadge = (level: string) => {
-    const badges = {
-      bronze: {
-        className: "bg-gradient-to-r from-orange-400 to-orange-600 text-white border-0",
-        icon: Medal,
-        label: "Bronze"
-      },
-      silver: {
-        className: "bg-gradient-to-r from-gray-300 to-gray-500 text-white border-0",
-        icon: Star,
-        label: "Prata"
-      },
-      gold: {
-        className: "bg-gradient-to-r from-yellow-400 to-yellow-600 text-black border-0 shadow-md shadow-yellow-500/20",
-        icon: Crown,
-        label: "Ouro"
-      },
-      platinum: {
-        className: "bg-gradient-to-r from-purple-400 via-pink-500 to-purple-600 text-white border-0 shadow-lg shadow-purple-500/30",
-        icon: Trophy,
-        label: "Platina"
-      }
-    };
-    
-    const badge = badges[level] || badges.bronze;
-    const Icon = badge.icon;
-    
-    return (
-      <Badge className={badge.className}>
-        <Icon className="w-3 h-3 mr-1" />
-        {badge.label}
-      </Badge>
-    );
-  };
 
   if (!scout) {
     return (
@@ -267,7 +234,7 @@ export default function ScoutDashboard() {
                               <h4 className="font-semibold text-lg group-hover:text-verde-brasil transition-colors">
                                 {athlete.fullName}
                               </h4>
-                              {getVerificationBadge(athlete.verificationLevel)}
+                              <VerificationBadge level={athlete.verificationLevel as "bronze" | "silver" | "gold" | "platinum"} size="sm" />
                               {athlete.percentile > 90 && (
                                 <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs">
                                   TOP 10%
