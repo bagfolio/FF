@@ -1,10 +1,7 @@
-// NOVO ARQUIVO: server/middleware/auth.middleware.ts
-
+// server/middleware/auth.middleware.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { storage } from '../storage';
 
-// Estendemos a interface Request do Express para incluir nosso objeto `user`
 declare global {
     namespace Express {
         interface Request {
@@ -16,31 +13,35 @@ declare global {
     }
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'seu-segredo-super-secreto-deve-ser-longo';
-if (JWT_SECRET === 'seu-segredo-super-secreto-deve-ser-longo') {
-    console.warn('AVISO: JWT_SECRET não está configurado. Usando valor padrão inseguro.');
-}
+const JWT_SECRET = process.env.JWT_SECRET || 'your-fallback-secret-key';
 
 export async function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-    const token = req.cookies.token;
-
-    if (!token) {
-        return res.status(401).json({ message: 'Acesso não autorizado: token ausente.' });
-    }
-
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-        const user = await storage.getUser(decoded.userId);
-
-        if (!user) {
-            return res.status(401).json({ message: 'Acesso não autorizado: usuário não encontrado.' });
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ 
+                message: 'Acesso não autorizado: token ausente ou formato inválido' 
+            });
         }
 
-        // Anexa o usuário à requisição para ser usado nos controllers
-        req.user = { id: user.id, email: user.email! }; 
-
-        next();
+        const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        
+        try {
+            const decoded = jwt.verify(token, JWT_SECRET) as any;
+            req.user = {
+                id: decoded.id,
+                email: decoded.email
+            };
+            next();
+        } catch (jwtError) {
+            return res.status(401).json({ 
+                message: 'Acesso não autorizado: token inválido ou expirado' 
+            });
+        }
     } catch (error) {
-        return res.status(401).json({ message: 'Acesso não autorizado: token inválido.' });
+        return res.status(500).json({ 
+            message: 'Erro interno do servidor' 
+        });
     }
 }

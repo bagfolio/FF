@@ -1,47 +1,92 @@
-// ARQUIVO ATUALIZADO (MODO DE DEPURAÇÃO): server/controllers/auth.controller.ts
-
+// server/controllers/auth.controller.ts
 import { Request, Response, NextFunction } from 'express';
+import { authService } from '../services/auth.service';
+import { insertUserSchema } from '@shared/schema';
+import { z } from 'zod';
 
-// Mock DEFINITIVO e SIMPLES para o usuário de desenvolvimento.
-const devUser = {
-    id: "dev-user-123",
-    email: "dev@futebol-futuro.com",
-    firstName: "João",
-    lastName: "Silva",
-    profileImageUrl: "https://i.pravatar.cc/150?u=dev-user-123",
-    userType: 'athlete', // Definindo um tipo padrão para evitar problemas
-    roleData: {
-        id: 1,
-        userId: "dev-user-123",
-        fullName: "João Silva",
-        position: "Atacante",
-        city: "São Paulo",
-        state: "SP",
-        verificationLevel: "bronze"
-    }
-};
+const registerSchema = insertUserSchema.extend({
+    password: z.string().min(6),
+    confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"]
+});
 
 export async function getCurrentUser(req: Request, res: Response, next: NextFunction) {
-    // Ignora tudo e apenas retorna o usuário mockado.
-    // Isso garante que o problema NÃO está no backend.
-    console.log("INFO: Endpoint /api/auth/user chamado, retornando usuário mockado.");
-    res.status(200).json(devUser);
+    try {
+        const userId = (req as any).user?.id;
+        if (!userId) {
+            return res.status(401).json({ message: 'Usuário não autenticado' });
+        }
+
+        const user = await authService.getCurrentUser(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+
+        res.json(user);
+    } catch (error) {
+        next(error);
+    }
 }
 
-// As outras funções permanecem, mas não serão usadas por enquanto.
-// Manteremos a estrutura para quando reativarmos.
 export async function register(req: Request, res: Response, next: NextFunction) {
-    res.status(501).json({ message: "Registro desabilitado em modo de depuração." });
+    try {
+        const validatedData = registerSchema.parse(req.body);
+        const { confirmPassword, ...userData } = validatedData;
+        
+        const result = await authService.register(userData);
+        res.status(201).json(result);
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ 
+                message: 'Dados inválidos', 
+                errors: error.errors 
+            });
+        }
+        next(error);
+    }
 }
 
 export async function login(req: Request, res: Response, next: NextFunction) {
-     res.status(501).json({ message: "Login desabilitado em modo de depuração." });
+    try {
+        const { email, password } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({ 
+                message: 'Email e senha são obrigatórios' 
+            });
+        }
+
+        const result = await authService.login(email, password);
+        res.json(result);
+    } catch (error) {
+        next(error);
+    }
 }
 
 export async function logout(req: Request, res: Response) {
-    res.status(200).json({ message: "Logout." });
+    res.json({ message: 'Logout realizado com sucesso' });
 }
 
 export async function setUserType(req: Request, res: Response, next: NextFunction) {
-    res.status(200).json(devUser);
+    try {
+        const userId = (req as any).user?.id;
+        const { userType } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ message: 'Usuário não autenticado' });
+        }
+
+        if (!['athlete', 'scout'].includes(userType)) {
+            return res.status(400).json({ 
+                message: 'Tipo de usuário inválido. Use "athlete" ou "scout"' 
+            });
+        }
+
+        const updatedUser = await authService.updateUserType(userId, userType);
+        res.json(updatedUser);
+    } catch (error) {
+        next(error);
+    }
 }

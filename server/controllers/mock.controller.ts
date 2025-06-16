@@ -1,6 +1,5 @@
-// NOVO ARQUIVO: server/controllers/mock.controller.ts
-
-import { Request, Response, NextFunction } from 'express';
+// server/controllers/mock.controller.ts
+import { Request, Response } from 'express';
 import { generateMockAthletes } from '../mockData';
 
 export function getMockAthletes(req: Request, res: Response) {
@@ -9,22 +8,36 @@ export function getMockAthletes(req: Request, res: Response) {
 }
 
 export function getMockTests(req: Request, res: Response) {
-    const athleteId = parseInt(req.params.id);
     const mockTests = [
-        { id: 1, athleteId, testType: "speed_20m", result: 2.78, verified: true, createdAt: new Date() },
-        { id: 2, athleteId, testType: "agility_5_10_5", result: 4.65, verified: true, createdAt: new Date() },
+        {
+            id: 1,
+            athleteId: 1,
+            testType: 'velocidade_20m',
+            result: 2.85,
+            date: new Date().toISOString(),
+            verified: true
+        },
+        {
+            id: 2,
+            athleteId: 1,
+            testType: 'agilidade_5_10_5',
+            result: 4.12,
+            date: new Date().toISOString(),
+            verified: false
+        }
     ];
     res.json(mockTests);
 }
 
 export function getMockScoutProfile(req: Request, res: Response) {
-    // Assume que o usuário é um scout para este endpoint mockado
-    const mockScoutProfile = {
+    const mockScout = {
         id: 1,
-        userId: "dev-user-123",
-        fullName: "Carlos Alberto",
-        organization: "Olheiros do Brasil",
-        position: "Scout Chefe - Sudeste"
+        name: 'João Santos',
+        organization: 'Santos FC',
+        experience: 8,
+        specialization: 'Jovens Talentos',
+        region: 'São Paulo',
+        verified: true
     };
-    res.json(mockScoutProfile);
+    res.json(mockScout);
 }
