@@ -37,7 +37,8 @@ export default function Landing() {
   };
 
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    // In development mode, go directly to home page
+    window.location.href = "/home";
   };
 
   return (
@@ -91,14 +92,14 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             <Button 
-              onClick={() => handleCTAClick("athlete")}
+              onClick={() => window.location.href = "/home"}
               className="btn-primary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105"
             >
               <Terminal className="w-6 h-6" />
               SOU ATLETA
             </Button>
             <Button 
-              onClick={() => handleCTAClick("scout")}
+              onClick={() => window.location.href = "/home"}
               className="btn-secondary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105"
             >
               <Search className="w-6 h-6" />
@@ -336,14 +337,14 @@ export default function Landing() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <Button 
-                onClick={() => handleCTAClick("athlete")}
+                onClick={() => window.location.href = "/home"}
                 className="bg-white azul-celeste px-8 py-4 text-lg flex items-center gap-3 hover:bg-gray-100 min-w-[200px] h-auto rounded-xl"
               >
                 <Terminal className="w-5 h-5" />
                 COMEÇAR AGORA
               </Button>
               <Button 
-                onClick={() => handleCTAClick("scout")}
+                onClick={() => window.location.href = "/home"}
                 variant="outline"
                 className="border-2 border-white text-white px-8 py-4 text-lg flex items-center gap-3 hover:bg-white hover:text-blue-900 min-w-[200px] h-auto rounded-xl"
               >

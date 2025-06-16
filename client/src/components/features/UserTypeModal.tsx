@@ -21,15 +21,24 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
 
   const setUserType = useMutation({
     mutationFn: async (userType: "athlete" | "scout") => {
-      // First login to get authenticated
-      window.location.href = "/api/login";
+      const response = await apiRequest("POST", "/api/auth/user-type", { userType });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Sucesso!",
+        description: `Perfil de ${localSelectedType === 'athlete' ? 'Atleta' : 'Olheiro'} selecionado.",
+      });
+      
+      // Redirect to appropriate dashboard
+      if (localSelectedType === "athlete") {
+        window.location.href = "/athlete/dashboard";
+      } else {
+        window.location.href = "/scout/dashboard";
+      }
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        // Redirect to login
-        window.location.href = "/api/login";
-        return;
-      }
       toast({
         title: "Erro",
         description: "Ocorreu um erro. Tente novamente.",
@@ -44,8 +53,6 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
 
   const handleContinue = () => {
     if (localSelectedType) {
-      // Store the selected type in localStorage to use after login
-      localStorage.setItem("pendingUserType", localSelectedType);
       setUserType.mutate(localSelectedType);
     }
   };

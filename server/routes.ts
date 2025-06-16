@@ -8,22 +8,24 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware disabled for development
 
+  // Mock user storage (in production this would be in a database/session)
+  let mockUserState = {
+    id: "dev-user-123",
+    email: "dev@futebol-futuro.com",
+    firstName: "João",
+    lastName: "Silva",
+    profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+    userType: null as string | null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    roleData: null as any
+  };
+
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
     try {
-      // DEVELOPMENT MODE - ALWAYS RETURN MOCK USER
-      const mockUser = {
-        id: "dev-user-123",
-        email: "dev@futebol-futuro.com",
-        firstName: "João",
-        lastName: "Silva",
-        profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-        userType: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        roleData: null
-      };
-      return res.json(mockUser);
+      // Return the current mock user state
+      return res.json(mockUserState);
 
       // Production code (disabled for development)
       /*
@@ -52,26 +54,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set user type
   app.post('/api/auth/user-type', async (req: any, res) => {
     try {
-      // DEVELOPMENT MODE - Mock user type setting
       const { userType } = req.body;
       
       if (!['athlete', 'scout'].includes(userType)) {
         return res.status(400).json({ message: "Invalid user type" });
       }
       
-      const mockUser = {
-        id: "dev-user-123",
-        email: "dev@futebol-futuro.com",
-        firstName: "João",
-        lastName: "Silva",
-        profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-        userType,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        roleData: null
-      };
+      // Update the mock user state
+      mockUserState.userType = userType;
+      mockUserState.updatedAt = new Date();
       
-      res.json(mockUser);
+      // Create mock role data based on type
+      if (userType === 'athlete') {
+        mockUserState.roleData = {
+          id: 1,
+          userId: mockUserState.id,
+          fullName: "João Silva",
+          position: "Atacante",
+          city: "São Paulo",
+          state: "SP",
+          verificationLevel: "bronze"
+        };
+      } else if (userType === 'scout') {
+        mockUserState.roleData = {
+          id: 1,
+          userId: mockUserState.id,
+          fullName: "João Silva",
+          organization: "Palmeiras",
+          position: "Olheiro Chefe"
+        };
+      }
+      
+      res.json(mockUserState);
     } catch (error) {
       console.error("Error setting user type:", error);
       res.status(500).json({ message: "Failed to set user type" });
@@ -81,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Athlete routes
   app.post('/api/athletes', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = mockUserState.id; // Use mock user ID
       const athleteData = insertAthleteSchema.parse({ ...req.body, userId });
       
       const athlete = await storage.createAthlete(athleteData);
@@ -97,7 +111,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/athletes/me', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = mockUserState.id; // Use mock user ID
+      
+      // Return mock athlete data for development
+      if (mockUserState.userType === 'athlete' && mockUserState.roleData) {
+        return res.json(mockUserState.roleData);
+      }
+      
       const athlete = await storage.getAthleteByUserId(userId);
       
       if (!athlete) {
@@ -130,6 +150,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/athletes', async (req, res) => {
     try {
       const filters = req.query;
+      
+      // For development, return mock athletes
+      const { generateMockAthletes } = require("./mockData");
+      const mockAthletes = generateMockAthletes(20);
+      
+      res.json(mockAthletes);
+      return;
+      
       const athletes = await storage.searchAthletes(filters);
       res.json(athletes);
     } catch (error) {
@@ -141,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Scout routes
   app.post('/api/scouts', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = mockUserState.id; // Use mock user ID
       const scoutData = insertScoutSchema.parse({ ...req.body, userId });
       
       const scout = await storage.createScout(scoutData);
@@ -157,7 +185,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/scouts/me', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = mockUserState.id; // Use mock user ID
+      
+      // Return mock scout data for development
+      if (mockUserState.userType === 'scout' && mockUserState.roleData) {
+        return res.json(mockUserState.roleData);
+      }
+      
       const scout = await storage.getScoutByUserId(userId);
       
       if (!scout) {
@@ -174,11 +208,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test routes
   app.post('/api/tests', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = mockUserState.id; // Use mock user ID
       const athlete = await storage.getAthleteByUserId(userId);
       
       if (!athlete) {
-        return res.status(404).json({ message: "Athlete profile not found" });
+        // For development, create a mock test
+        const mockTest = {
+          id: Math.floor(Math.random() * 1000),
+          athleteId: 1,
+          testType: req.body.testType || "speed_20m",
+          result: req.body.result || 2.85,
+          verified: true,
+          createdAt: new Date()
+        };
+        return res.json(mockTest);
       }
       
       const testData = insertTestSchema.parse({ ...req.body, athleteId: athlete.id });
@@ -197,6 +240,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/tests/athlete/:id', async (req, res) => {
     try {
       const athleteId = parseInt(req.params.id);
+      
+      // For development, return mock tests
+      const mockTests = [
+        {
+          id: 1,
+          athleteId: athleteId,
+          testType: "speed_20m",
+          result: 2.78,
+          aiConfidence: 0.98,
+          verified: true,
+          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        },
+        {
+          id: 2,
+          athleteId: athleteId,
+          testType: "agility_5_10_5",
+          result: 4.65,
+          aiConfidence: 0.95,
+          verified: true,
+          createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
+        },
+        {
+          id: 3,
+          athleteId: athleteId,
+          testType: "technical_skills",
+          result: 8.5,
+          aiConfidence: 0.92,
+          verified: true,
+          createdAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000)
+        }
+      ];
+      
+      res.json(mockTests);
+      return;
+      
       const tests = await storage.getTestsByAthlete(athleteId);
       res.json(tests);
     } catch (error) {
@@ -219,7 +297,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/athletes/:id/view', async (req: any, res) => {
     try {
       const athleteId = parseInt(req.params.id);
-      const userId = req.user.claims.sub;
+      const userId = mockUserState.id; // Use mock user ID
+      
+      // For development, always allow views if user is a scout
+      if (mockUserState.userType !== 'scout') {
+        return res.status(403).json({ message: "Only scouts can view athlete profiles" });
+      }
+      
+      // Return success for development
+      res.json({ success: true, message: "View recorded" });
+      return;
+      
       const scout = await storage.getScoutByUserId(userId);
       
       if (!scout) {

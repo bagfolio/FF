@@ -12,6 +12,7 @@ import ScoutDashboard from "@/pages/scout/dashboard";
 import ScoutSearch from "@/pages/scout/search";
 import NotFound from "@/pages/not-found";
 import LoadingScreen from "@/components/ui/loading-screen";
+import TestPage from "@/pages/test";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -22,17 +23,20 @@ function Router() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/athlete/onboarding" component={AthleteOnboarding} />
-          <Route path="/athlete/dashboard" component={AthleteDashboard} />
-          <Route path="/scout/dashboard" component={ScoutDashboard} />
-          <Route path="/scout/search" component={ScoutSearch} />
-        </>
-      )}
+      {/* Public routes */}
+      <Route path="/" component={Landing} />
+      
+      {/* Protected routes - in dev mode, always accessible */}
+      <Route path="/home" component={Home} />
+      <Route path="/athlete/onboarding" component={AthleteOnboarding} />
+      <Route path="/athlete/dashboard" component={AthleteDashboard} />
+      <Route path="/scout/dashboard" component={ScoutDashboard} />
+      <Route path="/scout/search" component={ScoutSearch} />
+      
+      {/* Development test page */}
+      <Route path="/test" component={TestPage} />
+      
+      {/* 404 */}
       <Route component={NotFound} />
     </Switch>
   );
