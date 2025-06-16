@@ -94,14 +94,14 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             <Button 
-              onClick={() => setLocation("/home")}
+              onClick={() => setLocation("/athlete/dashboard")}
               className="btn-primary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105"
             >
               <Terminal className="w-6 h-6" />
               SOU ATLETA
             </Button>
             <Button 
-              onClick={() => setLocation("/home")}
+              onClick={() => setLocation("/scout/dashboard")}
               className="btn-secondary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105"
             >
               <Search className="w-6 h-6" />

@@ -90,20 +90,7 @@ function AuthenticatedApp() {
         <Route path="/home" component={Home} />
         
         {/* Default redirect for authenticated users */}
-        <Route path="/">
-          {() => {
-            // Redirect based on user type
-            const { user } = useAuth();
-            if (user?.userType === 'athlete') {
-              window.location.href = '/athlete/dashboard';
-            } else if (user?.userType === 'scout') {
-              window.location.href = '/scout/dashboard';
-            } else {
-              window.location.href = '/home';
-            }
-            return null;
-          }}
-        </Route>
+        <Route path="/" component={Home} />
         
         {/* 404 for authenticated users */}
         <Route component={NotFound} />

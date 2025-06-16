@@ -1,35 +1,47 @@
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+
+interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  userType: 'athlete' | 'scout' | null;
+}
 
 export function useAuth() {
-  const token = localStorage.getItem('auth_token');
+  const [location] = useLocation();
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
   
-  const { data: user, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/user"],
-    queryFn: async () => {
-      if (!token) return null;
+  useEffect(() => {
+    // Simular carregamento inicial
+    const timer = setTimeout(() => {
+      const isAuthenticatedRoute = location.startsWith('/athlete/') || location.startsWith('/scout/') || location === '/home';
       
-      try {
-        return await apiRequest("/api/auth/user", {
-          method: "GET",
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+      if (isAuthenticatedRoute) {
+        setUser({
+          id: '1',
+          email: 'demo@futebol-futuro.com',
+          firstName: 'Demo',
+          lastName: 'User',
+          userType: location.startsWith('/athlete/') ? 'athlete' : location.startsWith('/scout/') ? 'scout' : null
         });
-      } catch (error) {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth-user-cache');
-        throw error;
+      } else {
+        setUser(null);
       }
-    },
-    retry: false,
-    enabled: !!token,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+      
+      setIsLoading(false);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [location]);
+
+  const isAuthenticated = location.startsWith('/athlete/') || location.startsWith('/scout/') || location === '/home';
 
   return {
     user,
     isLoading,
-    isAuthenticated: !!user && !!token && !error,
+    isAuthenticated,
   };
 }
