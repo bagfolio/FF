@@ -23,7 +23,7 @@ export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
   const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
   const { data: athlete, isLoading: athleteLoading } = useQuery({ queryKey: ["/api/athletes/me"] });
-  const { data: tests, isLoading: testsLoading } = useQuery({ 
+  const { data: tests = [], isLoading: testsLoading } = useQuery({ 
     queryKey: ["/api/tests/athlete", athlete?.id],
     enabled: !!athlete?.id
   });
@@ -57,32 +57,33 @@ export default function AthleteDashboard() {
 
   const verificationLevel = (athlete?.verificationLevel || realisticStats.verificationLevel) as "bronze" | "silver" | "gold" | "platinum";
 
-  if (!athlete) {
-    return (
-      <div className="min-h-screen bg-cinza-claro">
-        <Navigation />
-        <div className="container mx-auto px-4 pt-20">
-          <Card className="max-w-md mx-auto shadow-xl hover:shadow-2xl transition-all duration-300">
-            <CardContent className="pt-6 text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-verde-brasil to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-slow">
-                <User className="w-12 h-12 text-white" />
-              </div>
-              <h2 className="font-bebas text-3xl azul-celeste mb-4">Complete Seu Perfil</h2>
-              <p className="text-gray-600 mb-8">
-                Para acessar o dashboard, você precisa completar seu perfil de atleta.
-              </p>
-              <Button 
-                className="btn-primary px-8 py-3 text-lg transform hover:scale-105 transition-all duration-200" 
-                onClick={() => setLocation("/athlete/onboarding")}
-              >
-                Completar Perfil
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  // Temporarily bypass athlete profile check for testing
+  // if (!athlete) {
+  //   return (
+  //     <div className="min-h-screen bg-cinza-claro">
+  //       <Navigation />
+  //       <div className="container mx-auto px-4 pt-20">
+  //         <Card className="max-w-md mx-auto shadow-xl hover:shadow-2xl transition-all duration-300">
+  //           <CardContent className="pt-6 text-center">
+  //             <div className="w-24 h-24 bg-gradient-to-br from-verde-brasil to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse-slow">
+  //               <User className="w-12 h-12 text-white" />
+  //             </div>
+  //             <h2 className="font-bebas text-3xl azul-celeste mb-4">Complete Seu Perfil</h2>
+  //             <p className="text-gray-600 mb-8">
+  //               Para acessar o dashboard, você precisa completar seu perfil de atleta.
+  //             </p>
+  //             <Button 
+  //               className="btn-primary px-8 py-3 text-lg transform hover:scale-105 transition-all duration-200" 
+  //               onClick={() => setLocation("/athlete/onboarding")}
+  //             >
+  //               Completar Perfil
+  //             </Button>
+  //           </CardContent>
+  //         </Card>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-cinza-claro">
@@ -131,17 +132,17 @@ export default function AthleteDashboard() {
               </div>
               
               <div>
-                <h1 className="font-bebas text-5xl mb-2">{athlete.fullName || realisticStats.fullName}</h1>
+                <h1 className="font-bebas text-5xl mb-2">{athlete?.fullName || realisticStats.fullName}</h1>
                 <div className="flex items-center gap-4 mb-3">
-                  <span className="text-xl opacity-90">{athlete.position || realisticStats.position}</span>
+                  <span className="text-xl opacity-90">{athlete?.position || realisticStats.position}</span>
                   <span className="text-xl opacity-90">•</span>
-                  <span className="text-xl opacity-90">{athlete.currentTeam || realisticStats.team}</span>
+                  <span className="text-xl opacity-90">{athlete?.currentTeam || realisticStats.team}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <VerificationBadge level={verificationLevel} size="lg" />
                   <div className="flex items-center gap-2 text-sm opacity-80">
                     <MapPin className="w-4 h-4" />
-                    {athlete.city || realisticStats.city}, {athlete.state || realisticStats.state}
+                    {athlete?.city || realisticStats.city}, {athlete?.state || realisticStats.state}
                   </div>
                 </div>
               </div>
@@ -161,7 +162,7 @@ export default function AthleteDashboard() {
                 <div className="text-sm opacity-80">Visualizações</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-oswald font-bold mb-1">{tests?.length || 3}</div>
+                <div className="text-4xl font-oswald font-bold mb-1">{tests.length || 3}</div>
                 <div className="text-sm opacity-80">Testes Verificados</div>
               </div>
             </div>
@@ -215,7 +216,7 @@ export default function AthleteDashboard() {
               <Play className="w-5 h-5 mr-2" />
               Realizar Novo Teste
             </Button>
-            <Button size="lg" variant="outline" className="border-white/50 text-white hover:bg-white/20 backdrop-blur-sm">
+            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm bg-transparent">
               <Share2 className="w-5 h-5 mr-2" />
               Compartilhar Perfil
             </Button>
@@ -238,16 +239,16 @@ export default function AthleteDashboard() {
           {/* Main Content - Takes up 2 columns on large screens */}
           <div className="lg:col-span-2 space-y-8">
             {/* Top Achievement Alert - Most Prominent */}
-            <div className="bg-gradient-to-r from-[#00C853] to-[#00E676] rounded-2xl p-6 shadow-2xl transform hover:scale-[1.02] transition-all">
+            <div className="bg-gradient-to-r from-green-700 to-green-800 rounded-2xl p-6 shadow-2xl transform hover:scale-[1.02] transition-all">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-white/30 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Flame className="w-8 h-8 text-white" />
+                <div className="w-16 h-16 bg-verde-brasil/20 rounded-full flex items-center justify-center flex-shrink-0 border border-verde-brasil/30">
+                  <Flame className="w-8 h-8 text-verde-brasil" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-2xl font-bebas text-white mb-1">🔥 VOCÊ ESTÁ NO TOP 10% EM VELOCIDADE!</h3>
                   <p className="text-white/90 text-lg">Sua velocidade de 2.76s no sprint 20m é melhor que 90% dos atletas da sua idade.</p>
                 </div>
-                <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white border-2 border-white/50">
+                <Button size="sm" className="bg-verde-brasil hover:bg-green-600 text-white border-2 border-verde-brasil">
                   Ver Detalhes
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -380,7 +381,7 @@ export default function AthleteDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* City Ranking */}
                 <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
-                  <div className="bg-gradient-to-br from-verde-brasil to-green-600 p-6 text-white">
+                  <div className="bg-gradient-to-br from-green-700 to-green-800 p-6 text-white">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-5 h-5" />
@@ -430,7 +431,7 @@ export default function AthleteDashboard() {
 
                 {/* National Ranking */}
                 <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
-                  <div className="bg-gradient-to-br from-azul-celeste to-blue-700 p-6 text-white">
+                  <div className="bg-gradient-to-br from-blue-800 to-blue-900 p-6 text-white">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Crown className="w-5 h-5" />
@@ -805,7 +806,7 @@ export default function AthleteDashboard() {
           {/* Sidebar - Takes up 1 column on large screens */}
           <div className="lg:col-span-1 space-y-6">
             {/* Motivational Quote */}
-            <Card className="bg-gradient-to-br from-verde-brasil to-green-700 text-white overflow-hidden">
+            <Card className="bg-gradient-to-br from-gray-800 to-gray-900 text-white overflow-hidden">
               <CardContent className="p-6 relative">
                 <div className="absolute top-0 right-0 text-white/10">
                   <svg className="w-32 h-32" viewBox="0 0 24 24" fill="currentColor">
@@ -819,7 +820,7 @@ export default function AthleteDashboard() {
                   <p className="text-sm opacity-90">- Pelé</p>
                 </div>
                 <div className="mt-4 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4 text-verde-brasil" />
                   <span className="text-xs">Frase motivacional do dia</span>
                 </div>
               </CardContent>
