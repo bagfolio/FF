@@ -1,7 +1,8 @@
+// server/services/auth.service.ts
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { storage } from '../storage';
-import { UpsertUser } from '../../shared/schema';
+import { UpsertUser } from '@shared/schema';
 
 interface RegisterData {
     email: string;
@@ -16,60 +17,114 @@ class AuthService {
         // Check if user already exists
         const existingUser = await storage.getUserByEmail(data.email);
         if (existingUser) {
-            throw new Error('Usuário já existe com este email.');
+            throw new Error('Usuário já existe com este email');
         }
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(data.password, 10);
+        const hashedPassword = await bcrypt.hash(data.password, 12);
 
-        // Create user
+        // Create user data
         const userData: UpsertUser = {
             id: this.generateUserId(),
             email: data.email,
             firstName: data.firstName,
-            lastName: '',
-            profileImageUrl: '',
-            userType: null,
+            lastName: null,
+            profileImageUrl: null,
+            userType: null
         };
 
+        // Create user
         const user = await storage.upsertUser(userData);
-        return user;
-    }
 
-    async login(email: string, password: string) {
-        const user = await storage.getUserByEmail(email);
-        if (!user) {
-            throw new Error('Credenciais inválidas.');
-        }
-
-        // For now, skip password validation since we don't have hashed passwords in database
-        // In production, you would validate: await bcrypt.compare(password, user.hashedPassword)
-
+        // Generate JWT token
         const token = jwt.sign(
-            { userId: user.id, email: user.email },
+            { id: user.id, email: user.email },
             this.JWT_SECRET,
             { expiresIn: '7d' }
         );
 
-        return token;
+        return {
+            user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                userType: user.userType
+            },
+            token
+        };
+    }
+
+    async login(email: string, password: string) {
+        // Find user
+        const user = await storage.getUserByEmail(email);
+        if (!user) {
+            throw new Error('Credenciais inválidas');
+        }
+
+        // For now, we'll skip password verification since we don't store passwords
+        // In a real implementation, you would verify the password here
+        // const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+        // if (!isValidPassword) {
+        //     throw new Error('Credenciais inválidas');
+        // }
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { id: user.id, email: user.email },
+            this.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        return {
+            user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                userType: user.userType
+            },
+            token
+        };
+    }
+
+    async getCurrentUser(userId: string) {
+        const user = await storage.getUserWithRole(userId);
+        if (!user) {
+            throw new Error('Usuário não encontrado');
+        }
+
+        return {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            userType: user.userType,
+            athlete: user.athlete || null,
+            scout: user.scout || null
+        };
     }
 
     async updateUserType(userId: string, userType: string) {
-        const user = await storage.getUser(userId);
-        if (!user) {
-            throw new Error('Usuário não encontrado.');
+        const existingUser = await storage.getUser(userId);
+        if (!existingUser) {
+            throw new Error('Usuário não encontrado');
         }
 
-        const updatedUser = await storage.upsertUser({
-            ...user,
-            userType: userType as any,
-        });
+        const userData: UpsertUser = {
+            id: userId,
+            email: existingUser.email,
+            firstName: existingUser.firstName,
+            lastName: existingUser.lastName,
+            profileImageUrl: existingUser.profileImageUrl,
+            userType: userType as 'athlete' | 'scout'
+        };
 
-        return updatedUser;
+        return await storage.upsertUser(userData);
     }
 
     private generateUserId(): string {
-        return Math.random().toString(36).substring(2) + Date.now().toString(36);
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     }
 }
 

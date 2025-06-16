@@ -35,7 +35,13 @@ export async function register(req: Request, res: Response, next: NextFunction) 
         const validatedData = registerSchema.parse(req.body);
         const { confirmPassword, ...userData } = validatedData;
         
-        const result = await authService.register(userData);
+        const registerData = {
+            email: userData.email,
+            password: userData.password,
+            firstName: userData.firstName || userData.email.split('@')[0]
+        };
+        
+        const result = await authService.register(registerData);
         res.status(201).json(result);
     } catch (error) {
         if (error instanceof z.ZodError) {

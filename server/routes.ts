@@ -1,33 +1,37 @@
-// ARQUIVO ATUALIZADO (CORRIGIDO): server/routes.ts
-
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { Router } from "express";
+import { isAuthenticated } from "./middleware/auth.middleware";
 
-// Importe os controllers e o middleware
-import { register, login, logout, getCurrentUser, setUserType } from "./controllers/auth.controller";
-import { createAthleteProfile } from "./controllers/athlete.controller";
-import { isAuthenticated } from "./middleware/auth.middleware"; // Importação correta
+// Controllers
+import * as authController from "./controllers/auth.controller";
+import * as athleteController from "./controllers/athlete.controller";
+import * as mockController from "./controllers/mock.controller";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-    const router = Router();
+  // Auth routes (public)
+  app.post('/api/auth/register', authController.register);
+  app.post('/api/auth/login', authController.login);
+  app.post('/api/auth/logout', authController.logout);
 
-    // === ROTAS DE AUTENTICAÇÃO (Públicas) ===
-    router.post('/api/auth/register', register);
-    router.post('/api/auth/login', login);
-    router.post('/api/auth/logout', logout);
+  // Protected auth routes
+  app.get('/api/auth/user', isAuthenticated, authController.getCurrentUser);
+  app.put('/api/auth/user-type', isAuthenticated, authController.setUserType);
 
-    // === ROTAS PROTEGIDAS ===
-    // AQUI ESTÁ A CORREÇÃO: Adicionamos o middleware `isAuthenticated`
-    router.get('/api/auth/user', isAuthenticated, getCurrentUser); 
+  // Athlete routes
+  app.get('/api/athletes', mockController.getMockAthletes); // Public for search
+  app.post('/api/athletes', isAuthenticated, athleteController.createAthleteProfile);
+  app.get('/api/athletes/me', isAuthenticated, athleteController.getCurrentAthleteProfile);
+  app.put('/api/athletes/me', isAuthenticated, athleteController.updateAthleteProfile);
+  app.get('/api/athletes/:id', athleteController.getAthleteProfile);
 
-    router.post('/api/auth/user-type', isAuthenticated, setUserType);
-    router.post('/api/athletes', isAuthenticated, createAthleteProfile);
+  // Mock data routes (for development)
+  app.get('/api/mock/athletes', mockController.getMockAthletes);
+  app.get('/api/mock/tests', mockController.getMockTests);
+  app.get('/api/mock/scout', mockController.getMockScoutProfile);
 
-    // ... outras rotas protegidas virão aqui
+  // Scout routes
+  app.get('/api/scouts/me', isAuthenticated, mockController.getMockScoutProfile);
 
-    app.use(router);
-
-    const httpServer = createServer(app);
-    return httpServer;
+  const httpServer = createServer(app);
+  return httpServer;
 }
