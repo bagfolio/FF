@@ -155,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/scouts/me', isAuthenticated, async (req: any, res) => {
+  app.get('/api/scouts/me', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const scout = await storage.getScoutByUserId(userId);
@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Test routes
-  app.post('/api/tests', isAuthenticated, async (req: any, res) => {
+  app.post('/api/tests', async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const athlete = await storage.getAthleteByUserId(userId);
@@ -194,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/tests/athlete/:id', isAuthenticated, async (req, res) => {
+  app.get('/api/tests/athlete/:id', async (req, res) => {
     try {
       const athleteId = parseInt(req.params.id);
       const tests = await storage.getTestsByAthlete(athleteId);
@@ -216,7 +216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/athletes/:id/view', isAuthenticated, async (req: any, res) => {
+  app.post('/api/athletes/:id/view', async (req: any, res) => {
     try {
       const athleteId = parseInt(req.params.id);
       const userId = req.user.claims.sub;

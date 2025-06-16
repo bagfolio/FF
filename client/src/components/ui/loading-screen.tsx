@@ -15,7 +15,7 @@ export default function LoadingScreen() {
             </div>
           </div>
         </div>
-        <h2 className="mt-6 font-bebas text-2xl bg-gradient-to-r from-verde-brasil via-amarelo-ouro to-azul-celeste bg-clip-text text-transparent animate-pulse">
+        <h2 className="mt-6 font-inter font-bold text-2xl bg-gradient-to-r from-verde-brasil via-amarelo-ouro to-azul-celeste bg-clip-text text-transparent animate-pulse">
           FUTEBOL FUTURO
         </h2>
         <div className="mt-4 flex items-center justify-center gap-1">

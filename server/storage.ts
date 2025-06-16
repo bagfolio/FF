@@ -56,7 +56,7 @@ export class DatabaseStorage implements IStorage {
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values([userData])
       .onConflictDoUpdate({
         target: users.id,
         set: {
@@ -70,7 +70,7 @@ export class DatabaseStorage implements IStorage {
 
   // Athlete operations
   async createAthlete(athlete: InsertAthlete): Promise<Athlete> {
-    const [created] = await db.insert(athletes).values(athlete).returning();
+    const [created] = await db.insert(athletes).values([athlete]).returning();
     return created;
   }
 
