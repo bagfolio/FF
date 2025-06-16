@@ -1,4 +1,18 @@
-import {
+// ARQUIVO ATUALIZADO: shared/schema.ts
+
+// ... (imports e tabela sessions)
+
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey().notNull(),
+  email: varchar("email").unique().notNull(), // Tornar email não-nulo
+  hashedPassword: text("hashed_password"), // <-- ADICIONE ESTA LINHA
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  userType: varchar("user_type", { enum: ["athlete", "scout", "admin"] }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
   pgTable,
   text,
   varchar,

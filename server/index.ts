@@ -1,3 +1,14 @@
+// ARQUIVO ATUALIZADO: server/index.ts
+
+import express from "express";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic, log } from "./vite";
+import cookieParser from 'cookie-parser'; // <-- ADICIONE ESTA LINHA
+
+const app = express();
+app.use(cookieParser()); // <-- ADICIONE ESTA LINHA
+app.use(express.json());
+// ... (resto do arquivo)
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";

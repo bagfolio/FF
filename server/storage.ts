@@ -195,3 +195,41 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+
+// ARQUIVO ATUALIZADO: server/storage.ts
+
+// ... (imports)
+import { users, athletes, scouts /* ... */ } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
+
+export interface IStorage {
+    getUserByEmail(email: string): Promise<User | undefined>; // <-- ADICIONE A INTERFACE
+    getUserWithRole(id: string): Promise<any>; // <-- ADICIONE A INTERFACE
+    // ... (resto da interface)
+}
+
+export class DatabaseStorage implements IStorage {
+    async getUserByEmail(email: string): Promise<User | undefined> { // <-- ADICIONE O MÉTODO
+        const [user] = await db.select().from(users).where(eq(users.email, email));
+        return user;
+    }
+
+    async getUserWithRole(id: string): Promise<any> { // <-- ADICIONE O MÉTODO
+        const [user] = await db.select().from(users).where(eq(users.id, id));
+        if (!user) return null;
+
+        let roleData = null;
+        if (user.userType === 'athlete') {
+            [roleData] = await db.select().from(athletes).where(eq(athletes.userId, id));
+        } else if (user.userType === 'scout') {
+            [roleData] = await db.select().from(scouts).where(eq(scouts.userId, id));
+        }
+
+        return { ...user, roleData };
+    }
+
+    // ... (resto da classe)
+}
+
+export const storage = new DatabaseStorage();
