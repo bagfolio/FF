@@ -12,6 +12,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
+      // Development mode - return mock user data
+      if (process.env.NODE_ENV === 'development') {
+        const mockUser = {
+          id: "dev-user-123",
+          email: "dev@futebol-futuro.com",
+          firstName: "João",
+          lastName: "Silva",
+          profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+          userType: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          roleData: null
+        };
+        return res.json(mockUser);
+      }
+
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       if (!user) {
