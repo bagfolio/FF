@@ -167,7 +167,7 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
             onClick={handleContinue}
             disabled={!localSelectedType || setUserType.isPending}
             className={`flex-1 text-white ${
-              localSelectedType === "athlete" ? "btn-primary" : "bg-azul-celeste hover:bg-blue-800"
+              localSelectedType === "athlete" ? "bg-green-500 hover:bg-green-600" : "bg-blue-500 hover:bg-blue-600"
             }`}
           >
             {setUserType.isPending ? "Redirecionando..." : "Continuar"}
