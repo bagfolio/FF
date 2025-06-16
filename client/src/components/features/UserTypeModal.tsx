@@ -28,7 +28,7 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Sucesso!",
-        description: `Perfil de ${localSelectedType === 'athlete' ? 'Atleta' : 'Olheiro'} selecionado.",
+        description: `Perfil de ${localSelectedType === 'athlete' ? 'Atleta' : 'Olheiro'} selecionado.`,
       });
       
       // Redirect to appropriate dashboard
@@ -61,7 +61,7 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle className="font-bebas text-3xl azul-celeste text-center">
+          <DialogTitle className="font-bold text-3xl text-blue-600 text-center">
             ESCOLHA SEU PERFIL
           </DialogTitle>
           <p className="text-center text-gray-600 mt-2">
@@ -74,17 +74,17 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
           <Card 
             className={`cursor-pointer transition-all duration-300 ${
               localSelectedType === "athlete" 
-                ? "ring-2 ring-verde-brasil border-verde-brasil shadow-lg" 
+                ? "ring-2 ring-green-500 border-green-500 shadow-lg" 
                 : "hover:shadow-md"
             }`}
             onClick={() => handleTypeSelection("athlete")}
           >
             <CardContent className="p-8 text-center">
-              <div className="w-20 h-20 bg-verde-brasil rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Terminal className="w-10 h-10 text-white" />
               </div>
               
-              <h3 className="font-bebas text-2xl azul-celeste mb-4">SOU ATLETA</h3>
+              <h3 className="font-bold text-2xl text-blue-600 mb-4">SOU ATLETA</h3>
               
               <p className="text-gray-600 mb-6">
                 Mostre seu talento para o mundo. Crie seu perfil, faça testes verificados por IA 
@@ -93,21 +93,21 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
 
               <div className="space-y-3 mb-6">
                 <div className="flex items-center gap-3 text-sm">
-                  <Trophy className="w-4 h-4 verde-brasil" />
+                  <Trophy className="w-4 h-4 text-green-500" />
                   <span>Testes físicos verificados por IA</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <BarChart3 className="w-4 h-4 verde-brasil" />
+                  <BarChart3 className="w-4 h-4 text-green-500" />
                   <span>Estatísticas e métricas detalhadas</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <Eye className="w-4 h-4 verde-brasil" />
+                  <Eye className="w-4 h-4 text-green-500" />
                   <span>Visibilidade para scouts e clubes</span>
                 </div>
               </div>
 
               {localSelectedType === "athlete" && (
-                <div className="text-verde-brasil font-semibold">✓ Selecionado</div>
+                <div className="text-green-500 font-semibold">✓ Selecionado</div>
               )}
             </CardContent>
           </Card>
@@ -116,17 +116,17 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
           <Card 
             className={`cursor-pointer transition-all duration-300 ${
               localSelectedType === "scout" 
-                ? "ring-2 ring-azul-celeste border-azul-celeste shadow-lg" 
+                ? "ring-2 ring-blue-500 border-blue-500 shadow-lg" 
                 : "hover:shadow-md"
             }`}
             onClick={() => handleTypeSelection("scout")}
           >
             <CardContent className="p-8 text-center">
-              <div className="w-20 h-20 bg-azul-celeste rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Search className="w-10 h-10 text-white" />
               </div>
               
-              <h3 className="font-bebas text-2xl azul-celeste mb-4">SOU SCOUT</h3>
+              <h3 className="font-bold text-2xl text-blue-600 mb-4">SOU SCOUT</h3>
               
               <p className="text-gray-600 mb-6">
                 Descubra talentos verificados com dados objetivos. Use filtros avançados 
@@ -135,21 +135,21 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
 
               <div className="space-y-3 mb-6">
                 <div className="flex items-center gap-3 text-sm">
-                  <Search className="w-4 h-4 azul-celeste" />
+                  <Search className="w-4 h-4 text-blue-500" />
                   <span>Busca avançada com filtros específicos</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <Users className="w-4 h-4 azul-celeste" />
+                  <Users className="w-4 h-4 text-blue-500" />
                   <span>Acesso a perfis verificados</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm">
-                  <BarChart3 className="w-4 h-4 azul-celeste" />
+                  <BarChart3 className="w-4 h-4 text-blue-500" />
                   <span>Relatórios e analytics detalhados</span>
                 </div>
               </div>
 
               {localSelectedType === "scout" && (
-                <div className="text-azul-celeste font-semibold">✓ Selecionado</div>
+                <div className="text-blue-500 font-semibold">✓ Selecionado</div>
               )}
             </CardContent>
           </Card>
