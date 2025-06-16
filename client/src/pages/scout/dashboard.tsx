@@ -18,14 +18,14 @@ export default function ScoutDashboard() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header do Scout */}
-      <div className="mb-8">
-        <h1 className="font-bebas text-4xl azul-celeste mb-2">DASHBOARD DO SCOUT</h1>
-        <p className="text-gray-600 text-lg">Descubra os próximos talentos do futebol brasileiro</p>
+      {/* Header do Scout - Responsivo */}
+      <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-white rounded-2xl shadow-lg">
+        <h1 className="font-bebas text-2xl sm:text-3xl lg:text-4xl azul-celeste mb-2">DASHBOARD DO SCOUT</h1>
+        <p className="text-gray-600 text-sm sm:text-lg">Descubra os próximos talentos do futebol brasileiro</p>
       </div>
 
-      {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* Cards de Estatísticas - Mobile Responsivo */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
         <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Atletas Visualizados</CardTitle>
