@@ -85,28 +85,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAthlete(id: number, updates: Partial<InsertAthlete>): Promise<Athlete> {
+    const updateData: Record<string, any> = { ...updates };
+    // Convert Date to string if needed for database storage
+    if (updateData.birthDate && updateData.birthDate instanceof Date) {
+      updateData.birthDate = updateData.birthDate.toISOString().split('T')[0];
+    }
+    
     const [updated] = await db
       .update(athletes)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updateData, updatedAt: new Date() })
       .where(eq(athletes.id, id))
       .returning();
     return updated;
   }
 
   async searchAthletes(filters: any): Promise<Athlete[]> {
-    let query = db.select().from(athletes);
+    const conditions = [];
     
     // Apply filters
     if (filters.position) {
-      query = query.where(eq(athletes.position, filters.position));
+      conditions.push(eq(athletes.position, filters.position));
     }
     if (filters.state) {
-      query = query.where(eq(athletes.state, filters.state));
+      conditions.push(eq(athletes.state, filters.state));
     }
     if (filters.verificationLevel) {
-      query = query.where(eq(athletes.verificationLevel, filters.verificationLevel));
+      conditions.push(eq(athletes.verificationLevel, filters.verificationLevel));
     }
     
+    const query = db.select().from(athletes);
+    if (conditions.length > 0) {
+      return await query.where(and(...conditions)).orderBy(desc(athletes.updatedAt));
+    }
     return await query.orderBy(desc(athletes.updatedAt));
   }
 

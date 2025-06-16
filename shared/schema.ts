@@ -147,6 +147,7 @@ export const testsRelations = relations(tests, ({ one }) => ({
 
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).pick({
+  id: true,
   email: true,
   firstName: true,
   lastName: true,
@@ -160,7 +161,7 @@ export const insertAthleteSchema = createInsertSchema(athletes).omit({
   updatedAt: true,
 }).extend({
   cpf: z.string().min(11).max(11).regex(/^\d{11}$/, "CPF deve conter 11 dígitos"),
-  birthDate: z.string().transform((str) => new Date(str)),
+  birthDate: z.string(),
 });
 
 export const insertScoutSchema = createInsertSchema(scouts).omit({
