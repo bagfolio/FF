@@ -11,11 +11,13 @@ import { User, Trophy, TrendingUp, Eye, Play, Medal, Star, Crown, Check } from "
 
 export default function AthleteDashboard() {
   const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
-  const { data: athlete } = useQuery({ queryKey: ["/api/athletes/me"] });
-  const { data: tests } = useQuery({ 
+  const { data: athlete, isLoading: athleteLoading } = useQuery({ queryKey: ["/api/athletes/me"] });
+  const { data: tests, isLoading: testsLoading } = useQuery({ 
     queryKey: ["/api/tests/athlete", athlete?.id],
     enabled: !!athlete?.id
   });
+
+  const isLoading = athleteLoading || testsLoading;
 
   // Generate realistic data
   const [realisticStats, setRealisticStats] = useState(() => generateRealisticAthlete());
