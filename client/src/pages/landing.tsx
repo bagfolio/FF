@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import StatCounter from "@/components/features/StatCounter";
 import UserTypeModal from "@/components/features/UserTypeModal";
-import { Play, Search, Terminal, Video, Bot, Handshake, Check, Medal, Star, Crown, Trophy } from "lucide-react";
+import { Play, Search, Terminal, Video, Bot, Handshake, Check, Medal, Star, Crown, Trophy, Shield, Users, TrendingUp, Award, Clock, Eye } from "lucide-react";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
@@ -45,33 +45,48 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation Responsiva */}
-      <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-md shadow-lg z-50">
+      {/* Revolutionary Trust-First Navigation */}
+      <nav className="fixed top-0 w-full bg-surface-elevated/98 backdrop-blur-md shadow-lg z-50 border-b border-trust-primary/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16">
-            <div className="flex items-center">
-              <h1 className="font-bebas text-xl sm:text-2xl verde-brasil">FUTEBOL FUTURO</h1>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Shield className="w-6 h-6 trust-primary" />
+                <h1 className="font-bold text-xl sm:text-2xl trust-primary">TALENTO SEGURO</h1>
+              </div>
+              <div className="hidden sm:flex items-center gap-2 ml-4">
+                <div className="verified-badge text-xs">
+                  <Shield className="w-3 h-3" />
+                  Verificado SSL
+                </div>
+              </div>
             </div>
             
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
-              <a href="#como-funciona" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+            {/* Desktop Navigation with Trust Indicators */}
+            <div className="hidden md:flex items-center space-x-6">
+              <div className="flex items-center gap-1 text-success-validation text-sm font-medium">
+                <Users className="w-4 h-4" />
+                <span>1.247+ Verificados</span>
+              </div>
+              <a href="#como-funciona" className="text-neutral hover:trust-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Como Funciona
               </a>
-              <a href="#depoimentos" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              <a href="#depoimentos" className="text-neutral hover:trust-primary px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Histórias de Sucesso
               </a>
-              <a href="#parceiros" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Parceiros
-              </a>
-              <Button onClick={handleDirectAccess} className="bg-azul-celeste hover:bg-blue-800 text-sm px-4 py-2">
-                Acessar Plataforma
+              <Button onClick={handleDirectAccess} className="btn-trust text-sm px-6 py-2 rounded-lg font-semibold">
+                <Shield className="w-4 h-4 mr-2" />
+                Acesso Seguro
               </Button>
             </div>
 
-            {/* Mobile Menu Button */}
-            <div className="md:hidden">
-              <Button onClick={handleDirectAccess} className="bg-azul-celeste hover:bg-blue-800 text-xs px-3 py-2">
+            {/* Mobile Trust Access */}
+            <div className="md:hidden flex items-center gap-2">
+              <div className="social-proof-counter">
+                <Users className="w-3 h-3" />
+                1.2k+
+              </div>
+              <Button onClick={handleDirectAccess} className="btn-trust text-xs px-4 py-2 rounded-lg">
                 Entrar
               </Button>
             </div>
@@ -91,31 +106,85 @@ export default function Landing() {
         </div>
         
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pt-16 sm:pt-20">
-          <h1 className="font-bebas text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl leading-none mb-6 sm:mb-8 tracking-wider">
-            SEU TALENTO<br />
-            <span className="amarelo-ouro drop-shadow-lg">MERECE SER VISTO</span>
+          {/* Real-Time Activity Indicator */}
+          <div className="flex justify-center mb-6">
+            <div className="bg-surface-elevated/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-2 flex items-center gap-2">
+              <div className="w-2 h-2 bg-success-validation rounded-full animate-pulse" />
+              <span className="text-sm font-medium">
+                <span className="text-gamification-gold font-bold">147 pessoas</span> se conectaram nas últimas 24h
+              </span>
+            </div>
+          </div>
+
+          <h1 className="font-bold text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl leading-none mb-6 sm:mb-8 tracking-tight">
+            CONECTE. CONFIE.<br />
+            <span className="bg-gradient-to-r from-action-energy to-warning-attention bg-clip-text text-transparent drop-shadow-lg">
+              TRANSFORME.
+            </span>
           </h1>
           
-          <p className="text-sm sm:text-lg md:text-xl lg:text-2xl mb-8 sm:mb-10 font-light max-w-4xl mx-auto leading-relaxed drop-shadow-md">
-            A primeira plataforma brasileira que usa IA para verificar talentos do futebol.<br className="hidden sm:block" />
-            <span className="font-medium">Democratizando oportunidades do Amazonas a São Paulo.</span>
+          <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-4 font-medium max-w-4xl mx-auto leading-relaxed drop-shadow-md">
+            A única plataforma que conecta talentos verificados com oportunidades reais.
           </p>
           
+          <p className="text-sm sm:text-lg mb-8 sm:mb-10 font-light max-w-3xl mx-auto leading-relaxed drop-shadow-md opacity-90">
+            <span className="font-semibold">Segurança garantida</span> • <span className="font-semibold">Verificação em tempo real</span> • <span className="font-semibold">Sucesso comprovado</span>
+          </p>
+
+          {/* Psychological Trigger - Social Proof */}
+          <div className="flex justify-center mb-8">
+            <div className="grid grid-cols-3 gap-6 sm:gap-8 text-center">
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-gamification-gold mb-1">98%</div>
+                <div className="text-xs sm:text-sm opacity-90">Taxa Sucesso</div>
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-success-validation mb-1">1.247</div>
+                <div className="text-xs sm:text-sm opacity-90">Verificados</div>
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">4.8⭐</div>
+                <div className="text-xs sm:text-sm opacity-90">Avaliação</div>
+              </div>
+            </div>
+          </div>
+          
           <div className="flex flex-col gap-4 sm:gap-6 justify-center items-center mb-12 sm:mb-16">
-            <Button 
-              onClick={() => setLocation("/athlete/dashboard")}
-              className="btn-primary text-white px-8 sm:px-10 py-4 sm:py-5 text-lg sm:text-xl font-semibold flex items-center gap-2 sm:gap-3 w-full sm:w-auto sm:min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105"
-            >
-              <Terminal className="w-5 h-5 sm:w-6 sm:h-6" />
-              SOU ATLETA
-            </Button>
-            <Button 
-              onClick={() => setLocation("/scout/dashboard")}
-              className="btn-secondary text-white px-8 sm:px-10 py-4 sm:py-5 text-lg sm:text-xl font-semibold flex items-center gap-2 sm:gap-3 w-full sm:w-auto sm:min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105"
-            >
-              <Search className="w-5 h-5 sm:w-6 sm:h-6" />
-              SOU SCOUT
-            </Button>
+            {/* Athlete CTA with Urgency */}
+            <div className="w-full sm:w-auto">
+              <Button 
+                onClick={() => setLocation("/athlete/dashboard")}
+                className="btn-action text-white px-8 sm:px-12 py-5 sm:py-6 text-lg sm:text-xl font-bold flex items-center gap-3 w-full sm:min-w-[280px] h-auto rounded-2xl relative overflow-hidden group"
+              >
+                <Terminal className="w-6 h-6 sm:w-7 sm:h-7" />
+                <span>COMEÇAR COMO ATLETA</span>
+                <div className="absolute top-1 right-2 bg-white/20 px-2 py-1 rounded text-xs font-medium">
+                  GRÁTIS
+                </div>
+              </Button>
+              <div className="text-center mt-2">
+                <span className="text-xs bg-warning-attention/20 px-3 py-1 rounded-full">
+                  ⚡ 73 atletas se registraram hoje
+                </span>
+              </div>
+            </div>
+
+            {/* Scout CTA with Authority */}
+            <div className="w-full sm:w-auto">
+              <Button 
+                onClick={() => setLocation("/scout/dashboard")}
+                className="btn-trust text-white px-8 sm:px-12 py-5 sm:py-6 text-lg sm:text-xl font-bold flex items-center gap-3 w-full sm:min-w-[280px] h-auto rounded-2xl"
+              >
+                <Search className="w-6 h-6 sm:w-7 sm:h-7" />
+                <span>DESCOBRIR TALENTOS</span>
+                <Shield className="w-5 h-5 ml-2" />
+              </Button>
+              <div className="text-center mt-2">
+                <span className="text-xs bg-success-validation/20 px-3 py-1 rounded-full">
+                  🛡️ Acesso verificado e seguro
+                </span>
+              </div>
+            </div>
           </div>
           
           {/* Stats row */}

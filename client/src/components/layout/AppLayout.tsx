@@ -99,9 +99,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
               const isActive = location === item.href;
               return (
                 <Link key={item.href} href={item.href}>
-                  <a
+                  <div
                     className={`
-                      flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group
+                      flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group cursor-pointer
                       ${isActive 
                         ? 'bg-gradient-to-r from-azul-celeste to-blue-600 text-white shadow-lg transform scale-105' 
                         : 'text-gray-700 hover:bg-gray-100 hover:text-azul-celeste hover:transform hover:scale-105'
@@ -111,7 +111,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   >
                     <item.icon className={`mr-3 h-5 w-5 transition-transform group-hover:scale-110 ${isActive ? 'text-white' : 'text-gray-500'}`} />
                     {item.label}
-                  </a>
+                  </div>
                 </Link>
               );
             })}
