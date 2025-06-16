@@ -13,6 +13,7 @@ import ProfileCompletionRing from "@/components/ui/profile-completion-ring";
 import TrustPyramidProgress from "@/components/ui/trust-pyramid-progress";
 import ProgressEnhanced from "@/components/ui/progress-enhanced";
 import { generateRealisticAthlete, generateActivity, achievements } from "@/lib/brazilianData";
+import type { Athlete, Test } from "@shared/schema";
 import { 
   User, Trophy, TrendingUp, Eye, Play, Medal, Star, Crown, Check, 
   Camera, Share2, MapPin, Calendar, Zap, Target, Award, BarChart3,
@@ -22,15 +23,15 @@ import {
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
   const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
-  const { data: athlete, isLoading: athleteLoading } = useQuery({ queryKey: ["/api/athletes/me"] });
-  const { data: tests = [], isLoading: testsLoading } = useQuery({ 
+  const { data: athlete, isLoading: athleteLoading } = useQuery<Athlete>({ queryKey: ["/api/athletes/me"] });
+  const { data: tests = [], isLoading: testsLoading } = useQuery<Test[]>({ 
     queryKey: ["/api/tests/athlete", athlete?.id],
     enabled: !!athlete?.id
   });
 
   const isLoading = athleteLoading || testsLoading;
 
-  // Generate realistic data
+  // Generate realistic data for development
   const [realisticStats] = useState(() => generateRealisticAthlete());
   const [activities] = useState(() => 
     Array.from({ length: 5 }, () => generateActivity())
@@ -55,7 +56,9 @@ export default function AthleteDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const verificationLevel = (athlete?.verificationLevel || realisticStats.verificationLevel) as "bronze" | "silver" | "gold" | "platinum";
+  // Use real athlete data when available, fall back to development data
+  const displayData = athlete || realisticStats;
+  const verificationLevel = (displayData.verificationLevel || "silver") as "bronze" | "silver" | "gold" | "platinum";
 
   // Temporarily bypass athlete profile check for testing
   // if (!athlete) {
@@ -111,115 +114,94 @@ export default function AthleteDashboard() {
         
         {/* Hero Content */}
         <div className="container mx-auto px-4 pt-24 pb-16 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-            {/* Left Side - Profile Info */}
-            <div className="flex items-center gap-6">
-              <div className="flex flex-col items-center">
-                <ProfileCompletionRing percentage={profileCompletion} size={180} strokeWidth={8}>
-                  <div className="relative">
-                    <div className="w-36 h-36 bg-white rounded-full flex items-center justify-center shadow-2xl">
-                      <User className="w-20 h-20 text-verde-brasil" />
-                    </div>
-                    <button className="absolute bottom-0 right-0 w-11 h-11 bg-amarelo-ouro rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                      <Camera className="w-5 h-5 text-gray-800" />
-                    </button>
-                  </div>
-                </ProfileCompletionRing>
-                <div className="text-center mt-3">
-                  <span className="text-3xl font-oswald font-bold text-white">{profileCompletion}%</span>
-                  <p className="text-sm text-white/80">perfil completo</p>
+          <div className="max-w-6xl mx-auto space-y-8">
+            
+            {/* 1. Trust Level Header (Top Priority) */}
+            <div className="text-center lg:text-left">
+              <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                <div className="text-3xl">🥈</div>
+                <h2 className="text-2xl font-bold text-white">NÍVEL PRATA</h2>
+                <a href="#upgrade" className="text-sm text-white/80 hover:text-white ml-auto lg:ml-4">
+                  Desbloquear Platina →
+                </a>
+              </div>
+              <div className="bg-white/20 rounded-full h-2 w-full max-w-md mx-auto lg:mx-0 mb-2">
+                <div className="bg-[#009C3B] h-2 rounded-full" style={{ width: '80%' }}></div>
+              </div>
+              <p className="text-sm text-white/80">Faltam 2 testes para nível OURO</p>
+            </div>
+
+            {/* 2. Player Identity Section */}
+            <div className="flex flex-col lg:flex-row items-center lg:items-start gap-6">
+              <div className="relative">
+                <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl">
+                  <User className="w-16 h-16 text-verde-brasil" />
                 </div>
+                <button className="absolute bottom-0 right-0 w-9 h-9 bg-amarelo-ouro rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                  <Camera className="w-4 h-4 text-gray-800" />
+                </button>
               </div>
               
-              <div>
-                <h1 className="font-bebas text-5xl mb-2">{athlete?.fullName || realisticStats.fullName}</h1>
-                <div className="flex items-center gap-4 mb-3">
-                  <span className="text-xl opacity-90">{athlete?.position || realisticStats.position}</span>
-                  <span className="text-xl opacity-90">•</span>
-                  <span className="text-xl opacity-90">{athlete?.currentTeam || realisticStats.team}</span>
+              <div className="text-center lg:text-left">
+                <h1 className="font-bebas text-5xl lg:text-6xl mb-2 text-white">{displayData.fullName}</h1>
+                <div className="flex flex-col lg:flex-row items-center gap-2 lg:gap-4 mb-3 text-xl text-white/90">
+                  <span>{displayData.position}</span>
+                  <span className="hidden lg:inline">•</span>
+                  <span>{displayData.currentTeam || displayData.team}</span>
+                  <span className="hidden lg:inline">•</span>
+                  <span>16 anos</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <VerificationBadge level={verificationLevel} size="lg" />
-                  <div className="flex items-center gap-2 text-sm opacity-80">
-                    <MapPin className="w-4 h-4" />
-                    {athlete?.city || realisticStats.city}, {athlete?.state || realisticStats.state}
+                <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-white/80">
+                  <MapPin className="w-4 h-4" />
+                  {displayData.city}, {displayData.state}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Hero Metric Section (AI-Verified) */}
+            <div className="bg-gradient-to-r from-green-900/50 to-green-800/50 rounded-2xl p-8 border-2 border-green-400/30 shadow-2xl">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="text-2xl">💎</div>
+                  <div>
+                    <div className="text-4xl lg:text-5xl font-bold text-white mb-1">
+                      SPRINT 20M: <span className="text-green-400">2.76s</span>
+                    </div>
+                    <Badge className="bg-green-500 text-white text-lg font-bold px-4 py-2">
+                      🏆 TOP 10% NACIONAL
+                    </Badge>
                   </div>
                 </div>
+                <p className="text-lg text-white/90">Melhor que 90% dos atletas da sua idade</p>
               </div>
             </div>
 
-            {/* Right Side - Key Stats */}
-            <div className="grid grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-4xl font-oswald font-bold mb-1">{realisticStats.percentile}%</div>
-                <div className="text-sm opacity-80">Percentil Nacional</div>
+            {/* 4. Supporting Stats Row */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 lg:gap-8 text-white/90">
+              <div className="flex items-center gap-2 text-lg">
+                <Eye className="w-5 h-5" />
+                <span className="font-semibold">70 visualizações</span>
+                <span className="text-sm text-white/70">esta semana</span>
               </div>
-              <div className="text-center">
-                <div className="text-4xl font-oswald font-bold mb-1 flex items-center justify-center gap-2">
-                  <Eye className="w-6 h-6" />
-                  {realisticStats.profileViews}
-                </div>
-                <div className="text-sm opacity-80">Visualizações</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-oswald font-bold mb-1">{tests.length || 3}</div>
-                <div className="text-sm opacity-80">Testes Verificados</div>
+              <span className="hidden sm:inline text-white/50">•</span>
+              <div className="flex items-center gap-2 text-lg">
+                <Trophy className="w-5 h-5 text-amarelo-ouro" />
+                <span className="font-semibold">#12 ranking</span>
+                <span className="text-sm text-white/70">São Luís</span>
               </div>
             </div>
-          </div>
 
-          {/* Key Stats Cards - Prominent Display */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10 max-w-4xl mx-auto">
-            {/* Sprint Time Card */}
-            <div className="bg-gray-900/80 backdrop-blur-md rounded-2xl p-6 border-2 border-white/20 shadow-2xl transform hover:scale-105 transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 bg-verde-brasil/20 rounded-full flex items-center justify-center border border-verde-brasil/30">
-                  <Zap className="w-6 h-6 text-verde-brasil" />
-                </div>
-                <Badge className="bg-green-500 text-white text-sm font-bold px-3 py-1">↑ 5%</Badge>
-              </div>
-              <div className="text-4xl font-oswald font-bold mb-1 text-white">2.76s</div>
-              <p className="text-lg text-white/90 font-medium">Sprint 20m</p>
-              <p className="text-sm text-white/70 mt-1">Melhor que 90% dos atletas</p>
+            {/* 5. Action Buttons (Keep as-is) */}
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-8">
+              <Button size="lg" className="bg-[#00C853] hover:bg-[#00E676] text-white font-semibold shadow-xl transform hover:scale-105 transition-all min-h-[44px]">
+                <Play className="w-5 h-5 mr-2" />
+                Realizar Novo Teste
+              </Button>
+              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm bg-transparent min-h-[44px]">
+                <Share2 className="w-5 h-5 mr-2" />
+                Compartilhar Perfil
+              </Button>
             </div>
-            
-            {/* Views Card */}
-            <div className="bg-gray-900/80 backdrop-blur-md rounded-2xl p-6 border-2 border-white/20 shadow-2xl transform hover:scale-105 transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 bg-amarelo-ouro/20 rounded-full flex items-center justify-center border border-amarelo-ouro/30">
-                  <Eye className="w-6 h-6 text-amarelo-ouro" />
-                </div>
-                <Badge className="bg-amarelo-ouro text-gray-900 text-sm font-bold px-3 py-1 animate-pulse">ATIVO</Badge>
-              </div>
-              <div className="text-4xl font-oswald font-bold mb-1 text-white">{realisticStats.profileViews}</div>
-              <p className="text-lg text-white/90 font-medium">Visualizações</p>
-              <p className="text-sm text-white/70 mt-1">{scoutViews} scouts esta semana</p>
-            </div>
-            
-            {/* City Ranking Card */}
-            <div className="bg-gray-900/80 backdrop-blur-md rounded-2xl p-6 border-2 border-white/20 shadow-2xl transform hover:scale-105 transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 bg-amarelo-ouro/20 rounded-full flex items-center justify-center border border-amarelo-ouro/30">
-                  <Trophy className="w-6 h-6 text-amarelo-ouro" />
-                </div>
-                <Badge className="bg-white/20 text-white text-sm font-bold px-3 py-1">{realisticStats.city}</Badge>
-              </div>
-              <div className="text-4xl font-oswald font-bold mb-1 text-white">#12</div>
-              <p className="text-lg text-white/90 font-medium">Ranking Municipal</p>
-              <p className="text-sm text-white/70 mt-1">Subiu 3 posições este mês</p>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-4 mt-6">
-            <Button size="lg" className="bg-[#00C853] hover:bg-[#00E676] text-white font-semibold shadow-xl transform hover:scale-105 transition-all">
-              <Play className="w-5 h-5 mr-2" />
-              Realizar Novo Teste
-            </Button>
-            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm bg-transparent">
-              <Share2 className="w-5 h-5 mr-2" />
-              Compartilhar Perfil
-            </Button>
           </div>
         </div>
 
