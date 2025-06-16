@@ -22,6 +22,8 @@ export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserWithRole(id: string): Promise<any>;
   
   // Athlete operations
   createAthlete(athlete: InsertAthlete): Promise<Athlete>;
@@ -68,6 +70,25 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async getUserWithRole(id: string): Promise<any> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    if (!user) return null;
+
+    let roleData = null;
+    if (user.userType === 'athlete') {
+      [roleData] = await db.select().from(athletes).where(eq(athletes.userId, id));
+    } else if (user.userType === 'scout') {
+      [roleData] = await db.select().from(scouts).where(eq(scouts.userId, id));
+    }
+
+    return { ...user, roleData };
+  }
+
   // Athlete operations
   async createAthlete(athlete: InsertAthlete): Promise<Athlete> {
     const [created] = await db.insert(athletes).values([athlete]).returning();
@@ -100,29 +121,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchAthletes(filters: any): Promise<Athlete[]> {
-    const conditions = [];
+    let query = db.select().from(athletes);
     
-    // Apply filters
     if (filters.position) {
-      conditions.push(eq(athletes.position, filters.position));
-    }
-    if (filters.state) {
-      conditions.push(eq(athletes.state, filters.state));
-    }
-    if (filters.verificationLevel) {
-      conditions.push(eq(athletes.verificationLevel, filters.verificationLevel));
+      query = query.where(eq(athletes.position, filters.position));
     }
     
-    const query = db.select().from(athletes);
-    if (conditions.length > 0) {
-      return await query.where(and(...conditions)).orderBy(desc(athletes.updatedAt));
+    if (filters.city) {
+      query = query.where(eq(athletes.city, filters.city));
     }
-    return await query.orderBy(desc(athletes.updatedAt));
+    
+    if (filters.verificationLevel) {
+      query = query.where(eq(athletes.verificationLevel, filters.verificationLevel));
+    }
+    
+    return await query;
   }
 
   // Scout operations
   async createScout(scout: InsertScout): Promise<Scout> {
-    const [created] = await db.insert(scouts).values(scout).returning();
+    const [created] = await db.insert(scouts).values([scout]).returning();
     return created;
   }
 
@@ -138,16 +156,12 @@ export class DatabaseStorage implements IStorage {
 
   // Test operations
   async createTest(test: InsertTest): Promise<Test> {
-    const [created] = await db.insert(tests).values(test).returning();
+    const [created] = await db.insert(tests).values([test]).returning();
     return created;
   }
 
   async getTestsByAthlete(athleteId: number): Promise<Test[]> {
-    return await db
-      .select()
-      .from(tests)
-      .where(eq(tests.athleteId, athleteId))
-      .orderBy(desc(tests.createdAt));
+    return await db.select().from(tests).where(eq(tests.athleteId, athleteId)).orderBy(desc(tests.createdAt));
   }
 
   async updateTest(id: number, updates: Partial<InsertTest>): Promise<Test> {
@@ -161,75 +175,31 @@ export class DatabaseStorage implements IStorage {
 
   // Analytics operations
   async recordAthleteView(athleteId: number, scoutId: number): Promise<void> {
-    await db.insert(athleteViews).values({ athleteId, scoutId });
+    await db.insert(athleteViews).values([{ athleteId, scoutId }]);
   }
 
   async getAthleteViewCount(athleteId: number): Promise<number> {
-    const [result] = await db
-      .select({ count: sql<number>`count(*)` })
+    const result = await db
+      .select({ count: sql`count(*)` })
       .from(athleteViews)
       .where(eq(athleteViews.athleteId, athleteId));
-    return result.count;
+    return Number(result[0]?.count || 0);
   }
 
   async getAthleteStats(): Promise<{ totalAthletes: number; totalVerifications: number; totalScouts: number }> {
-    const [athleteCount] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(athletes);
-    
-    const [testCount] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(tests)
-      .where(eq(tests.verified, true));
-    
-    const [scoutCount] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(scouts);
+    const [athleteCount] = await db.select({ count: sql`count(*)` }).from(athletes);
+    const [scoutCount] = await db.select({ count: sql`count(*)` }).from(scouts);
+    const [verificationCount] = await db
+      .select({ count: sql`count(*)` })
+      .from(athletes)
+      .where(inArray(athletes.verificationLevel, ['silver', 'gold', 'platinum']));
 
     return {
-      totalAthletes: athleteCount.count,
-      totalVerifications: testCount.count,
-      totalScouts: scoutCount.count,
+      totalAthletes: Number(athleteCount.count || 0),
+      totalVerifications: Number(verificationCount.count || 0),
+      totalScouts: Number(scoutCount.count || 0),
     };
   }
-}
-
-export const storage = new DatabaseStorage();
-
-// ARQUIVO ATUALIZADO: server/storage.ts
-
-// ... (imports)
-import { users, athletes, scouts /* ... */ } from "@shared/schema";
-import { db } from "./db";
-import { eq, and, desc, sql, inArray } from "drizzle-orm";
-
-export interface IStorage {
-    getUserByEmail(email: string): Promise<User | undefined>; // <-- ADICIONE A INTERFACE
-    getUserWithRole(id: string): Promise<any>; // <-- ADICIONE A INTERFACE
-    // ... (resto da interface)
-}
-
-export class DatabaseStorage implements IStorage {
-    async getUserByEmail(email: string): Promise<User | undefined> { // <-- ADICIONE O MÉTODO
-        const [user] = await db.select().from(users).where(eq(users.email, email));
-        return user;
-    }
-
-    async getUserWithRole(id: string): Promise<any> { // <-- ADICIONE O MÉTODO
-        const [user] = await db.select().from(users).where(eq(users.id, id));
-        if (!user) return null;
-
-        let roleData = null;
-        if (user.userType === 'athlete') {
-            [roleData] = await db.select().from(athletes).where(eq(athletes.userId, id));
-        } else if (user.userType === 'scout') {
-            [roleData] = await db.select().from(scouts).where(eq(scouts.userId, id));
-        }
-
-        return { ...user, roleData };
-    }
-
-    // ... (resto da classe)
 }
 
 export const storage = new DatabaseStorage();
