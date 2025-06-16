@@ -109,8 +109,11 @@ Futebol Futuro is a comprehensive web application designed to democratize footba
 
 ## Changelog
 
-Changelog:
-- June 16, 2025. Initial setup
+- June 16, 2025: Initial setup and MVP deployment
+- June 16, 2025: Completely removed Replit Auth system to eliminate development friction
+- June 16, 2025: Fixed font consistency - loading screen now uses clean Inter fonts
+- June 16, 2025: Resolved infinite loading issue by fixing home page redirect loop
+- June 16, 2025: Implemented mock authentication system for development ease
 
 ## User Preferences
 
