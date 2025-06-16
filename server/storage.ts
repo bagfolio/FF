@@ -121,21 +121,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchAthletes(filters: any): Promise<Athlete[]> {
-    let query = db.select().from(athletes);
+    // Simple implementation without complex query building
+    const allAthletes = await db.select().from(athletes);
     
-    if (filters.position) {
-      query = query.where(eq(athletes.position, filters.position));
-    }
-    
-    if (filters.city) {
-      query = query.where(eq(athletes.city, filters.city));
-    }
-    
-    if (filters.verificationLevel) {
-      query = query.where(eq(athletes.verificationLevel, filters.verificationLevel));
-    }
-    
-    return await query;
+    // Filter in memory for now to avoid TypeScript query builder issues
+    return allAthletes.filter(athlete => {
+      if (filters.position && athlete.position !== filters.position) return false;
+      if (filters.city && athlete.city !== filters.city) return false;
+      if (filters.verificationLevel && athlete.verificationLevel !== filters.verificationLevel) return false;
+      return true;
+    });
   }
 
   // Scout operations
