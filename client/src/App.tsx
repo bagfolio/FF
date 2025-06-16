@@ -8,6 +8,7 @@ import AppLayout from "@/components/layout/AppLayout";
 
 // Public pages
 import Landing from "@/pages/landing";
+import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
 
 // Protected pages
@@ -90,7 +91,7 @@ function AuthenticatedApp() {
         
         {/* Default redirect for authenticated users */}
         <Route path="/">
-          {({ params }) => {
+          {() => {
             // Redirect based on user type
             const { user } = useAuth();
             if (user?.userType === 'athlete') {
@@ -130,6 +131,7 @@ function Router() {
     <Switch>
       {/* Public routes */}
       <Route path="/" component={Landing} />
+      <Route path="/login" component={LoginPage} />
       
       {/* Development test pages */}
       <Route path="/test" component={TestPage} />
