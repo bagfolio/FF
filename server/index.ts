@@ -1,14 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import cookieParser from 'cookie-parser';
-
-if (!process.env.JWT_SECRET) {
-  console.warn('AVISO: JWT_SECRET não está configurado. Usando valor padrão inseguro.');
-}
 
 const app = express();
-app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 

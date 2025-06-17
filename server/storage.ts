@@ -22,8 +22,6 @@ export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  getUserWithRole(id: string): Promise<any>;
   
   // Athlete operations
   createAthlete(athlete: InsertAthlete): Promise<Athlete>;
@@ -70,25 +68,6 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
-  }
-
-  async getUserWithRole(id: string): Promise<any> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    if (!user) return null;
-
-    let roleData = null;
-    if (user.userType === 'athlete') {
-      [roleData] = await db.select().from(athletes).where(eq(athletes.userId, id));
-    } else if (user.userType === 'scout') {
-      [roleData] = await db.select().from(scouts).where(eq(scouts.userId, id));
-    }
-
-    return { ...user, roleData };
-  }
-
   // Athlete operations
   async createAthlete(athlete: InsertAthlete): Promise<Athlete> {
     const [created] = await db.insert(athletes).values([athlete]).returning();
@@ -121,21 +100,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchAthletes(filters: any): Promise<Athlete[]> {
-    // Simple implementation without complex query building
-    const allAthletes = await db.select().from(athletes);
+    const conditions = [];
     
-    // Filter in memory for now to avoid TypeScript query builder issues
-    return allAthletes.filter(athlete => {
-      if (filters.position && athlete.position !== filters.position) return false;
-      if (filters.city && athlete.city !== filters.city) return false;
-      if (filters.verificationLevel && athlete.verificationLevel !== filters.verificationLevel) return false;
-      return true;
-    });
+    // Apply filters
+    if (filters.position) {
+      conditions.push(eq(athletes.position, filters.position));
+    }
+    if (filters.state) {
+      conditions.push(eq(athletes.state, filters.state));
+    }
+    if (filters.verificationLevel) {
+      conditions.push(eq(athletes.verificationLevel, filters.verificationLevel));
+    }
+    
+    const query = db.select().from(athletes);
+    if (conditions.length > 0) {
+      return await query.where(and(...conditions)).orderBy(desc(athletes.updatedAt));
+    }
+    return await query.orderBy(desc(athletes.updatedAt));
   }
 
   // Scout operations
   async createScout(scout: InsertScout): Promise<Scout> {
-    const [created] = await db.insert(scouts).values([scout]).returning();
+    const [created] = await db.insert(scouts).values(scout).returning();
     return created;
   }
 
@@ -151,12 +138,16 @@ export class DatabaseStorage implements IStorage {
 
   // Test operations
   async createTest(test: InsertTest): Promise<Test> {
-    const [created] = await db.insert(tests).values([test]).returning();
+    const [created] = await db.insert(tests).values(test).returning();
     return created;
   }
 
   async getTestsByAthlete(athleteId: number): Promise<Test[]> {
-    return await db.select().from(tests).where(eq(tests.athleteId, athleteId)).orderBy(desc(tests.createdAt));
+    return await db
+      .select()
+      .from(tests)
+      .where(eq(tests.athleteId, athleteId))
+      .orderBy(desc(tests.createdAt));
   }
 
   async updateTest(id: number, updates: Partial<InsertTest>): Promise<Test> {
@@ -170,29 +161,35 @@ export class DatabaseStorage implements IStorage {
 
   // Analytics operations
   async recordAthleteView(athleteId: number, scoutId: number): Promise<void> {
-    await db.insert(athleteViews).values([{ athleteId, scoutId }]);
+    await db.insert(athleteViews).values({ athleteId, scoutId });
   }
 
   async getAthleteViewCount(athleteId: number): Promise<number> {
-    const result = await db
-      .select({ count: sql`count(*)` })
+    const [result] = await db
+      .select({ count: sql<number>`count(*)` })
       .from(athleteViews)
       .where(eq(athleteViews.athleteId, athleteId));
-    return Number(result[0]?.count || 0);
+    return result.count;
   }
 
   async getAthleteStats(): Promise<{ totalAthletes: number; totalVerifications: number; totalScouts: number }> {
-    const [athleteCount] = await db.select({ count: sql`count(*)` }).from(athletes);
-    const [scoutCount] = await db.select({ count: sql`count(*)` }).from(scouts);
-    const [verificationCount] = await db
-      .select({ count: sql`count(*)` })
-      .from(athletes)
-      .where(inArray(athletes.verificationLevel, ['silver', 'gold', 'platinum']));
+    const [athleteCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(athletes);
+    
+    const [testCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(tests)
+      .where(eq(tests.verified, true));
+    
+    const [scoutCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(scouts);
 
     return {
-      totalAthletes: Number(athleteCount.count || 0),
-      totalVerifications: Number(verificationCount.count || 0),
-      totalScouts: Number(scoutCount.count || 0),
+      totalAthletes: athleteCount.count,
+      totalVerifications: testCount.count,
+      totalScouts: scoutCount.count,
     };
   }
 }

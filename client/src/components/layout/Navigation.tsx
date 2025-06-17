@@ -1,11 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { Search, Home, Menu, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { LogOut, User, Search, Home, Menu } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 
 export default function Navigation() {
+  const { user } = useAuth();
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
+  };
 
   const isActive = (path: string) => location === path;
 
@@ -21,35 +27,58 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/home">
-              <Button 
-                variant={isActive("/home") ? "default" : "ghost"}
-                className={isActive("/home") ? "bg-verde-brasil" : ""}
-              >
-                <Home className="w-4 h-4 mr-2" />
-                Início
-              </Button>
-            </Link>
-            
-            <Link href="/athlete/dashboard">
-              <Button 
-                variant={isActive("/athlete/dashboard") ? "default" : "ghost"}
-                className={isActive("/athlete/dashboard") ? "bg-verde-brasil" : ""}
-              >
-                <User className="w-4 h-4 mr-2" />
-                Atleta
-              </Button>
-            </Link>
+            {user?.userType === "athlete" && (
+              <>
+                <Link href="/athlete/dashboard">
+                  <Button 
+                    variant={isActive("/athlete/dashboard") ? "default" : "ghost"}
+                    className={isActive("/athlete/dashboard") ? "bg-verde-brasil" : ""}
+                  >
+                    <Home className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+              </>
+            )}
 
-            <Link href="/scout/search">
+            {user?.userType === "scout" && (
+              <>
+                <Link href="/scout/dashboard">
+                  <Button 
+                    variant={isActive("/scout/dashboard") ? "default" : "ghost"}
+                    className={isActive("/scout/dashboard") ? "bg-verde-brasil" : ""}
+                  >
+                    <Home className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+                <Link href="/scout/search">
+                  <Button 
+                    variant={isActive("/scout/search") ? "default" : "ghost"}
+                    className={isActive("/scout/search") ? "bg-verde-brasil" : ""}
+                  >
+                    <Search className="w-4 h-4 mr-2" />
+                    Buscar Talentos
+                  </Button>
+                </Link>
+              </>
+            )}
+
+            <div className="flex items-center gap-2 pl-4 border-l">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  {user?.firstName || "Usuário"}
+                </span>
+              </div>
               <Button 
-                variant={isActive("/scout/search") ? "default" : "ghost"}
-                className={isActive("/scout/search") ? "bg-verde-brasil" : ""}
+                variant="outline" 
+                size="sm"
+                onClick={handleLogout}
               >
-                <Search className="w-4 h-4 mr-2" />
-                Buscar Talentos
+                <LogOut className="w-4 h-4" />
               </Button>
-            </Link>
+            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -68,38 +97,60 @@ export default function Navigation() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t bg-white/95 backdrop-blur-md">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <Link href="/home">
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Home className="w-4 h-4 mr-2" />
-                  Início
-                </Button>
-              </Link>
-              
-              <Link href="/athlete/dashboard">
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Atleta
-                </Button>
-              </Link>
+              {user?.userType === "athlete" && (
+                <Link href="/athlete/dashboard">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Home className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+              )}
 
-              <Link href="/scout/search">
+              {user?.userType === "scout" && (
+                <>
+                  <Link href="/scout/dashboard">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Home className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Link href="/scout/search">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      Buscar Talentos
+                    </Button>
+                  </Link>
+                </>
+              )}
+
+              <div className="border-t pt-2">
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">
+                    {user?.firstName || "Usuário"}
+                  </span>
+                </div>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start"
-                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full justify-start text-red-600"
+                  onClick={handleLogout}
                 >
-                  <Search className="w-4 h-4 mr-2" />
-                  Buscar Talentos
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair
                 </Button>
-              </Link>
+              </div>
             </div>
           </div>
         )}

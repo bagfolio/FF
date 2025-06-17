@@ -1,43 +1,28 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
-
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  userType: 'athlete' | 'scout' | null;
-}
+import { useQuery } from "@tanstack/react-query";
 
 export function useAuth() {
-  const [location] = useLocation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
-  
-  useEffect(() => {
-    // Simular carregamento inicial
-    const timer = setTimeout(() => {
-      const isAuthenticatedRoute = location.startsWith('/athlete/') || location.startsWith('/scout/') || location === '/home';
-      
-      if (isAuthenticatedRoute) {
-        setUser({
-          id: '1',
-          email: 'demo@futebol-futuro.com',
-          firstName: 'Demo',
-          lastName: 'User',
-          userType: location.startsWith('/athlete/') ? 'athlete' : location.startsWith('/scout/') ? 'scout' : null
-        });
-      } else {
-        setUser(null);
-      }
-      
-      setIsLoading(false);
-    }, 100);
+  const { data: user, isLoading, error, isSuccess } = useQuery({
+    queryKey: ["/api/auth/user"],
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10, // 10 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    // Set initial data to prevent loading on subsequent page loads
+    initialData: () => {
+      // Check if we have cached user data
+      const cached = localStorage.getItem('auth-user-cache');
+      return cached ? JSON.parse(cached) : undefined;
+    },
+  });
 
-    return () => clearTimeout(timer);
-  }, [location]);
+  // Cache user data for faster subsequent loads
+  if (user && !error) {
+    localStorage.setItem('auth-user-cache', JSON.stringify(user));
+  }
 
-  const isAuthenticated = location.startsWith('/athlete/') || location.startsWith('/scout/') || location === '/home';
+  // In development mode, always treat as authenticated if we get any user data
+  const isAuthenticated = isSuccess && !!user && !error;
 
   return {
     user,
