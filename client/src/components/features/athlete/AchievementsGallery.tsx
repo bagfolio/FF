@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Lock, Sparkles, Star, Award } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Trophy, Lock, Sparkles, Star, Award, ChevronRight } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface Achievement {
   id: string;
@@ -17,6 +19,7 @@ interface AchievementsGalleryProps {
 }
 
 export function AchievementsGallery({ achievements }: AchievementsGalleryProps) {
+  const [, setLocation] = useLocation();
   const unlockedCount = achievements.filter(a => a.unlocked).length;
   const totalXP = achievements.filter(a => a.unlocked).reduce((sum, a) => sum + a.points, 0);
 
@@ -44,14 +47,33 @@ export function AchievementsGallery({ achievements }: AchievementsGalleryProps) 
 
   return (
     <Card className="overflow-hidden shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-amarelo-ouro to-yellow-500 text-gray-900">
-        <CardTitle className="font-bebas text-xl flex items-center gap-2">
-          <Trophy className="w-5 h-5" />
-          MINHAS CONQUISTAS
-          <Badge className="bg-white/80 text-gray-700 text-xs ml-auto">
-            🏆 {totalXP.toLocaleString()} XP
-          </Badge>
+      <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-100 border-b-2 border-orange-200 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-200/20 to-transparent transform -translate-x-full animate-shimmer" />
+        <CardTitle className="tracking-tight font-bebas text-xl flex items-center justify-between text-orange-900 font-medium relative z-10">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 animate-pulse" />
+            MINHAS CONQUISTAS
+            <Badge className="bg-white/80 text-gray-700 text-xs animate-count-up">
+              🏆 {totalXP.toLocaleString()} XP
+            </Badge>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-orange-900 hover:bg-orange-900/10"
+            onClick={() => setLocation('/athlete/achievements')}
+          >
+            Ver Todas
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
         </CardTitle>
+        {/* Recently unlocked indicator */}
+        {achievements.some(a => a.unlocked) && (
+          <div className="absolute top-2 right-2 flex items-center gap-1">
+            <Sparkles className="w-4 h-4 text-white animate-pulse" />
+            <span className="text-xs text-white font-semibold">Nova!</span>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="p-4">
         <div className="grid grid-cols-3 gap-3">

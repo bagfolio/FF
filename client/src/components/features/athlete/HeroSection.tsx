@@ -4,7 +4,7 @@ import { Avatar } from "@/components/ui/avatar";
 import ProfileCompletionRing from "@/components/ui/profile-completion-ring";
 import VerificationBadge from "@/components/ui/verification-badge";
 import StatCounter from "@/components/features/StatCounter";
-import { User, Camera, Play, Share2, MapPin, Eye } from "lucide-react";
+import { User, Camera, Play, Share2, MapPin, Eye, Flame, Users, TrendingUp } from "lucide-react";
 
 interface HeroSectionProps {
   athlete: {
@@ -20,10 +20,14 @@ interface HeroSectionProps {
   };
   profileCompletion?: number;
   testsCompleted?: number;
+  streakDays?: number;
+  scoutsWatching?: number;
 }
 
-export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 3 }: HeroSectionProps) {
+export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 3, streakDays = 7, scoutsWatching = 3 }: HeroSectionProps) {
   const [localProfileCompletion, setLocalProfileCompletion] = useState(profileCompletion);
+  const [showScoutNotification, setShowScoutNotification] = useState(false);
+  const [animateStreak, setAnimateStreak] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -31,6 +35,22 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
     }, 2000);
     return () => clearTimeout(timer);
   }, [localProfileCompletion]);
+
+  // Show scout notification after 2 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowScoutNotification(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Animate streak counter
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimateStreak(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="relative bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 text-white overflow-hidden">
@@ -57,7 +77,7 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           {/* Left Side - Profile Info */}
           <div className="flex items-center gap-6">
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center relative">
               <ProfileCompletionRing percentage={localProfileCompletion} size={180} strokeWidth={8}>
                 <Avatar className="w-36 h-36 bg-white shadow-2xl">
                   <User className="w-20 h-20 text-verde-brasil" />
@@ -70,6 +90,16 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
                 <span className="text-3xl font-oswald font-bold text-white">{localProfileCompletion}%</span>
                 <p className="text-sm text-white/80">perfil completo</p>
               </div>
+              
+              {/* Streak Badge */}
+              {streakDays > 0 && (
+                <div className={`absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-full px-3 py-1 shadow-lg transform ${animateStreak ? 'scale-100 opacity-100' : 'scale-0 opacity-0'} transition-all duration-500`}>
+                  <div className="flex items-center gap-1">
+                    <Flame className="w-4 h-4 text-white animate-pulse" />
+                    <span className="text-white font-bold text-sm">{streakDays} dias</span>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div>
@@ -80,44 +110,15 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
                 <span className="text-xl opacity-90">{athlete.currentTeam || athlete.team}</span>
               </div>
               <div className="flex items-center gap-3">
-                <VerificationBadge level={athlete.verificationLevel} size="lg" />
+                <div className="relative">
+                  <VerificationBadge level={athlete.verificationLevel} size="lg" />
+                  <div className="absolute -inset-1 bg-white/20 rounded-full animate-pulse" />
+                </div>
                 <div className="flex items-center gap-2 text-sm opacity-80">
                   <MapPin className="w-4 h-4" />
                   {athlete.city}, {athlete.state}
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Right Side - Key Stats */}
-          <div className="grid grid-cols-3 gap-6">
-            <div className="text-center">
-              <StatCounter
-                value={athlete.percentile}
-                suffix="%"
-                className="text-4xl font-oswald font-bold mb-1"
-                duration={1500}
-              />
-              <div className="text-sm opacity-80">Percentil Nacional</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-oswald font-bold mb-1 flex items-center justify-center gap-2">
-                <Eye className="w-6 h-6" />
-                <StatCounter
-                  value={athlete.profileViews}
-                  className="text-4xl font-oswald font-bold"
-                  duration={2000}
-                />
-              </div>
-              <div className="text-sm opacity-80">Visualizações</div>
-            </div>
-            <div className="text-center">
-              <StatCounter
-                value={testsCompleted}
-                className="text-4xl font-oswald font-bold mb-1"
-                duration={1000}
-              />
-              <div className="text-sm opacity-80">Testes Verificados</div>
             </div>
           </div>
         </div>
@@ -126,7 +127,7 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
         <div className="flex flex-wrap gap-4 mt-6">
           <Button 
             size="lg" 
-            className="bg-verde-brasil hover:bg-green-600 text-white font-semibold shadow-xl transform hover:scale-105 transition-all"
+            className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-300 hover:to-green-400 text-gray-900 font-semibold shadow-xl transform hover:scale-105 transition-all"
           >
             <Play className="w-5 h-5 mr-2" />
             Realizar Novo Teste

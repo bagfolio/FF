@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
-import { Check, Circle, Lock, Trophy } from "lucide-react";
+import { Check, Circle, Lock, Trophy, ArrowUp, Sparkles, TrendingUp } from "lucide-react";
 import TrustPyramid from "./trust-pyramid";
 import { Progress } from "./progress";
 import { Button } from "./button";
+import { useState, useEffect } from "react";
 
 interface TrustPyramidProgressProps {
   currentLevel: "bronze" | "silver" | "gold" | "platinum";
@@ -59,22 +60,36 @@ export default function TrustPyramidProgress({ currentLevel, className }: TrustP
   const currentLevelData = levelRequirements[currentLevel];
   const nextLevelKey = currentLevelData.nextLevel as keyof typeof levelRequirements | null;
   const nextLevelData = nextLevelKey ? levelRequirements[nextLevelKey] : null;
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [animateProgress, setAnimateProgress] = useState(false);
+
+  useEffect(() => {
+    // Animate progress bar on mount
+    const timer = setTimeout(() => {
+      setAnimateProgress(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <div className={cn("bg-white rounded-xl shadow-lg p-6", className)}>
+    <div className={cn("bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl shadow-lg p-6 border-2 border-purple-200", className)}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left: Pyramid Visual */}
-        <div className="flex flex-col items-center">
-          <h3 className="font-bebas text-2xl azul-celeste mb-4">PIRÂMIDE DA CONFIANÇA</h3>
-          <TrustPyramid 
-            currentLevel={currentLevel}
-            showLabels={false}
-            interactive={true}
-            className="max-w-[250px]"
-          />
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">Nível Atual</p>
-            <p className="font-bebas text-3xl azul-celeste">{currentLevelData.name.toUpperCase()}</p>
+        <div className="flex flex-col items-center relative">
+          <h3 className="font-bebas text-2xl text-purple-900 mb-4">PIRÂMIDE DA CONFIANÇA</h3>
+          <div className="relative">
+            <TrustPyramid 
+              currentLevel={currentLevel}
+              showLabels={false}
+              interactive={true}
+              className="max-w-[250px]"
+            />
+            {/* Glowing effect on current level */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className={`absolute ${currentLevel === 'bronze' ? 'bottom-0' : currentLevel === 'silver' ? 'bottom-1/4' : currentLevel === 'gold' ? 'bottom-2/4' : 'top-0'} left-0 right-0 h-1/4`}>
+                <div className="w-full h-full bg-gradient-to-t from-transparent via-white/20 to-transparent animate-pulse" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -84,10 +99,21 @@ export default function TrustPyramidProgress({ currentLevel, className }: TrustP
             <>
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-lg">Próximo Nível: {nextLevelData.name}</h4>
-                  <span className="text-sm font-medium text-gray-600">{nextLevelData.progress}%</span>
+                  <h4 className="font-bebas text-2xl text-purple-900 flex items-center gap-2">
+                    PRÓXIMO NÍVEL: {nextLevelData.name.toUpperCase()}
+                    <ArrowUp className="w-5 h-5 text-green-500 animate-bounce" />
+                  </h4>
+                  <span className="text-lg font-bold text-verde-brasil">{nextLevelData.progress}%</span>
                 </div>
-                <Progress value={nextLevelData.progress} className="h-3" />
+                <div className="relative">
+                  <Progress 
+                    value={animateProgress ? nextLevelData.progress : 0} 
+                    className="h-3 transition-all duration-1000"
+                  />
+                  {animateProgress && nextLevelData.progress > 0 && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
+                  )}
+                </div>
               </div>
 
               {/* Requirements Checklist */}
@@ -96,7 +122,10 @@ export default function TrustPyramidProgress({ currentLevel, className }: TrustP
                 {nextLevelData.requirements.map((req) => (
                   <div key={req.id} className="flex items-start gap-2">
                     {req.completed ? (
-                      <Check className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div className="relative">
+                        <Check className="w-5 h-5 text-green-500 mt-0.5" />
+                        <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />
+                      </div>
                     ) : (
                       <Circle className="w-5 h-5 text-gray-400 mt-0.5" />
                     )}
@@ -117,14 +146,16 @@ export default function TrustPyramidProgress({ currentLevel, className }: TrustP
 
               {/* Benefits Preview */}
               {nextLevelData.benefits && (
-                <div className="bg-gradient-to-r from-gray-50 to-transparent rounded-lg p-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">
-                    🎯 Desbloqueie no {nextLevelData.name}:
+                <div className="bg-gradient-to-r from-gray-50 to-transparent rounded-lg p-4 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-100/0 to-yellow-100/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
+                  <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2 relative z-10">
+                    <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
+                    Desbloqueie no {nextLevelData.name}:
                   </p>
-                  <ul className="space-y-1">
+                  <ul className="space-y-1 relative z-10">
                     {nextLevelData.benefits.map((benefit, index) => (
-                      <li key={index} className="text-sm text-gray-600 flex items-center gap-2">
-                        <Lock className="w-3 h-3" />
+                      <li key={index} className="text-sm text-gray-600 flex items-center gap-2 group-hover:text-gray-700 transition-colors">
+                        <Lock className="w-3 h-3 group-hover:text-yellow-500 transition-colors" />
                         {benefit}
                       </li>
                     ))}
@@ -132,8 +163,12 @@ export default function TrustPyramidProgress({ currentLevel, className }: TrustP
                 </div>
               )}
 
-              <Button className="w-full btn-primary">
-                Continuar Progresso
+              <Button className="w-full btn-primary group relative overflow-hidden">
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  Continuar Progresso
+                  <ArrowUp className="w-4 h-4 group-hover:translate-y-[-2px] transition-transform" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-transparent transform translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
               </Button>
             </>
           )}

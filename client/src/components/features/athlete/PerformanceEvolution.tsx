@@ -35,8 +35,8 @@ export function PerformanceEvolution({ athlete }: PerformanceEvolutionProps) {
 
   return (
     <Card className="overflow-hidden shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-azul-celeste to-blue-900 text-white">
-        <CardTitle className="font-bebas text-2xl flex items-center gap-2">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b-2 border-blue-200">
+        <CardTitle className="tracking-tight font-bebas text-2xl flex items-center gap-2 text-azul-celeste font-medium">
           <BarChart3 className="w-6 h-6" />
           ANÁLISE DE DESEMPENHO
         </CardTitle>

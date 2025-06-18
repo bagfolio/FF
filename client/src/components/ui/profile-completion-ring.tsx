@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+import confetti from 'canvas-confetti';
 
 interface ProfileCompletionRingProps {
   percentage: number;
@@ -17,6 +18,7 @@ export default function ProfileCompletionRing({
   children
 }: ProfileCompletionRingProps) {
   const progressRef = useRef<SVGCircleElement>(null);
+  const [previousPercentage, setPreviousPercentage] = useState(percentage);
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   
@@ -24,8 +26,21 @@ export default function ProfileCompletionRing({
     if (progressRef.current) {
       const offset = circumference - (percentage / 100) * circumference;
       progressRef.current.style.strokeDashoffset = offset.toString();
+      
+      // Celebrate milestones
+      if (percentage > previousPercentage) {
+        if (percentage === 100 || percentage === 75 || percentage === 50) {
+          confetti({
+            particleCount: 50,
+            spread: 60,
+            origin: { y: 0.7 },
+            colors: ['#009C3B', '#FFDF00', '#002776']
+          });
+        }
+      }
+      setPreviousPercentage(percentage);
     }
-  }, [percentage, circumference]);
+  }, [percentage, circumference, previousPercentage]);
 
   return (
     <div className={cn("relative inline-flex items-center justify-center", className)}>
@@ -59,6 +74,22 @@ export default function ProfileCompletionRing({
           strokeDashoffset={circumference}
           className="transition-all duration-1000 ease-out"
         />
+        
+        {/* Pulse effect for high completion */}
+        {percentage >= 75 && (
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke="url(#gradient)"
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference - (percentage / 100) * circumference}
+            className="opacity-30 animate-pulse"
+          />
+        )}
         
         {/* Gradient definition */}
         <defs>

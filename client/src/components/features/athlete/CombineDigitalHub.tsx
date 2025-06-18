@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import VerificationBadge from "@/components/ui/verification-badge";
-import { Zap, Video, Play, Clock, Sparkles } from "lucide-react";
+import { Zap, Video, Play, Clock, Sparkles, ChevronRight } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface Test {
   id: string;
@@ -64,6 +66,8 @@ const availableTests: Test[] = [
 ];
 
 export function CombineDigitalHub({ tests }: CombineDigitalHubProps) {
+  const [, setLocation] = useLocation();
+  
   const getTestColor = (type: string) => {
     const colors = {
       speed: "from-green-100 to-green-200",
@@ -86,10 +90,28 @@ export function CombineDigitalHub({ tests }: CombineDigitalHubProps) {
 
   return (
     <Card className="overflow-hidden shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-azul-celeste to-blue-900 text-white">
-        <CardTitle className="tracking-tight font-bebas text-2xl flex items-center gap-2 text-[#000000] font-medium">
-          <Zap className="w-6 h-6" />
-          COMBINE DIGITAL
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 relative overflow-hidden border-b-2 border-blue-200">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-200/20 to-transparent transform -translate-x-full animate-shimmer" />
+        <CardTitle className="tracking-tight font-bebas text-2xl flex items-center justify-between text-azul-celeste font-medium relative z-10">
+          <div className="flex items-center gap-2">
+            <Zap className="w-6 h-6 animate-pulse" />
+            COMBINE DIGITAL
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-azul-celeste/10 px-3 py-1 rounded-full text-sm font-normal flex items-center gap-1 text-azul-celeste">
+              <span className="font-bold">{availableTests.filter(t => !t.completed).length}</span>
+              testes disponíveis
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-azul-celeste hover:bg-azul-celeste/10"
+              onClick={() => setLocation('/athlete/combine')}
+            >
+              Ver Todos
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-6">

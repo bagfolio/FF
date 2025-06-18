@@ -8,6 +8,9 @@ import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import AthleteOnboarding from "@/pages/athlete/onboarding";
 import AthleteDashboard from "@/pages/athlete/dashboard";
+import AthleteCombine from "@/pages/athlete/combine";
+import AthleteAchievements from "@/pages/athlete/achievements";
+import AthleteActivity from "@/pages/athlete/activity";
 import ScoutDashboard from "@/pages/scout/dashboard";
 import ScoutSearch from "@/pages/scout/search";
 import NotFound from "@/pages/not-found";
@@ -26,6 +29,9 @@ function Router() {
       <Route path="/home" component={Home} />
       <Route path="/athlete/onboarding" component={AthleteOnboarding} />
       <Route path="/athlete/dashboard" component={AthleteDashboard} />
+      <Route path="/athlete/combine" component={AthleteCombine} />
+      <Route path="/athlete/achievements" component={AthleteAchievements} />
+      <Route path="/athlete/activity" component={AthleteActivity} />
       <Route path="/scout/dashboard" component={ScoutDashboard} />
       <Route path="/scout/search" component={ScoutSearch} />
       

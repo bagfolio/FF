@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import Navigation from "@/components/layout/Navigation";
+import AthleteLayout from "@/components/layout/AthleteLayout";
 import { generateRealisticAthlete, generateActivity, achievements } from "@/lib/brazilianData";
 import { Play } from "lucide-react";
 
@@ -14,6 +14,9 @@ import { PerformanceEvolution } from "@/components/features/athlete/PerformanceE
 import { TrustPyramidProgressWidget } from "@/components/features/athlete/TrustPyramidProgressWidget";
 import { AchievementsGallery } from "@/components/features/athlete/AchievementsGallery";
 import { ActivityFeed } from "@/components/features/athlete/ActivityFeed";
+import { WelcomeNotification } from "@/components/features/athlete/WelcomeNotification";
+import { AchievementUnlockNotification } from "@/components/features/athlete/AchievementUnlockNotification";
+import { SocialProofNotification } from "@/components/features/athlete/SocialProofNotification";
 
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
@@ -33,6 +36,8 @@ export default function AthleteDashboard() {
   );
   const [profileCompletion, setProfileCompletion] = useState(65);
   const [scoutViews, setScoutViews] = useState(3);
+  const [streakDays] = useState(7);
+  const [showAchievementUnlock, setShowAchievementUnlock] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -49,6 +54,16 @@ export default function AthleteDashboard() {
       }
     }, 15000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Simulate achievement unlock
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (Math.random() > 0.5) {
+        setShowAchievementUnlock(true);
+      }
+    }, 8000);
+    return () => clearTimeout(timer);
   }, []);
 
   const verificationLevel = (athlete?.verificationLevel || realisticStats.verificationLevel) as "bronze" | "silver" | "gold" | "platinum";
@@ -82,10 +97,34 @@ export default function AthleteDashboard() {
   // }
 
   return (
-    <div className="min-h-screen bg-cinza-claro">
-      <Navigation />
+    <AthleteLayout>
+      <div className="min-h-screen bg-cinza-claro">
+        {/* Notifications */}
+        <WelcomeNotification 
+        athleteName={athlete?.fullName || realisticStats.fullName}
+        streakDays={streakDays}
+        scoutsWatching={scoutViews}
+        percentileChange={2}
+      />
+      
+      {showAchievementUnlock && (
+        <AchievementUnlockNotification 
+          achievementName="Velocista Iniciante"
+          xpEarned={100}
+          description="Você completou seu primeiro teste de velocidade!"
+          onClose={() => setShowAchievementUnlock(false)}
+        />
+      )}
+      
+      <SocialProofNotification />
       
       <div className="space-y-8">
+        {/* Animated background elements */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/4 left-10 w-64 h-64 bg-verde-brasil/5 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-amarelo-ouro/5 rounded-full blur-3xl animate-float-delayed" />
+        </div>
+        
         <HeroSection 
           athlete={{
             fullName: athlete?.fullName || realisticStats.fullName,
@@ -100,6 +139,8 @@ export default function AthleteDashboard() {
           }}
           profileCompletion={profileCompletion}
           testsCompleted={tests.length || 3}
+          streakDays={streakDays}
+          scoutsWatching={scoutViews}
         />
 
         <div className="container mx-auto px-4">
@@ -123,8 +164,8 @@ export default function AthleteDashboard() {
         <div className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50">
           <Button 
             size="lg"
-            className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-verde-brasil to-green-600 hover:from-green-600 hover:to-verde-brasil text-white shadow-2xl transform hover:scale-110 transition-all duration-300 group"
-            onClick={() => setLocation("/athlete/test")}
+            className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-green-400 to-green-500 hover:from-green-300 hover:to-green-400 text-gray-900 shadow-2xl transform hover:scale-110 transition-all duration-300 group"
+            onClick={() => setLocation("/athlete/combine")}
           >
             <div className="flex flex-col items-center">
               <Play className="w-6 h-6 md:w-7 md:h-7" />
@@ -137,6 +178,7 @@ export default function AthleteDashboard() {
         </div>
       </div>
     </div>
+    </AthleteLayout>
   );
 }
 
