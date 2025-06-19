@@ -67,7 +67,7 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
             ESCOLHA SEU PERFIL
           </DialogTitle>
           <p className="text-center text-gray-600 mt-2 text-sm md:text-base">
-            Como você gostaria de usar o Futebol Futuro?
+            Como você gostaria de usar o Revela?
           </p>
         </DialogHeader>
 

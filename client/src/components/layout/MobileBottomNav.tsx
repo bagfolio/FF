@@ -58,7 +58,7 @@ export default function MobileBottomNav() {
   const isActive = (url: string) => location === url;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t z-50 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/10 z-50 md:hidden">
       <div className="grid grid-cols-5 h-16">
         {navItems.map((item) => {
           const active = isActive(item.url);
@@ -68,21 +68,23 @@ export default function MobileBottomNav() {
               onClick={() => setLocation(item.url)}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 relative",
-                "transition-colors duration-200",
-                active ? "text-verde-brasil" : "text-gray-500"
+                "transition-all duration-200",
+                active ? "text-verde-brasil" : "text-white/60 hover:text-white"
               )}
             >
               {/* Active indicator */}
               {active && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-verde-brasil" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-0.5 bg-gradient-to-r from-verde-brasil to-amarelo-ouro shadow-lg shadow-verde-brasil/50" />
               )}
               
               <div className="relative">
-                <item.icon className={cn("h-5 w-5", active && "scale-110")} />
+                <item.icon className={cn(
+                  "h-5 w-5 transition-all", 
+                  active && "scale-110 drop-shadow-glow"
+                )} />
                 {item.badge && (
                   <Badge 
-                    variant="destructive"
-                    className="absolute -top-2 -right-2 h-4 min-w-4 p-0 flex items-center justify-center text-xs"
+                    className="absolute -top-2 -right-2 h-4 min-w-4 p-0 flex items-center justify-center text-xs bg-red-500 text-white border-0"
                   >
                     {item.badge}
                   </Badge>

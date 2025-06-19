@@ -51,7 +51,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="font-bebas text-2xl verde-brasil">FUTEBOL FUTURO</h1>
+              <h1 className="font-bebas text-2xl verde-brasil">REVELA</h1>
             </div>
             <div className="hidden md:flex items-center space-x-4">
               <a href="#como-funciona" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
@@ -96,11 +96,10 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             <Button 
               onClick={() => setLocation("/auth/welcome")}
-              className="btn-primary text-white px-12 py-6 text-xl font-bebas tracking-wider flex items-center gap-3 min-w-[300px] h-auto rounded-full shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-110 border-4 border-white/20"
+              className="bg-verde-brasil hover:bg-verde-brasil/90 text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105"
             >
-              <Trophy className="w-8 h-8" />
+              <Trophy className="w-6 h-6" />
               COMEÇAR MINHA JORNADA
-              <div className="ml-2 text-sm font-medium opacity-80">Atleta</div>
             </Button>
             <Button 
               onClick={() => handleCTAClick("scout")}
@@ -490,7 +489,7 @@ export default function Landing() {
           
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 Futebol Futuro. Todos os direitos reservados.
+              © 2024 Revela. Todos os direitos reservados.
             </p>
             <p className="text-gray-400 text-sm mt-4 md:mt-0">
               Desenvolvido com 💚 no Brasil

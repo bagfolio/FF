@@ -46,7 +46,7 @@ const levels = [
   {
     id: "platinum",
     name: "Platina",
-    label: "Métrica Verificada Futebol Futuro",
+    label: "Métrica Verificada Revela",
     description: "Combine Digital com IA",
     icon: Trophy,
     color: "from-purple-500 to-purple-600",

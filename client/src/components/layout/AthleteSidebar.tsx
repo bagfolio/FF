@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,14 @@ import {
   Bell,
   Star,
   Menu,
-  X
+  X,
+  Flame,
+  Calendar
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { StreakDisplay } from "@/components/features/athlete/StreakDisplay";
 
 interface NavItem {
   id: string;
@@ -48,10 +53,85 @@ interface AthleteSidebarProps {
   onToggle?: () => void;
 }
 
+// Animated counter component
+function AnimatedCounter({ value, duration = 2000 }: { value: number; duration?: number }) {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    let startTime: number;
+    let animationFrame: number;
+
+    const updateValue = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      
+      setDisplayValue(Math.floor(progress * value));
+      
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(updateValue);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(updateValue);
+    
+    return () => cancelAnimationFrame(animationFrame);
+  }, [value, duration]);
+
+  return <span>{displayValue}</span>;
+}
+
+// Fetch athlete stats (replace with actual API endpoint)
+async function fetchAthleteStats() {
+  // Simulated API call - replace with actual endpoint
+  return {
+    level: 15,
+    xp: 1250,
+    nextLevelXp: 1500,
+    rank: "Estrela em Ascensão",
+    completedTests: 7,
+    achievements: 12,
+    scoutViews: 45,
+    streak: 7,
+    weeklyProgress: 85
+  };
+}
+
 export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteSidebarProps) {
   const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  
+  // Check if user has checked in today
+  const { data: todayCheckIn } = useQuery({
+    queryKey: ['/api/checkin/today'],
+    queryFn: async () => {
+      const today = new Date().toDateString();
+      const saved = localStorage.getItem('lastCheckIn');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return new Date(parsed.timestamp).toDateString() === today;
+      }
+      return false;
+    },
+    staleTime: 60000, // 1 minute
+  });
+  
+  // Fetch dynamic stats
+  const { data: stats = {
+    level: 0,
+    xp: 0,
+    nextLevelXp: 1,
+    rank: "Iniciante",
+    completedTests: 0,
+    achievements: 0,
+    scoutViews: 0,
+    streak: 0,
+    weeklyProgress: 0
+  }} = useQuery({
+    queryKey: ['athlete-stats'],
+    queryFn: fetchAthleteStats,
+    staleTime: 60000, // 1 minute
+  });
   
   // Main navigation sections
   const mainNavItems: NavItem[] = [
@@ -61,6 +141,15 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
       url: "/athlete/dashboard",
       icon: Home,
       description: "Visão geral do seu progresso"
+    },
+    {
+      id: "daily-checkin",
+      title: "Check-in Diário",
+      url: "/athlete/daily-checkin",
+      icon: Calendar,
+      badge: !todayCheckIn ? "!" : undefined,
+      badgeType: !todayCheckIn ? "alert" : undefined,
+      description: "Complete seu check-in diário"
     },
     {
       id: "combine",
@@ -85,22 +174,11 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
       title: "Atividade",
       url: "/athlete/activity",
       icon: Activity,
-      badge: "5",
-      badgeType: "alert",
+      badge: stats.streak > 0 ? stats.streak : undefined,
+      badgeType: stats.streak > 0 ? "alert" : undefined,
       description: "Histórico e notificações"
     },
   ];
-  
-  // Quick stats for sidebar header
-  const stats = {
-    level: 15,
-    xp: 1250,
-    nextLevelXp: 1500,
-    rank: "Estrela em Ascensão",
-    completedTests: 7,
-    achievements: 12,
-    scoutViews: 45
-  };
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
@@ -124,20 +202,28 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
     <>
       {/* User Profile Section */}
       <div className={cn(
-        "p-4 border-b border-gray-100 bg-gradient-to-br from-verde-brasil/5 to-verde-brasil/10",
+        "p-4 border-b border-white/10 bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-md",
         collapsed && "p-2"
       )}>
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-          <Avatar className={cn("h-12 w-12", collapsed && "h-10 w-10")}>
-            <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.firstName}`} />
-            <AvatarFallback className="bg-verde-brasil text-white">
-              {user?.firstName?.[0] || "A"}
-            </AvatarFallback>
-          </Avatar>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Avatar className={cn(
+              "h-12 w-12 ring-2 ring-white/20 ring-offset-2 ring-offset-transparent",
+              collapsed && "h-10 w-10"
+            )}>
+              <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.firstName}`} />
+              <AvatarFallback className="bg-gradient-to-br from-verde-brasil to-amarelo-ouro text-white font-bold">
+                {user?.firstName?.[0] || "A"}
+              </AvatarFallback>
+            </Avatar>
+          </motion.div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm truncate">{user?.firstName || "Atleta"}</h3>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <h3 className="font-semibold text-sm text-white truncate">{user?.firstName || "Atleta"}</h3>
+              <p className="text-xs text-white/60 flex items-center gap-1">
                 <Star className="h-3 w-3 text-amarelo-ouro" />
                 {stats.rank}
               </p>
@@ -147,34 +233,89 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
         
         {/* XP Progress */}
         {!collapsed && (
-          <div className="mt-4 space-y-1">
-            <div className="flex justify-between text-xs text-muted-foreground">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 space-y-1"
+          >
+            <div className="flex justify-between text-xs text-white/60">
               <span>Nível {stats.level}</span>
-              <span>{stats.xp}/{stats.nextLevelXp} XP</span>
+              <span>
+                <AnimatedCounter value={stats.xp} />/{stats.nextLevelXp} XP
+              </span>
             </div>
-            <Progress value={(stats.xp / stats.nextLevelXp) * 100} className="h-2" />
-          </div>
+            <div className="relative">
+              <Progress 
+                value={(stats.xp / stats.nextLevelXp) * 100} 
+                className="h-2 bg-white/10"
+              />
+              <motion.div
+                className="absolute inset-0 h-2 bg-gradient-to-r from-verde-brasil to-amarelo-ouro rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${(stats.xp / stats.nextLevelXp) * 100}%` }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+              />
+            </div>
+          </motion.div>
         )}
         
-        {/* Quick Stats */}
+        {/* Quick Stats with Glassmorphic Cards */}
         {!collapsed && (
           <div className="grid grid-cols-3 gap-2 mt-4">
-            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
-              <Target className="h-4 w-4 mx-auto text-verde-brasil mb-1" />
-              <p className="text-xs font-semibold">{stats.completedTests}</p>
-              <p className="text-xs text-muted-foreground">Testes</p>
-            </div>
-            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
-              <Trophy className="h-4 w-4 mx-auto text-amarelo-ouro mb-1" />
-              <p className="text-xs font-semibold">{stats.achievements}</p>
-              <p className="text-xs text-muted-foreground">Conquistas</p>
-            </div>
-            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
-              <TrendingUp className="h-4 w-4 mx-auto text-azul-celeste mb-1" />
-              <p className="text-xs font-semibold">{stats.scoutViews}</p>
-              <p className="text-xs text-muted-foreground">Views</p>
-            </div>
+            <motion.div
+              whileHover={{ scale: 1.05, y: -2 }}
+              className="stat-card glass-morph text-center p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm"
+            >
+              <div className="stat-icon-glow mb-2">
+                <Target className="h-4 w-4 mx-auto text-verde-brasil" />
+              </div>
+              <p className="text-sm font-bold text-white">
+                <AnimatedCounter value={stats.completedTests} />
+              </p>
+              <p className="text-xs text-white/60">Testes</p>
+            </motion.div>
+            
+            <motion.div
+              whileHover={{ scale: 1.05, y: -2 }}
+              className="stat-card glass-morph text-center p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm"
+            >
+              <div className="stat-icon-glow mb-2">
+                <Trophy className="h-4 w-4 mx-auto text-amarelo-ouro" />
+              </div>
+              <p className="text-sm font-bold text-white">
+                <AnimatedCounter value={stats.achievements} />
+              </p>
+              <p className="text-xs text-white/60">Conquistas</p>
+            </motion.div>
+            
+            <motion.div
+              whileHover={{ scale: 1.05, y: -2 }}
+              className="stat-card glass-morph text-center p-3 rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm"
+            >
+              <div className="stat-icon-glow mb-2">
+                <TrendingUp className="h-4 w-4 mx-auto text-azul-celeste" />
+              </div>
+              <p className="text-sm font-bold text-white">
+                <AnimatedCounter value={stats.scoutViews} />
+              </p>
+              <p className="text-xs text-white/60">Views</p>
+            </motion.div>
           </div>
+        )}
+
+        {/* Enhanced Streak Counter with StreakDisplay */}
+        {!collapsed && stats.streak > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mt-4 flex justify-center"
+          >
+            <StreakDisplay 
+              streak={stats.streak} 
+              size="small"
+              showWarning={stats.streak === 1}
+            />
+          </motion.div>
         )}
       </div>
       
@@ -188,44 +329,70 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
                 <TooltipProvider key={item.id}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        variant={active ? "default" : "ghost"}
-                        className={cn(
-                          "w-full justify-start relative transition-all",
-                          active ? "bg-verde-brasil hover:bg-verde-brasil/90 text-white" : "hover:bg-gray-50",
-                          collapsed && "justify-center px-2"
-                        )}
-                        onClick={() => {
-                          setLocation(item.url);
-                          setMobileOpen(false);
-                        }}
+                      <motion.div
+                        whileHover={{ x: 2 }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        {/* Active indicator */}
-                        {active && (
-                          <div className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 bg-amarelo-ouro rounded-r-full" />
-                        )}
-                        
-                        <item.icon className={cn("h-5 w-5", !collapsed && "mr-3")} />
-                        {!collapsed && (
-                          <>
-                            <span className="flex-1 text-left">{item.title}</span>
-                            {item.badge && (
-                              <Badge 
-                                variant={getBadgeVariant(item.badgeType)}
-                                className="ml-auto"
-                              >
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </>
-                        )}
-                      </Button>
+                        <Button
+                          variant={active ? "default" : "ghost"}
+                          className={cn(
+                            "w-full justify-start relative transition-all",
+                            active 
+                              ? "bg-gradient-to-r from-verde-brasil to-verde-brasil/80 hover:from-verde-brasil/90 hover:to-verde-brasil/70 text-white shadow-lg shadow-verde-brasil/20" 
+                              : "hover:bg-white/10 text-white/80 hover:text-white",
+                            collapsed && "justify-center px-2"
+                          )}
+                          onClick={() => {
+                            setLocation(item.url);
+                            setMobileOpen(false);
+                          }}
+                        >
+                          {/* Active indicator */}
+                          {active && (
+                            <motion.div
+                              layoutId="activeIndicator"
+                              className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 bg-amarelo-ouro rounded-r-full shadow-lg shadow-amarelo-ouro/50"
+                            />
+                          )}
+                          
+                          <item.icon className={cn(
+                            "h-5 w-5", 
+                            !collapsed && "mr-3",
+                            active && "drop-shadow-glow"
+                          )} />
+                          {!collapsed && (
+                            <>
+                              <span className="flex-1 text-left font-medium">{item.title}</span>
+                              {item.badge && (
+                                <Badge 
+                                  variant={getBadgeVariant(item.badgeType)}
+                                  className={cn(
+                                    "ml-auto",
+                                    item.badgeType === "alert" && "bg-orange-500/20 text-orange-400 border-orange-500/30 flex items-center gap-1"
+                                  )}
+                                >
+                                  {item.badgeType === "alert" && stats.streak > 0 && (
+                                    <Flame className="h-3 w-3" />
+                                  )}
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </>
+                          )}
+                        </Button>
+                      </motion.div>
                     </TooltipTrigger>
-                    <TooltipContent side="right" className={collapsed ? "visible" : "hidden"}>
+                    <TooltipContent 
+                      side="right" 
+                      className={cn(
+                        "bg-black/90 border-white/20 text-white",
+                        collapsed ? "visible" : "hidden"
+                      )}
+                    >
                       <div>
                         <p className="font-semibold">{item.title}</p>
                         {item.description && (
-                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                          <p className="text-xs text-white/60">{item.description}</p>
                         )}
                       </div>
                     </TooltipContent>
@@ -236,14 +403,14 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
           </nav>
           
           {/* Secondary Actions */}
-          <Separator className="my-4" />
+          <div className="my-4 h-px bg-white/10" />
           
           <div className="space-y-1">
             <Button
               variant="ghost"
               size="sm"
               className={cn(
-                "w-full justify-start text-muted-foreground",
+                "w-full justify-start text-white/60 hover:text-white hover:bg-white/10",
                 collapsed && "justify-center px-2"
               )}
               onClick={() => setLocation('/athlete/profile')}
@@ -256,7 +423,7 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
               variant="ghost"
               size="sm"
               className={cn(
-                "w-full justify-start text-muted-foreground",
+                "w-full justify-start text-white/60 hover:text-white hover:bg-white/10",
                 collapsed && "justify-center px-2"
               )}
               onClick={() => setLocation('/athlete/settings')}
@@ -269,7 +436,7 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
               variant="ghost"
               size="sm"
               className={cn(
-                "w-full justify-start text-muted-foreground",
+                "w-full justify-start text-white/60 hover:text-white hover:bg-white/10",
                 collapsed && "justify-center px-2"
               )}
               onClick={() => setLocation('/athlete/help')}
@@ -282,12 +449,12 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
       </ScrollArea>
       
       {/* Footer */}
-      <div className="p-2 border-t border-gray-100">
+      <div className="p-2 border-t border-white/10">
         <Button
           variant="ghost"
           size="sm"
           className={cn(
-            "w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 transition-colors",
+            "w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors",
             collapsed && "justify-center px-2"
           )}
           onClick={handleLogout}
@@ -303,19 +470,20 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
     <>
       {/* Desktop Sidebar */}
       <aside className={cn(
-        "hidden md:flex flex-col fixed left-0 top-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 z-50 shadow-sm",
+        "hidden md:flex flex-col fixed left-0 top-0 h-screen transition-all duration-300 z-50",
+        "bg-black/40 backdrop-blur-xl border-r border-white/10",
         collapsed ? "w-20" : "w-72"
       )}>
         {/* Collapse Toggle */}
         <div className="absolute -right-3 top-20 z-10">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-6 w-6 rounded-full bg-white shadow-md border-gray-200 hover:shadow-lg transition-shadow"
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="h-6 w-6 rounded-full bg-black/60 backdrop-blur-md shadow-lg border border-white/20 hover:border-white/40 transition-all flex items-center justify-center"
             onClick={onToggle}
           >
-            {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-          </Button>
+            {collapsed ? <ChevronRight className="h-3 w-3 text-white" /> : <ChevronLeft className="h-3 w-3 text-white" />}
+          </motion.button>
         </div>
         
         <SidebarContent />
@@ -324,31 +492,59 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
       {/* Mobile Sidebar */}
       <div className="md:hidden">
         {/* Mobile Toggle Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full bg-verde-brasil text-white shadow-lg md:hidden"
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full bg-gradient-to-r from-verde-brasil to-verde-brasil/80 text-white shadow-2xl shadow-verde-brasil/30 md:hidden flex items-center justify-center"
           onClick={toggleMobile}
         >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
+          <AnimatePresence mode="wait">
+            {mobileOpen ? (
+              <motion.div
+                key="close"
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+              >
+                <X className="h-6 w-6" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="menu"
+                initial={{ rotate: 90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: -90, opacity: 0 }}
+              >
+                <Menu className="h-6 w-6" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
 
         {/* Mobile Sidebar Overlay */}
-        {mobileOpen && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
-            onClick={toggleMobile}
-          />
-        )}
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+              onClick={toggleMobile}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Mobile Sidebar Panel */}
-        <aside className={cn(
-          "fixed left-0 top-0 h-full w-72 bg-white z-50 transform transition-transform duration-300 md:hidden",
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
-        )}>
+        <motion.aside
+          initial={{ x: "-100%" }}
+          animate={{ x: mobileOpen ? 0 : "-100%" }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          className="fixed left-0 top-0 h-full w-72 bg-black/90 backdrop-blur-xl z-50 md:hidden border-r border-white/10"
+        >
           <SidebarContent />
-        </aside>
+        </motion.aside>
       </div>
     </>
   );
 }
+

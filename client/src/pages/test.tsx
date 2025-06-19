@@ -78,7 +78,7 @@ export default function TestPage() {
   return (
     <div className="min-h-screen bg-cinza-claro p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="font-bebas text-4xl azul-celeste mb-8">Sistema de Testes - Futebol Futuro</h1>
+        <h1 className="font-bebas text-4xl azul-celeste mb-8">Sistema de Testes - Revela</h1>
         
         {/* Current Auth State */}
         <Card className="mb-8">

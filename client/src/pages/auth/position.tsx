@@ -17,16 +17,16 @@ interface PositionData {
 
 // 4-3-3 Formation with Brazilian legends
 const fieldPositions: PositionData[] = [
-  { id: "gk", name: "Goleiro", x: 50, y: 88, number: 1, legend: "Taffarel", description: "O guardião da meta" },
-  { id: "lb", name: "Lateral Esquerdo", x: 15, y: 70, number: 6, legend: "Roberto Carlos", description: "Velocidade e potência" },
-  { id: "cb1", name: "Zagueiro", x: 35, y: 78, number: 4, legend: "Aldair", description: "Força e liderança" },
-  { id: "cb2", name: "Zagueiro", x: 65, y: 78, number: 3, legend: "Lúcio", description: "Técnica e visão" },
-  { id: "rb", name: "Lateral Direito", x: 85, y: 70, number: 2, legend: "Cafú", description: "Resistência infinita" },
+  { id: "gk", name: "Goleiro", x: 50, y: 85, number: 1, legend: "Taffarel", description: "O guardião da meta" },
+  { id: "lb", name: "Lateral Esquerdo", x: 20, y: 65, number: 6, legend: "Roberto Carlos", description: "Velocidade e potência" },
+  { id: "cb1", name: "Zagueiro", x: 35, y: 75, number: 4, legend: "Aldair", description: "Força e liderança" },
+  { id: "cb2", name: "Zagueiro", x: 65, y: 75, number: 3, legend: "Lúcio", description: "Técnica e visão" },
+  { id: "rb", name: "Lateral Direito", x: 80, y: 65, number: 2, legend: "Cafú", description: "Resistência infinita" },
   { id: "cm1", name: "Volante", x: 30, y: 50, number: 5, legend: "Dunga", description: "O cérebro do time" },
   { id: "cm2", name: "Meio-campo", x: 50, y: 45, number: 8, legend: "Kaká", description: "Elegância e precisão" },
   { id: "cm3", name: "Meia-atacante", x: 70, y: 50, number: 10, legend: "Pelé", description: "O Rei do Futebol" },
   { id: "lw", name: "Ponta Esquerda", x: 20, y: 25, number: 11, legend: "Neymar", description: "Dribles e magia" },
-  { id: "st", name: "Centroavante", x: 50, y: 20, number: 9, legend: "Ronaldo", description: "O Fenômeno" },
+  { id: "st", name: "Centroavante", x: 50, y: 15, number: 9, legend: "Ronaldo", description: "O Fenômeno" },
   { id: "rw", name: "Ponta Direita", x: 80, y: 25, number: 7, legend: "Garrincha", description: "Alegria do povo" },
 ];
 
@@ -89,10 +89,10 @@ export default function AuthPosition() {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1, delay: 0.3 }}
-        className="relative mx-auto max-w-6xl px-4"
+        className="relative mx-auto max-w-6xl px-8 pb-4"
       >
         <div 
-          className="relative mx-auto rounded-lg shadow-2xl overflow-hidden"
+          className="relative mx-auto rounded-lg shadow-2xl overflow-visible p-8"
           style={{ 
             width: "100%",
             maxWidth: "900px",
@@ -119,21 +119,21 @@ export default function AuthPosition() {
             {/* Field lines */}
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               {/* Outer boundary */}
-              <rect x="5" y="5" width="90" height="90" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
+              <rect x="10" y="10" width="80" height="80" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
               
               {/* Center line */}
-              <line x1="5" y1="50" x2="95" y2="50" stroke="white" strokeWidth="0.5" opacity="0.8" />
+              <line x1="10" y1="50" x2="90" y2="50" stroke="white" strokeWidth="0.5" opacity="0.8" />
               
               {/* Center circle */}
               <circle cx="50" cy="50" r="10" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
               
               {/* Penalty areas */}
-              <rect x="5" y="5" width="90" height="15" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
-              <rect x="5" y="80" width="90" height="15" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
+              <rect x="10" y="10" width="80" height="18" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
+              <rect x="10" y="72" width="80" height="18" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
               
               {/* Goal areas */}
-              <rect x="20" y="5" width="60" height="8" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
-              <rect x="20" y="87" width="60" height="8" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
+              <rect x="25" y="10" width="50" height="10" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
+              <rect x="25" y="80" width="50" height="10" fill="none" stroke="white" strokeWidth="0.5" opacity="0.8" />
             </svg>
           </motion.div>
 

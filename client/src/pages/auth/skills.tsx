@@ -1,538 +1,526 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Zap, Dumbbell, Target, Heart, Play, RotateCcw, Trophy, Timer } from "lucide-react";
+import { Zap, Dumbbell, Target, Heart, ChevronRight, ChevronLeft } from "lucide-react";
 
-// Speed Game - Reaction time test
-function SpeedGame({ onComplete }: { onComplete: (score: number) => void }) {
-  const [targets, setTargets] = useState<{ id: number; x: number; y: number; active: boolean }[]>([]);
-  const [clickCount, setClickCount] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(10);
-  const [gameStarted, setGameStarted] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout>();
-  const timerRef = useRef<NodeJS.Timeout>();
-
-  useEffect(() => {
-    if (gameStarted && timeLeft > 0) {
-      timerRef.current = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-    } else if (timeLeft === 0) {
-      // Calculate score based on clicks (max 20 clicks in 10 seconds)
-      const score = Math.min(100, Math.round((clickCount / 20) * 100));
-      onComplete(score);
-    }
-    return () => clearTimeout(timerRef.current);
-  }, [timeLeft, gameStarted, clickCount, onComplete]);
-
-  useEffect(() => {
-    if (gameStarted) {
-      intervalRef.current = setInterval(() => {
-        const newTarget = {
-          id: Date.now(),
-          x: Math.random() * 80 + 10,
-          y: Math.random() * 80 + 10,
-          active: true
-        };
-        setTargets(prev => [...prev.filter(t => t.active).slice(-2), newTarget]);
-      }, 800);
-    }
-    return () => clearInterval(intervalRef.current);
-  }, [gameStarted]);
-
-  const handleTargetClick = (id: number) => {
-    setTargets(prev => prev.map(t => t.id === id ? { ...t, active: false } : t));
-    setClickCount(prev => prev + 1);
+interface SkillAssessment {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+  data: {
+    selfRating?: string;
+    specificMetric?: number;
+    sliderValue?: number;
+    comparison?: string;
+    skills?: Record<string, number>;
+    preferredFoot?: string;
+    duration?: string;
+    recovery?: string;
   };
-
-  const startGame = () => {
-    setGameStarted(true);
-    setClickCount(0);
-    setTimeLeft(10);
-  };
-
-  return (
-    <div className="w-full h-full min-h-[400px] relative">
-      {!gameStarted ? (
-        <div className="flex flex-col items-center justify-center h-full">
-          <Zap className="w-16 h-16 text-yellow-400 mb-4" />
-          <h3 className="font-bebas text-3xl text-white mb-4">TESTE DE VELOCIDADE</h3>
-          <p className="text-white/80 mb-6 text-center">Clique nos cones o mais rápido possível!</p>
-          <Button
-            onClick={startGame}
-            className="bg-yellow-500 hover:bg-yellow-600 text-black font-bebas text-xl px-8 py-3"
-          >
-            INICIAR
-          </Button>
-        </div>
-      ) : (
-        <>
-          {/* Game HUD */}
-          <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4 bg-black/50 rounded-t-lg">
-            <div className="text-white">
-              <Timer className="inline w-5 h-5 mr-2" />
-              <span className="font-bebas text-xl">{timeLeft}s</span>
-            </div>
-            <div className="text-white font-bebas text-xl">
-              CLIQUES: {clickCount}
-            </div>
-          </div>
-
-          {/* Game Area */}
-          <div className="relative w-full h-full pt-16">
-            {targets.map(target => (
-              target.active && (
-                <motion.div
-                  key={target.id}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  style={{ 
-                    position: 'absolute', 
-                    left: `${target.x}%`, 
-                    top: `${target.y}%`,
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                  onClick={() => handleTargetClick(target.id)}
-                  className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full cursor-pointer hover:scale-110 transition-transform shadow-lg flex items-center justify-center"
-                  whileTap={{ scale: 0.8 }}
-                >
-                  <div className="w-12 h-12 bg-white/20 rounded-full" />
-                </motion.div>
-              )
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
 }
 
-// Strength Game - Hold button challenge
-function StrengthGame({ onComplete }: { onComplete: (score: number) => void }) {
-  const [isHolding, setIsHolding] = useState(false);
-  const [power, setPower] = useState(0);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameEnded, setGameEnded] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout>();
+// Speed Assessment Component
+function SpeedAssessment({ onComplete }: { onComplete: (data: any) => void }) {
+  const [selfRating, setSelfRating] = useState<string>("");
+  const [time50m, setTime50m] = useState<string>("");
+  const [speedSlider, setSpeedSlider] = useState<number>(5);
 
-  useEffect(() => {
-    if (isHolding && !gameEnded) {
-      intervalRef.current = setInterval(() => {
-        setPower(prev => {
-          const newPower = Math.min(100, prev + 2);
-          if (newPower === 100) {
-            setGameEnded(true);
-            setIsHolding(false);
-            onComplete(100);
-          }
-          return newPower;
-        });
-      }, 50);
-    } else {
-      clearInterval(intervalRef.current);
-      if (gameStarted && !isHolding && power > 0 && !gameEnded) {
-        // Penalize for releasing early
-        setPower(prev => Math.max(0, prev - 5));
-      }
-    }
-    return () => clearInterval(intervalRef.current);
-  }, [isHolding, gameStarted, gameEnded, power, onComplete]);
-
-  const handleMouseDown = () => {
-    if (!gameEnded) {
-      setIsHolding(true);
-      if (!gameStarted) setGameStarted(true);
-    }
+  const handleComplete = () => {
+    onComplete({
+      selfRating,
+      specificMetric: time50m ? parseFloat(time50m) : undefined,
+      sliderValue: speedSlider
+    });
   };
 
-  const handleMouseUp = () => {
-    setIsHolding(false);
-    if (gameStarted && !gameEnded && power > 10) {
-      setGameEnded(true);
-      onComplete(power);
-    }
-  };
+  const isComplete = selfRating !== "";
 
   return (
-    <div className="w-full h-full min-h-[400px] flex flex-col items-center justify-center">
-      <Dumbbell className="w-16 h-16 text-red-500 mb-4" />
-      <h3 className="font-bebas text-3xl text-white mb-4">TESTE DE FORÇA</h3>
-      
-      {!gameStarted && (
-        <p className="text-white/80 mb-6 text-center">Segure o botão sem soltar até encher a barra!</p>
-      )}
-
-      {/* Power Bar */}
-      <div className="w-full max-w-md mb-8">
-        <div className="h-8 bg-gray-700 rounded-full overflow-hidden relative">
-          <motion.div
-            className="h-full bg-gradient-to-r from-red-400 to-red-600"
-            animate={{ width: `${power}%` }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-bebas text-white text-xl">{Math.round(power)}%</span>
+    <motion.div
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      className="w-full max-w-2xl mx-auto"
+    >
+      <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
+            <Zap className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h3 className="font-bebas text-3xl text-white">Como você avalia sua velocidade?</h3>
+            <p className="text-white/60">Seja honesto - isso ajuda a encontrar as melhores oportunidades</p>
           </div>
         </div>
-      </div>
-
-      {/* Hold Button */}
-      <button
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleMouseDown}
-        onTouchEnd={handleMouseUp}
-        disabled={gameEnded}
-        className={`w-32 h-32 rounded-full transition-all duration-200 ${
-          isHolding 
-            ? 'scale-95 bg-gradient-to-br from-red-600 to-red-800 shadow-inner' 
-            : 'bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 shadow-lg'
-        } ${gameEnded ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-      >
-        <div className="text-white text-center">
-          <Dumbbell className="w-12 h-12 mx-auto mb-2" />
-          <span className="font-bebas text-lg">
-            {!gameStarted ? 'SEGURE' : isHolding ? 'SEGURANDO!' : 'SEGURE!'}
-          </span>
-        </div>
-      </button>
-
-      {gameEnded && (
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-verde-brasil font-bebas text-2xl mt-4"
-        >
-          {power === 100 ? 'FORÇA MÁXIMA!' : 'BOM ESFORÇO!'}
-        </motion.p>
-      )}
-    </div>
-  );
-}
-
-// Technique Game - Ball control sequence
-function TechniqueGame({ onComplete }: { onComplete: (score: number) => void }) {
-  const [sequence, setSequence] = useState<string[]>([]);
-  const [playerSequence, setPlayerSequence] = useState<string[]>([]);
-  const [showingSequence, setShowingSequence] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [level, setLevel] = useState(1);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [mistakes, setMistakes] = useState(0);
-
-  const buttons = [
-    { id: 'up', icon: '⬆️', color: 'from-blue-500 to-blue-600' },
-    { id: 'right', icon: '➡️', color: 'from-green-500 to-green-600' },
-    { id: 'down', icon: '⬇️', color: 'from-yellow-500 to-yellow-600' },
-    { id: 'left', icon: '⬅️', color: 'from-red-500 to-red-600' }
-  ];
-
-  const generateSequence = (length: number) => {
-    const newSequence = [];
-    for (let i = 0; i < length; i++) {
-      newSequence.push(buttons[Math.floor(Math.random() * buttons.length)].id);
-    }
-    return newSequence;
-  };
-
-  const showSequence = async () => {
-    setShowingSequence(true);
-    setPlayerSequence([]);
-    
-    for (let i = 0; i < sequence.length; i++) {
-      setCurrentIndex(i);
-      await new Promise(resolve => setTimeout(resolve, 600));
-    }
-    
-    setCurrentIndex(-1);
-    setShowingSequence(false);
-  };
-
-  const startGame = () => {
-    setGameStarted(true);
-    setLevel(1);
-    setMistakes(0);
-    const newSeq = generateSequence(3);
-    setSequence(newSeq);
-    setTimeout(() => showSequence(), 500);
-  };
-
-  useEffect(() => {
-    if (gameStarted && sequence.length > 0 && !showingSequence) {
-      showSequence();
-    }
-  }, [sequence]);
-
-  const handleButtonClick = (buttonId: string) => {
-    if (showingSequence || !gameStarted) return;
-
-    const newPlayerSeq = [...playerSequence, buttonId];
-    setPlayerSequence(newPlayerSeq);
-
-    // Check if correct
-    if (sequence[newPlayerSeq.length - 1] !== buttonId) {
-      setMistakes(mistakes + 1);
-      if (mistakes >= 2) {
-        // Game over
-        const score = Math.max(0, Math.round(((level - 1) * 20) - (mistakes * 10)));
-        onComplete(score);
-      } else {
-        // Try again
-        setTimeout(() => {
-          setPlayerSequence([]);
-          showSequence();
-        }, 1000);
-      }
-    } else if (newPlayerSeq.length === sequence.length) {
-      // Level complete
-      setLevel(level + 1);
-      if (level >= 5) {
-        // Game complete
-        onComplete(Math.max(0, 100 - (mistakes * 20)));
-      } else {
-        setTimeout(() => {
-          setSequence(generateSequence(3 + level));
-        }, 1000);
-      }
-    }
-  };
-
-  return (
-    <div className="w-full h-full min-h-[400px] flex flex-col items-center justify-center">
-      <Target className="w-16 h-16 text-blue-500 mb-4" />
-      <h3 className="font-bebas text-3xl text-white mb-4">TESTE DE TÉCNICA</h3>
-      
-      {!gameStarted ? (
-        <>
-          <p className="text-white/80 mb-6 text-center">Memorize e repita a sequência de toques!</p>
-          <Button
-            onClick={startGame}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bebas text-xl px-8 py-3"
-          >
-            INICIAR
-          </Button>
-        </>
-      ) : (
-        <>
-          <div className="text-white mb-4">
-            <span className="font-bebas text-xl">NÍVEL {level} | ERROS: {mistakes}/3</span>
-          </div>
-
-          {/* Button Grid */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            {buttons.map((button, index) => (
+        
+        {/* Self Rating */}
+        <div className="rating-section mb-8">
+          <p className="text-white mb-4">Comparado com jogadores da sua idade:</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { value: "slower", label: "Mais lento", icon: "🐢" },
+              { value: "average", label: "Na média", icon: "🏃" },
+              { value: "above_average", label: "Acima da média", icon: "⚡" },
+              { value: "fastest", label: "Um dos mais rápidos", icon: "🚀" }
+            ].map((option) => (
               <motion.button
-                key={button.id}
-                onClick={() => handleButtonClick(button.id)}
-                disabled={showingSequence}
-                className={`w-24 h-24 rounded-xl bg-gradient-to-br ${button.color} 
-                  flex items-center justify-center text-4xl shadow-lg
-                  ${showingSequence && currentIndex === sequence.findIndex(s => s === button.id) ? 'ring-4 ring-white' : ''}
-                  ${!showingSequence ? 'hover:scale-105 active:scale-95' : ''}
-                  transition-all duration-200`}
-                animate={{
-                  scale: showingSequence && sequence[currentIndex] === button.id ? 1.2 : 1,
-                  opacity: showingSequence && sequence[currentIndex] === button.id ? 1 : showingSequence ? 0.5 : 1
-                }}
+                key={option.value}
+                onClick={() => setSelfRating(option.value)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+                  selfRating === option.value
+                    ? 'border-amarelo-ouro bg-amarelo-ouro/20 shadow-lg shadow-amarelo-ouro/30'
+                    : 'border-white/20 bg-white/5 hover:border-white/40'
+                }`}
               >
-                {button.icon}
+                <span className="text-2xl mb-2 block">{option.icon}</span>
+                <span className="text-white font-medium">{option.label}</span>
               </motion.button>
             ))}
           </div>
+        </div>
+        
+        {/* Specific Metrics */}
+        <div className="metric-inputs mb-8">
+          <label className="text-white mb-2 block">Seu tempo nos 50m (se souber):</label>
+          <input
+            type="number"
+            step="0.1"
+            placeholder="Ex: 7.2 segundos"
+            value={time50m}
+            onChange={(e) => setTime50m(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:border-amarelo-ouro focus:outline-none transition-colors"
+          />
+        </div>
+        
+        {/* Visual Slider */}
+        <div className="speed-slider mb-8">
+          <label className="text-white mb-4 block">Arraste para indicar sua velocidade:</label>
+          <div className="relative">
+            <input 
+              type="range" 
+              min="1" 
+              max="10"
+              value={speedSlider}
+              onChange={(e) => setSpeedSlider(parseInt(e.target.value))}
+              className="w-full h-3 bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-full appearance-none cursor-pointer slider-thumb"
+            />
+            <div className="flex justify-between mt-2">
+              <span className="text-white/60 text-sm">🐢 Lento</span>
+              <span className="text-white/60 text-sm">⚡ Rápido</span>
+            </div>
+          </div>
+          <div className="text-center mt-2">
+            <span className="text-2xl font-bebas text-amarelo-ouro">{speedSlider}/10</span>
+          </div>
+        </div>
 
-          {showingSequence && (
-            <p className="text-amarelo-ouro font-bebas text-xl">OBSERVE...</p>
-          )}
-        </>
-      )}
-    </div>
+        <Button
+          onClick={handleComplete}
+          disabled={!isComplete}
+          className="w-full bg-gradient-to-r from-verde-brasil to-amarelo-ouro hover:from-verde-brasil/80 hover:to-amarelo-ouro/80 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
+        >
+          PRÓXIMA AVALIAÇÃO
+        </Button>
+      </div>
+    </motion.div>
   );
 }
 
-// Stamina Game - Rapid tap test
-function StaminaGame({ onComplete }: { onComplete: (score: number) => void }) {
-  const [taps, setTaps] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(15);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [energy, setEnergy] = useState(100);
-  const timerRef = useRef<NodeJS.Timeout>();
+// Strength Assessment Component
+function StrengthAssessment({ onComplete }: { onComplete: (data: any) => void }) {
+  const [ballDisputes, setBallDisputes] = useState<string>("");
+  const [teamComparison, setTeamComparison] = useState<number>(5);
 
-  useEffect(() => {
-    if (gameStarted && timeLeft > 0) {
-      timerRef.current = setTimeout(() => {
-        setTimeLeft(timeLeft - 1);
-        // Decrease energy over time
-        setEnergy(prev => Math.max(0, prev - 2));
-      }, 1000);
-    } else if (timeLeft === 0 || energy === 0) {
-      // Calculate score based on taps and remaining energy
-      const score = Math.min(100, Math.round((taps / 150) * 100 * (energy / 100)));
-      onComplete(score);
-    }
-    return () => clearTimeout(timerRef.current);
-  }, [timeLeft, gameStarted, energy, taps, onComplete]);
-
-  const handleTap = () => {
-    if (!gameStarted) {
-      setGameStarted(true);
-    }
-    setTaps(prev => prev + 1);
-    // Small energy boost for tapping
-    setEnergy(prev => Math.min(100, prev + 1));
+  const handleComplete = () => {
+    onComplete({
+      comparison: ballDisputes,
+      sliderValue: teamComparison
+    });
   };
 
+  const isComplete = ballDisputes !== "";
+
   return (
-    <div className="w-full h-full min-h-[400px] flex flex-col items-center justify-center">
-      <Heart className="w-16 h-16 text-green-500 mb-4" />
-      <h3 className="font-bebas text-3xl text-white mb-4">TESTE DE RESISTÊNCIA</h3>
-
-      {!gameStarted && (
-        <p className="text-white/80 mb-6 text-center">Toque rapidamente e mantenha sua energia!</p>
-      )}
-
-      {gameStarted && (
-        <>
-          {/* Stats */}
-          <div className="flex gap-8 mb-6">
-            <div className="text-white text-center">
-              <Timer className="w-6 h-6 mx-auto mb-1" />
-              <span className="font-bebas text-2xl">{timeLeft}s</span>
-            </div>
-            <div className="text-white text-center">
-              <span className="text-2xl mb-1">⚡</span>
-              <span className="font-bebas text-2xl">{taps}</span>
-            </div>
+    <motion.div
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      className="w-full max-w-2xl mx-auto"
+    >
+      <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
+            <Dumbbell className="w-8 h-8 text-white" />
           </div>
-
-          {/* Energy Bar */}
-          <div className="w-full max-w-md mb-6">
-            <div className="h-6 bg-gray-700 rounded-full overflow-hidden relative">
-              <motion.div
-                className={`h-full bg-gradient-to-r ${
-                  energy > 50 ? 'from-green-400 to-green-600' : 
-                  energy > 25 ? 'from-yellow-400 to-yellow-600' : 
-                  'from-red-400 to-red-600'
-                }`}
-                animate={{ width: `${energy}%` }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="font-bebas text-white text-sm">ENERGIA: {Math.round(energy)}%</span>
-              </div>
-            </div>
+          <div>
+            <h3 className="font-bebas text-3xl text-white">Avalie sua força física</h3>
+            <p className="text-white/60">Força é importante para proteger a bola e disputas</p>
           </div>
-        </>
-      )}
-
-      {/* Tap Button */}
-      <motion.button
-        onClick={handleTap}
-        whileTap={{ scale: 0.95 }}
-        className="w-40 h-40 rounded-full bg-gradient-to-br from-green-500 to-green-700 
-          hover:from-green-600 hover:to-green-800 shadow-2xl cursor-pointer
-          flex items-center justify-center transition-all duration-100"
-      >
-        <div className="text-white text-center">
-          <Heart className="w-16 h-16 mx-auto mb-2" />
-          <span className="font-bebas text-2xl">
-            {!gameStarted ? 'COMEÇAR' : 'TOQUE!'}
-          </span>
         </div>
-      </motion.button>
+        
+        {/* Multiple Choice Questions */}
+        <div className="question mb-8">
+          <p className="text-white mb-4">Em disputas de bola:</p>
+          <div className="grid grid-cols-1 gap-3">
+            {[
+              { value: "win_most", icon: "💪", label: "Ganho a maioria", desc: "Consigo proteger bem a bola" },
+              { value: "fifty_fifty", icon: "🤝", label: "50/50", desc: "Depende do adversário" },
+              { value: "avoid", icon: "🏃", label: "Prefiro evitar", desc: "Uso velocidade e técnica" }
+            ].map((option) => (
+              <motion.button
+                key={option.value}
+                onClick={() => setBallDisputes(option.value)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-4 rounded-xl border-2 transition-all duration-300 flex items-center gap-4 ${
+                  ballDisputes === option.value
+                    ? 'border-amarelo-ouro bg-amarelo-ouro/20 shadow-lg shadow-amarelo-ouro/30'
+                    : 'border-white/20 bg-white/5 hover:border-white/40'
+                }`}
+              >
+                <span className="text-3xl">{option.icon}</span>
+                <div className="text-left">
+                  <span className="text-white font-medium block">{option.label}</span>
+                  <span className="text-white/60 text-sm">{option.desc}</span>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Comparison Slider */}
+        <div className="comparison mb-8">
+          <p className="text-white mb-4">Comparado com seu time atual:</p>
+          <div className="relative">
+            <div className="flex justify-between mb-2 text-white/60 text-sm">
+              <span>Mais fraco</span>
+              <span>Igual</span>
+              <span>Mais forte</span>
+            </div>
+            <input 
+              type="range" 
+              min="1" 
+              max="10"
+              value={teamComparison}
+              onChange={(e) => setTeamComparison(parseInt(e.target.value))}
+              className="w-full h-3 bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-full appearance-none cursor-pointer slider-thumb"
+            />
+            <div className="text-center mt-4">
+              <span className="text-2xl font-bebas text-amarelo-ouro">{teamComparison}/10</span>
+            </div>
+          </div>
+        </div>
 
-      {gameStarted && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-4 text-white/60 text-sm"
+        <Button
+          onClick={handleComplete}
+          disabled={!isComplete}
+          className="w-full bg-gradient-to-r from-verde-brasil to-amarelo-ouro hover:from-verde-brasil/80 hover:to-amarelo-ouro/80 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
         >
-          Velocidade: {(taps / Math.max(1, 15 - timeLeft)).toFixed(1)} toques/seg
-        </motion.div>
-      )}
-    </div>
+          PRÓXIMA AVALIAÇÃO
+        </Button>
+      </div>
+    </motion.div>
   );
 }
 
-interface SkillRating {
-  id: string;
-  name: string;
-  value: number;
-  icon: React.ReactNode;
-  color: string;
-  description: string;
-  gameDescription: string;
-  completed: boolean;
+// Technique Assessment Component
+function TechniqueAssessment({ onComplete }: { onComplete: (data: any) => void }) {
+  const [skills, setSkills] = useState<Record<string, number>>({
+    shortPass: 0,
+    longPass: 0,
+    control: 0,
+    finishing: 0
+  });
+  const [preferredFoot, setPreferredFoot] = useState<string>("");
+
+  const handleSkillRating = (skill: string, rating: number) => {
+    setSkills(prev => ({ ...prev, [skill]: rating }));
+  };
+
+  const handleComplete = () => {
+    onComplete({
+      skills,
+      preferredFoot
+    });
+  };
+
+  const isComplete = Object.values(skills).every(v => v > 0) && preferredFoot !== "";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      className="w-full max-w-2xl mx-auto"
+    >
+      <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+            <Target className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h3 className="font-bebas text-3xl text-white">Suas habilidades técnicas</h3>
+            <p className="text-white/60">Clique nos números para avaliar cada habilidade de 1 a 5</p>
+          </div>
+        </div>
+        
+        {/* Skill Matrix */}
+        <div className="skill-grid mb-8 space-y-4">
+          {[
+            { id: "shortPass", label: "Passe curto", desc: "Passes de até 15m" },
+            { id: "longPass", label: "Passe longo", desc: "Lançamentos e mudanças de jogo" },
+            { id: "control", label: "Domínio", desc: "Controle e primeiro toque" },
+            { id: "finishing", label: "Finalização", desc: "Chutes ao gol" }
+          ].map((skill) => (
+            <div key={skill.id} className="skill-item">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <span className="text-white font-medium">{skill.label}</span>
+                  <p className="text-white/60 text-sm">{skill.desc}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <motion.button
+                    key={star}
+                    onClick={() => handleSkillRating(skill.id, star)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                      skills[skill.id] >= star 
+                        ? 'bg-amarelo-ouro border-amarelo-ouro text-white' 
+                        : 'bg-transparent border-white/30 text-white/30 hover:border-white/60'
+                    }`}
+                  >
+                    <span className="text-lg font-bold">{star}</span>
+                  </motion.button>
+                ))}
+                <span className="text-white/60 text-sm ml-2 self-center">
+                  {skills[skill.id] > 0 ? `${skills[skill.id]}/5` : 'Clique para avaliar'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Preferred Foot */}
+        <div className="foot-preference mb-8">
+          <p className="text-white mb-4">Pé dominante:</p>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { value: "right", label: "Direito", icon: "🦶" },
+              { value: "left", label: "Esquerdo", icon: "🦶" },
+              { value: "both", label: "Ambidestro", icon: "👟" }
+            ].map((option) => (
+              <motion.button
+                key={option.value}
+                onClick={() => setPreferredFoot(option.value)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+                  preferredFoot === option.value
+                    ? 'border-amarelo-ouro bg-amarelo-ouro/20 shadow-lg shadow-amarelo-ouro/30'
+                    : 'border-white/20 bg-white/5 hover:border-white/40'
+                }`}
+              >
+                <span className="text-2xl mb-2 block">{option.icon}</span>
+                <span className="text-white font-medium">{option.label}</span>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        <Button
+          onClick={handleComplete}
+          disabled={!isComplete}
+          className="w-full bg-gradient-to-r from-verde-brasil to-amarelo-ouro hover:from-verde-brasil/80 hover:to-amarelo-ouro/80 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
+        >
+          PRÓXIMA AVALIAÇÃO
+        </Button>
+      </div>
+    </motion.div>
+  );
 }
 
-type GameState = 'idle' | 'playing' | 'finished';
+// Stamina Assessment Component
+function StaminaAssessment({ onComplete }: { onComplete: (data: any) => void }) {
+  const [duration, setDuration] = useState<string>("");
+  const [recovery, setRecovery] = useState<string>("");
+
+  const handleComplete = () => {
+    onComplete({
+      duration,
+      recovery
+    });
+  };
+
+  const isComplete = duration !== "" && recovery !== "";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -50 }}
+      className="w-full max-w-2xl mx-auto"
+    >
+      <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+            <Heart className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h3 className="font-bebas text-3xl text-white">Sua resistência em campo</h3>
+            <p className="text-white/60">Quanto tempo você aguenta jogar intensamente?</p>
+          </div>
+        </div>
+        
+        {/* Duration Selector */}
+        <div className="stamina-scale mb-8">
+          <p className="text-white mb-4">Consigo manter alto ritmo por:</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { value: "45", label: "45 min", desc: "Um tempo" },
+              { value: "60", label: "60 min", desc: "Boa parte do jogo" },
+              { value: "90", label: "90 min", desc: "Jogo completo" },
+              { value: "90+", label: "90+ min", desc: "Jogo completo + prorrogação" }
+            ].map((option) => (
+              <motion.button
+                key={option.value}
+                onClick={() => setDuration(option.value)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+                  duration === option.value
+                    ? 'border-amarelo-ouro bg-amarelo-ouro/20 shadow-lg shadow-amarelo-ouro/30'
+                    : 'border-white/20 bg-white/5 hover:border-white/40'
+                }`}
+              >
+                <span className="text-white font-medium block text-lg">{option.label}</span>
+                <span className="text-white/60 text-sm">{option.desc}</span>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Recovery Rate */}
+        <div className="recovery mb-8">
+          <p className="text-white mb-4">Após um sprint, você se recupera:</p>
+          <div className="space-y-3">
+            {[
+              { value: "fast", icon: "🟢", label: "Rapidamente", desc: "Menos de 30 segundos" },
+              { value: "normal", icon: "🟡", label: "Normal", desc: "Entre 30-60 segundos" },
+              { value: "slow", icon: "🔴", label: "Preciso melhorar", desc: "Mais de 60 segundos" }
+            ].map((option) => (
+              <motion.button
+                key={option.value}
+                onClick={() => setRecovery(option.value)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`w-full p-4 rounded-xl border-2 transition-all duration-300 flex items-center gap-4 ${
+                  recovery === option.value
+                    ? 'border-amarelo-ouro bg-amarelo-ouro/20 shadow-lg shadow-amarelo-ouro/30'
+                    : 'border-white/20 bg-white/5 hover:border-white/40'
+                }`}
+              >
+                <span className="text-2xl">{option.icon}</span>
+                <div className="text-left">
+                  <span className="text-white font-medium block">{option.label}</span>
+                  <span className="text-white/60 text-sm">{option.desc}</span>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        <Button
+          onClick={handleComplete}
+          disabled={!isComplete}
+          className="w-full bg-gradient-to-r from-verde-brasil to-amarelo-ouro hover:from-verde-brasil/80 hover:to-amarelo-ouro/80 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
+        >
+          FINALIZAR AVALIAÇÃO
+        </Button>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function AuthSkills() {
   const [, setLocation] = useLocation();
-  const [activeGame, setActiveGame] = useState<string | null>(null);
-  const [skills, setSkills] = useState<SkillRating[]>([
+  const [currentAssessment, setCurrentAssessment] = useState(0);
+  const [assessments, setAssessments] = useState<SkillAssessment[]>([
     {
       id: "speed",
       name: "Velocidade",
-      value: 0,
       icon: <Zap className="w-8 h-8" />,
       color: "from-yellow-400 to-yellow-600",
-      description: "Teste seus reflexos de raio",
-      gameDescription: "Clique nos cones o mais rápido possível!",
-      completed: false
+      data: {}
     },
     {
       id: "strength",
       name: "Força",
-      value: 0,
       icon: <Dumbbell className="w-8 h-8" />,
       color: "from-red-400 to-red-600",
-      description: "Mostre sua força física",
-      gameDescription: "Segure o botão sem soltar!",
-      completed: false
+      data: {}
     },
     {
       id: "technique",
       name: "Técnica",
-      value: 0,
       icon: <Target className="w-8 h-8" />,
       color: "from-blue-400 to-blue-600",
-      description: "Domínio e controle de bola",
-      gameDescription: "Siga a sequência de toques!",
-      completed: false
+      data: {}
     },
     {
       id: "stamina",
       name: "Resistência",
-      value: 0,
       icon: <Heart className="w-8 h-8" />,
       color: "from-green-400 to-green-600",
-      description: "Aguenta o jogo todo?",
-      gameDescription: "Toque rapidamente sem parar!",
-      completed: false
+      data: {}
     }
   ]);
 
-  const handleSkillComplete = (skillId: string, score: number) => {
-    setSkills(prev => prev.map(skill => 
-      skill.id === skillId ? { ...skill, value: score, completed: true } : skill
-    ));
-    setActiveGame(null);
+  const handleAssessmentComplete = (data: any) => {
+    const updatedAssessments = [...assessments];
+    updatedAssessments[currentAssessment].data = data;
+    setAssessments(updatedAssessments);
+
+    if (currentAssessment < assessments.length - 1) {
+      setCurrentAssessment(currentAssessment + 1);
+    } else {
+      // All assessments complete - save only the data, not React components
+      const dataToSave = updatedAssessments.map(assessment => ({
+        id: assessment.id,
+        name: assessment.name,
+        data: assessment.data
+      }));
+      localStorage.setItem("authSkills", JSON.stringify(dataToSave));
+      setLocation("/auth/complete");
+    }
   };
 
-  const handleContinue = () => {
-    // Save skills data
-    localStorage.setItem("authSkills", JSON.stringify(skills));
-    setLocation("/auth/complete");
+  const handlePrevious = () => {
+    if (currentAssessment > 0) {
+      setCurrentAssessment(currentAssessment - 1);
+    }
   };
 
-  const allGamesCompleted = skills.every(skill => skill.completed);
-
-  const getSkillLevel = (value: number) => {
-    if (value < 20) return "Iniciante";
-    if (value < 40) return "Amador";
-    if (value < 60) return "Intermediário";
-    if (value < 80) return "Avançado";
-    return "Profissional";
+  const renderAssessment = () => {
+    switch (assessments[currentAssessment].id) {
+      case "speed":
+        return <SpeedAssessment onComplete={handleAssessmentComplete} />;
+      case "strength":
+        return <StrengthAssessment onComplete={handleAssessmentComplete} />;
+      case "technique":
+        return <TechniqueAssessment onComplete={handleAssessmentComplete} />;
+      case "stamina":
+        return <StaminaAssessment onComplete={handleAssessmentComplete} />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -577,286 +565,85 @@ export default function AuthSkills() {
         className="relative z-10 text-center pt-8 pb-8"
       >
         <h1 className="font-bebas text-5xl md:text-7xl text-white mb-2 tracking-wider">
-          TESTE SUAS HABILIDADES
+          AVALIAÇÃO DE HABILIDADES
         </h1>
         <p className="text-white/80 text-xl font-medium">
-          Complete os desafios e prove seu talento!
+          Seja honesto - isso ajuda a encontrar as melhores oportunidades
         </p>
         
         {/* Progress Indicator */}
         <div className="flex justify-center space-x-2 mt-6">
-          <div className="w-12 h-1 bg-verde-brasil rounded-full" />
-          <div className="w-12 h-1 bg-verde-brasil rounded-full" />
-          <div className="w-12 h-1 bg-verde-brasil rounded-full" />
-          <div className="w-12 h-1 bg-verde-brasil rounded-full" />
-          <div className="w-12 h-1 bg-gray-600 rounded-full" />
+          {[...Array(5)].map((_, index) => (
+            <div
+              key={index}
+              className={`w-12 h-1 rounded-full transition-colors duration-300 ${
+                index <= currentAssessment + 2 ? 'bg-verde-brasil' : 'bg-gray-600'
+              }`}
+            />
+          ))}
         </div>
       </motion.div>
 
-      {/* Skills Grid */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 grid lg:grid-cols-2 gap-8">
-        {skills.map((skill, index) => (
-          <motion.div
-            key={skill.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
-          >
-            <Card className={`h-full ${skill.completed ? 'bg-black/50' : 'bg-black/30'} backdrop-blur-md border-white/20 shadow-2xl hover:shadow-verde-brasil/30 transition-all duration-300 transform hover:scale-105`}>
-              <CardContent className="p-8">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${skill.color} flex items-center justify-center shadow-lg`}>
-                      {skill.icon}
-                    </div>
-                    <div>
-                      <h3 className="font-bebas text-3xl text-white tracking-wider">
-                        {skill.name}
-                      </h3>
-                      <p className="text-white/70">
-                        {skill.description}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {skill.completed && (
-                    <motion.div
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      className="text-verde-brasil"
-                    >
-                      <Trophy className="w-8 h-8" />
-                    </motion.div>
-                  )}
-                </div>
-
-                {/* Game Area */}
-                <div className="relative h-48 mb-6">
-                  {skill.completed ? (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="h-full flex flex-col items-center justify-center bg-white/5 rounded-xl border-2 border-verde-brasil/50"
-                    >
-                      <Trophy className="w-16 h-16 text-amarelo-ouro mb-4" />
-                      <div className="text-5xl font-bebas text-white mb-2">
-                        {skill.value}%
-                      </div>
-                      <div className={`px-4 py-2 rounded-full bg-gradient-to-r ${skill.color} text-white font-medium`}>
-                        {getSkillLevel(skill.value)}
-                      </div>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="h-full flex flex-col items-center justify-center bg-white/5 rounded-xl border-2 border-dashed border-white/30 cursor-pointer hover:border-verde-brasil hover:bg-white/10 transition-all"
-                      onClick={() => setActiveGame(skill.id)}
-                    >
-                      <Play className="w-12 h-12 text-white/80 mb-4" />
-                      <p className="text-white/80 text-lg font-medium">
-                        {skill.gameDescription}
-                      </p>
-                      <p className="text-white/60 mt-2">
-                        Clique para começar
-                      </p>
-                    </motion.div>
-                  )}
-                </div>
-
-                {/* Stars Progress */}
-                <div className="flex justify-center gap-2">
-                  {[...Array(5)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ scale: 0 }}
-                      animate={{ 
-                        scale: skill.completed && i < Math.ceil(skill.value / 20) ? 1 : 0.8,
-                        opacity: skill.completed && i < Math.ceil(skill.value / 20) ? 1 : 0.3
-                      }}
-                      transition={{ delay: skill.completed ? i * 0.1 : 0 }}
-                      className="text-2xl"
-                    >
-                      ⭐
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+      {/* Assessment Progress */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 mb-8">
+        <div className="flex justify-center items-center gap-4">
+          {assessments.map((assessment, index) => (
+            <motion.div
+              key={assessment.id}
+              className={`flex items-center ${index < assessments.length - 1 ? 'flex-1' : ''}`}
+            >
+              <motion.div
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  index < currentAssessment
+                    ? 'bg-verde-brasil text-white'
+                    : index === currentAssessment
+                    ? `bg-gradient-to-r ${assessment.color} text-white`
+                    : 'bg-gray-700 text-gray-400'
+                }`}
+                animate={{
+                  scale: index === currentAssessment ? 1.2 : 1,
+                }}
+              >
+                {index < currentAssessment ? "✓" : index + 1}
+              </motion.div>
+              {index < assessments.length - 1 && (
+                <div
+                  className={`flex-1 h-1 mx-2 transition-colors duration-300 ${
+                    index < currentAssessment ? 'bg-verde-brasil' : 'bg-gray-700'
+                  }`}
+                />
+              )}
+            </motion.div>
+          ))}
+        </div>
+        <div className="flex justify-center mt-4">
+          <p className="text-white/80 font-medium">
+            {currentAssessment + 1} de {assessments.length} - {assessments[currentAssessment].name}
+          </p>
+        </div>
       </div>
 
-      {/* Overall Rating - Only show when games completed */}
-      <AnimatePresence>
-        {allGamesCompleted && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -30 }}
-            transition={{ duration: 0.8 }}
-            className="relative z-10 max-w-2xl mx-auto px-4 mt-8"
-          >
-            <Card className="bg-gradient-to-r from-verde-brasil to-amarelo-ouro text-white shadow-2xl border-0">
-              <CardContent className="p-8 text-center">
-                <h3 className="font-bebas text-3xl mb-6 tracking-wider">
-                  AVALIAÇÃO GERAL DO ATLETA
-                </h3>
-                
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 100 }}
-                  className="text-6xl font-bebas mb-4"
-                >
-                  {Math.round(skills.reduce((sum, skill) => sum + skill.value, 0) / skills.length)}%
-                </motion.div>
-                
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-white/90 text-xl font-medium"
-                >
-                  Nível: {getSkillLevel(skills.reduce((sum, skill) => sum + skill.value, 0) / skills.length)}
-                </motion.p>
+      {/* Assessment Content */}
+      <div className="relative z-10 px-4 pb-8">
+        <AnimatePresence mode="wait">
+          {renderAssessment()}
+        </AnimatePresence>
 
-                {/* Animated stars */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                  className="flex justify-center gap-2 mt-6"
-                >
-                  {[...Array(5)].map((_, i) => (
-                    <motion.span
-                      key={i}
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ delay: 1 + i * 0.1 }}
-                      className="text-3xl"
-                    >
-                      {i < Math.ceil((skills.reduce((sum, skill) => sum + skill.value, 0) / skills.length) / 20) ? "⭐" : "☆"}
-                    </motion.span>
-                  ))}
-                </motion.div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Continue Button */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: allGamesCompleted ? 1 : 0.5 }}
-        transition={{ delay: 0.5 }}
-        className="text-center mt-8 pb-8 relative z-10"
-      >
-        <Button
-          onClick={handleContinue}
-          disabled={!allGamesCompleted}
-          className="bg-gradient-to-r from-verde-brasil to-amarelo-ouro hover:from-verde-brasil/80 hover:to-amarelo-ouro/80 text-white px-12 py-4 text-xl font-bebas tracking-wider rounded-full shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-        >
-          {allGamesCompleted ? "FINALIZAR JORNADA" : "COMPLETE TODOS OS TESTES"}
-        </Button>
-      </motion.div>
-
-      {/* Mini-Games Modals */}
-      <AnimatePresence>
-        {activeGame && (
-          <MiniGameModal
-            skill={skills.find(s => s.id === activeGame)!}
-            onClose={() => setActiveGame(null)}
-            onComplete={handleSkillComplete}
-          />
-        )}
-      </AnimatePresence>
+        {/* Navigation */}
+        <div className="flex justify-center gap-4 mt-8">
+          {currentAssessment > 0 && (
+            <Button
+              onClick={handlePrevious}
+              variant="outline"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              <ChevronLeft className="w-5 h-5 mr-2" />
+              Anterior
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-// Mini-Game Modal Component
-function MiniGameModal({ 
-  skill, 
-  onClose, 
-  onComplete 
-}: { 
-  skill: SkillRating; 
-  onClose: () => void; 
-  onComplete: (skillId: string, score: number) => void;
-}) {
-  const [gameState, setGameState] = useState<GameState>('idle');
-  const [score, setScore] = useState(0);
-
-  const handleGameComplete = (finalScore: number) => {
-    setGameState('finished');
-    setScore(finalScore);
-    setTimeout(() => {
-      onComplete(skill.id, finalScore);
-    }, 2000);
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-      onClick={gameState === 'idle' ? onClose : undefined}
-    >
-      <motion.div
-        initial={{ scale: 0.9, y: 50 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.9, y: 50 }}
-        className="bg-gradient-to-br from-gray-900 to-black border-2 border-white/20 rounded-2xl p-8 max-w-2xl w-full shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {gameState === 'idle' && (
-          <div className="text-center">
-            <div className={`w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r ${skill.color} flex items-center justify-center`}>
-              {skill.icon}
-            </div>
-            <h2 className="font-bebas text-4xl text-white mb-4">
-              TESTE DE {skill.name.toUpperCase()}
-            </h2>
-            <p className="text-white/80 text-lg mb-8">
-              {skill.gameDescription}
-            </p>
-            <Button
-              onClick={() => setGameState('playing')}
-              className="bg-gradient-to-r from-verde-brasil to-amarelo-ouro text-white px-10 py-4 text-xl font-bebas rounded-full hover:scale-105 transition-transform"
-            >
-              <Play className="w-6 h-6 mr-2" />
-              COMEÇAR DESAFIO
-            </Button>
-          </div>
-        )}
-
-        {gameState === 'playing' && (
-          <div className="min-h-[400px] flex items-center justify-center">
-            {skill.id === 'speed' && <SpeedGame onComplete={handleGameComplete} />}
-            {skill.id === 'strength' && <StrengthGame onComplete={handleGameComplete} />}
-            {skill.id === 'technique' && <TechniqueGame onComplete={handleGameComplete} />}
-            {skill.id === 'stamina' && <StaminaGame onComplete={handleGameComplete} />}
-          </div>
-        )}
-
-        {gameState === 'finished' && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center"
-          >
-            <Trophy className="w-20 h-20 text-amarelo-ouro mx-auto mb-6" />
-            <h3 className="font-bebas text-4xl text-white mb-4">DESAFIO COMPLETO!</h3>
-            <div className="text-6xl font-bebas text-verde-brasil mb-4">{score}%</div>
-            <p className="text-white/80 text-lg">
-              Nível alcançado: {getSkillLevel(score)}
-            </p>
-          </motion.div>
-        )}
-      </motion.div>
-    </motion.div>
-  );
-}

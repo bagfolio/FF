@@ -41,7 +41,7 @@ export default function Home() {
       <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="text-center mb-8 md:mb-12">
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-3 md:mb-4">
-            Bem-vindo ao Futebol Futuro
+            Bem-vindo ao Revela
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
             Escolha seu perfil para começar sua jornada no futuro do futebol brasileiro

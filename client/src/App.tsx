@@ -11,6 +11,7 @@ import AthleteDashboard from "@/pages/athlete/dashboard";
 import AthleteCombine from "@/pages/athlete/combine";
 import AthleteAchievements from "@/pages/athlete/achievements";
 import AthleteActivity from "@/pages/athlete/activity";
+import DailyCheckIn from "@/pages/athlete/daily-checkin";
 import ScoutDashboard from "@/pages/scout/dashboard";
 import ScoutSearch from "@/pages/scout/search";
 import NotFound from "@/pages/not-found";
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/athlete/combine" component={AthleteCombine} />
       <Route path="/athlete/achievements" component={AthleteAchievements} />
       <Route path="/athlete/activity" component={AthleteActivity} />
+      <Route path="/athlete/daily-checkin" component={DailyCheckIn} />
       <Route path="/scout/dashboard" component={ScoutDashboard} />
       <Route path="/scout/search" component={ScoutSearch} />
       

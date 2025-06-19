@@ -91,7 +91,7 @@ export default function AthleteOnboarding() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Perfil criado com sucesso!",
-        description: "Bem-vindo ao Futebol Futuro!",
+        description: "Bem-vindo ao Revela!",
       });
       setLocation("/athlete/dashboard");
     },

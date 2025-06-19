@@ -46,7 +46,7 @@ export default function EnhancedAthleteLayout({ children }: EnhancedAthleteLayou
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
       {/* Sidebar */}
       <AthleteSidebar 
         collapsed={sidebarCollapsed} 
@@ -60,20 +60,20 @@ export default function EnhancedAthleteLayout({ children }: EnhancedAthleteLayou
         sidebarCollapsed && "md:pl-20"
       )}>
         {/* Enhanced Top Navigation */}
-        <header className="sticky top-0 z-40 bg-white border-b border-gray-200">
+        <header className="sticky top-0 z-40 bg-black/40 backdrop-blur-xl border-b border-white/10">
           <div className="flex items-center justify-between px-4 lg:px-8 h-16">
             {/* Logo for mobile */}
             <div className="md:hidden">
-              <h1 className="font-bebas text-2xl text-verde-brasil">FUTEBOL FUTURO</h1>
+              <h1 className="font-bebas text-2xl text-transparent bg-clip-text bg-gradient-to-r from-verde-brasil to-amarelo-ouro">REVELA</h1>
             </div>
             
             {/* Search Bar (Desktop) */}
             <div className="hidden md:flex items-center flex-1 max-w-xl mr-4">
               <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                 <Input 
                   placeholder="Buscar testes, conquistas, atividades..." 
-                  className="pl-10 pr-4 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                  className="pl-10 pr-4 bg-white/5 border-white/10 text-white placeholder-white/40 focus:bg-white/10 focus:border-white/20 transition-all"
                 />
               </div>
             </div>
@@ -83,44 +83,43 @@ export default function EnhancedAthleteLayout({ children }: EnhancedAthleteLayou
               {/* Notifications */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative">
+                  <Button variant="ghost" size="icon" className="relative text-white/60 hover:text-white hover:bg-white/10">
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
                       <Badge 
-                        variant="destructive" 
-                        className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                        className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs bg-red-500 text-white border-0"
                       >
                         {unreadCount}
                       </Badge>
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-80">
-                  <DropdownMenuLabel>Notificações</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+                <DropdownMenuContent align="end" className="w-80 bg-black/90 backdrop-blur-xl border-white/10 text-white">
+                  <DropdownMenuLabel className="text-white/80">Notificações</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-white/10" />
                   {notifications.map((notification) => (
-                    <DropdownMenuItem key={notification.id} className="p-3">
+                    <DropdownMenuItem key={notification.id} className="p-3 hover:bg-white/10 focus:bg-white/10">
                       <div className="flex items-start gap-3 w-full">
                         <div className={cn(
                           "h-2 w-2 rounded-full mt-2",
-                          notification.unread ? "bg-verde-brasil" : "bg-transparent"
+                          notification.unread ? "bg-verde-brasil shadow-lg shadow-verde-brasil/50" : "bg-transparent"
                         )} />
                         <div className="flex-1">
                           <p className={cn(
-                            "text-sm",
+                            "text-sm text-white",
                             notification.unread && "font-semibold"
                           )}>
                             {notification.title}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-xs text-white/40 mt-1">
                             Há 2 horas
                           </p>
                         </div>
                       </div>
                     </DropdownMenuItem>
                   ))}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-center text-sm text-azul-celeste">
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem className="text-center text-sm text-verde-brasil hover:bg-white/10 focus:bg-white/10">
                     Ver todas as notificações
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -131,7 +130,7 @@ export default function EnhancedAthleteLayout({ children }: EnhancedAthleteLayou
                 <Button 
                   variant="default" 
                   size="sm"
-                  className="bg-verde-brasil hover:bg-verde-brasil/90"
+                  className="bg-gradient-to-r from-verde-brasil to-verde-brasil/80 hover:from-verde-brasil/90 hover:to-verde-brasil/70 shadow-lg shadow-verde-brasil/20 text-white"
                   onClick={() => window.location.href = '/athlete/combine'}
                 >
                   Novo Teste
@@ -142,7 +141,7 @@ export default function EnhancedAthleteLayout({ children }: EnhancedAthleteLayou
         </header>
         
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 bg-gray-50">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           <div className="h-full">
             {children}
           </div>

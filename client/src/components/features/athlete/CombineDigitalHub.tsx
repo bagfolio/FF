@@ -70,42 +70,42 @@ export function CombineDigitalHub({ tests }: CombineDigitalHubProps) {
   
   const getTestColor = (type: string) => {
     const colors = {
-      speed: "from-green-100 to-green-200",
-      agility: "from-yellow-100 to-yellow-200",
-      technical: "from-blue-100 to-blue-200",
-      endurance: "from-purple-100 to-purple-200"
+      speed: "from-verde-brasil/20 to-verde-brasil/10",
+      agility: "from-amarelo-ouro/20 to-amarelo-ouro/10",
+      technical: "from-azul-celeste/20 to-azul-celeste/10",
+      endurance: "from-purple-500/20 to-purple-500/10"
     };
     return colors[type as keyof typeof colors] || colors.speed;
   };
 
   const getTestIconColor = (type: string) => {
     const colors = {
-      speed: "text-green-600",
-      agility: "text-yellow-600",
-      technical: "text-blue-600",
-      endurance: "text-purple-600"
+      speed: "text-verde-brasil",
+      agility: "text-amarelo-ouro",
+      technical: "text-azul-celeste",
+      endurance: "text-purple-400"
     };
     return colors[type as keyof typeof colors] || colors.speed;
   };
 
   return (
-    <Card className="overflow-hidden shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 relative overflow-hidden border-b-2 border-blue-200">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-200/20 to-transparent transform -translate-x-full animate-shimmer" />
-        <CardTitle className="tracking-tight font-bebas text-2xl flex items-center justify-between text-azul-celeste font-medium relative z-10">
+    <Card className="overflow-hidden bg-black/40 backdrop-blur-md border border-white/10 shadow-xl">
+      <CardHeader className="bg-gradient-to-r from-azul-celeste/10 to-verde-brasil/10 relative overflow-hidden border-b border-white/10">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -translate-x-full animate-shimmer" />
+        <CardTitle className="tracking-tight font-bebas text-2xl flex items-center justify-between text-white font-medium relative z-10">
           <div className="flex items-center gap-2">
-            <Zap className="w-6 h-6 animate-pulse" />
+            <Zap className="w-6 h-6 animate-pulse text-amarelo-ouro" />
             COMBINE DIGITAL
           </div>
           <div className="flex items-center gap-3">
-            <div className="bg-azul-celeste/10 px-3 py-1 rounded-full text-sm font-normal flex items-center gap-1 text-azul-celeste">
+            <div className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-sm font-normal flex items-center gap-1 text-verde-brasil border border-verde-brasil/20">
               <span className="font-bold">{availableTests.filter(t => !t.completed).length}</span>
               testes disponíveis
             </div>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-azul-celeste hover:bg-azul-celeste/10"
+              className="text-verde-brasil hover:bg-verde-brasil/10"
               onClick={() => setLocation('/athlete/combine')}
             >
               Ver Todos
@@ -118,7 +118,7 @@ export function CombineDigitalHub({ tests }: CombineDigitalHubProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {availableTests.map((test) => (
             <div key={test.id} className="group cursor-pointer">
-              <div className="relative overflow-hidden rounded-xl border-2 border-transparent hover:border-verde-brasil transition-all duration-300 transform hover:scale-[1.02]">
+              <div className="relative overflow-hidden rounded-xl border-2 border-white/10 hover:border-verde-brasil/50 transition-all duration-300 transform hover:scale-[1.02] bg-black/20 backdrop-blur-sm">
                 <div className={`aspect-video bg-gradient-to-br ${getTestColor(test.type)} flex items-center justify-center`}>
                   <Video className={`w-16 h-16 ${getTestIconColor(test.type)}`} />
                 </div>
@@ -128,12 +128,12 @@ export function CombineDigitalHub({ tests }: CombineDigitalHubProps) {
                   <div className="absolute top-4 left-4">
                     <div className="relative w-16 h-16">
                       <svg className="transform -rotate-90 w-16 h-16">
-                        <circle cx="32" cy="32" r="28" fill="none" stroke="#e5e7eb" strokeWidth="4" />
-                        <circle cx="32" cy="32" r="28" fill="none" stroke="#10b981" strokeWidth="4"
+                        <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="4" />
+                        <circle cx="32" cy="32" r="28" fill="none" stroke="#009C3B" strokeWidth="4"
                           strokeDasharray="175.93" strokeDashoffset="44" strokeLinecap="round" />
                       </svg>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xs font-bold text-green-600">75%</span>
+                        <span className="text-xs font-bold text-verde-brasil">75%</span>
                       </div>
                     </div>
                   </div>
@@ -185,8 +185,8 @@ export function CombineDigitalHub({ tests }: CombineDigitalHubProps) {
                 </div>
                 
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
-                    <Play className="w-7 h-7 text-verde-brasil ml-1" />
+                  <div className="w-14 h-14 bg-black/60 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-black/50">
+                    <Play className="w-7 h-7 text-white ml-1" />
                   </div>
                 </div>
               </div>
@@ -195,12 +195,12 @@ export function CombineDigitalHub({ tests }: CombineDigitalHubProps) {
         </div>
 
         {/* AI Recommendation */}
-        <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+        <div className="mt-6 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-purple-500/20 backdrop-blur-sm">
           <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-purple-600 mt-0.5" />
+            <Sparkles className="w-5 h-5 text-purple-400 mt-0.5 animate-pulse" />
             <div>
-              <p className="font-semibold text-purple-900">Recomendação da IA</p>
-              <p className="text-sm text-purple-700 mt-1">
+              <p className="font-semibold text-white">Recomendação da IA</p>
+              <p className="text-sm text-white/70 mt-1">
                 Baseado no seu último teste, recomendamos o Teste de Agilidade para melhorar seu perfil.
               </p>
             </div>

@@ -5,6 +5,8 @@ import ProfileCompletionRing from "@/components/ui/profile-completion-ring";
 import VerificationBadge from "@/components/ui/verification-badge";
 import StatCounter from "@/components/features/StatCounter";
 import { User, Camera, Play, Share2, MapPin, Eye, Flame, Users, TrendingUp } from "lucide-react";
+import { StreakDisplay } from "@/components/features/athlete/StreakDisplay";
+import { motion } from "framer-motion";
 
 interface HeroSectionProps {
   athlete: {
@@ -53,7 +55,7 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
   }, []);
 
   return (
-    <div className="relative bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 text-white overflow-hidden rounded-xl mx-6 lg:mx-8 mt-8">
+    <div className="relative bg-gradient-to-br from-black/60 via-verde-brasil/20 to-black/60 backdrop-blur-md text-white overflow-hidden rounded-2xl border border-white/10">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-animate opacity-20" />
@@ -91,13 +93,14 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
                 <p className="text-sm text-white/80">perfil completo</p>
               </div>
               
-              {/* Streak Badge */}
+              {/* Enhanced Streak Badge */}
               {streakDays > 0 && (
-                <div className={`absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-full px-3 py-1 shadow-lg transform ${animateStreak ? 'scale-100 opacity-100' : 'scale-0 opacity-0'} transition-all duration-500`}>
-                  <div className="flex items-center gap-1">
-                    <Flame className="w-4 h-4 text-white animate-pulse" />
-                    <span className="text-white font-bold text-sm">{streakDays} dias</span>
-                  </div>
+                <div className={`absolute -top-4 -right-4 transform ${animateStreak ? 'scale-100 opacity-100' : 'scale-0 opacity-0'} transition-all duration-500`}>
+                  <StreakDisplay 
+                    streak={streakDays} 
+                    size="small"
+                    showWarning={false}
+                  />
                 </div>
               )}
             </div>
@@ -123,23 +126,42 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-4 mt-6">
-          <Button 
-            size="lg" 
-            className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-300 hover:to-green-400 text-gray-900 font-semibold shadow-xl transform hover:scale-105 transition-all"
-          >
-            <Play className="w-5 h-5 mr-2" />
-            Realizar Novo Teste
-          </Button>
-          <Button 
-            size="lg" 
-            variant="outline" 
-            className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm bg-transparent"
-          >
-            <Share2 className="w-5 h-5 mr-2" />
-            Compartilhar Perfil
-          </Button>
+        {/* Stats and Actions Row */}
+        <div className="flex flex-wrap items-center gap-6 mt-6">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-4">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-300 hover:to-green-400 text-gray-900 font-semibold shadow-xl transform hover:scale-105 transition-all"
+            >
+              <Play className="w-5 h-5 mr-2" />
+              Realizar Novo Teste
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm bg-transparent"
+            >
+              <Share2 className="w-5 h-5 mr-2" />
+              Compartilhar Perfil
+            </Button>
+          </div>
+          
+          {/* Prominent Streak Display */}
+          {streakDays > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 }}
+              className="ml-auto"
+            >
+              <StreakDisplay 
+                streak={streakDays} 
+                size="medium"
+                showWarning={streakDays === 1}
+              />
+            </motion.div>
+          )}
         </div>
       </div>
 
