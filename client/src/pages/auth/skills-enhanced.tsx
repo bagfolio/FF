@@ -458,7 +458,10 @@ export default function AuthSkillsEnhanced() {
     <div className="min-h-screen bg-gradient-to-b from-green-900 via-green-800 to-black relative overflow-hidden">
       {/* Stadium Training Ground Background */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="100" height="100" xmlns="http://www.w3.org/2000/svg"%3E%3Cdefs%3E%3Cpattern id="field" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"%3E%3Crect width="100" height="50" fill="%232F5E1F"/%3E%3Crect y="50" width="100" height="50" fill="%233A6F2F"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width="100" height="100" fill="url(%23field)"/%3E%3C/svg%3E')] opacity-20" />
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: `url("data:image/svg+xml,${encodeURIComponent('<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="field" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="50" fill="#2F5E1F"/><rect y="50" width="100" height="50" fill="#3A6F2F"/></pattern></defs><rect width="100" height="100" fill="url(#field)"/></svg>')}")`,
+          backgroundSize: '100px 100px'
+        }} />
       </div>
 
       {/* Progress Journey */}

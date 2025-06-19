@@ -1,0 +1,522 @@
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta, time
+import asyncio
+import aiohttp
+from typing import List, Dict, Optional, Tuple
+import logging
+from collections import defaultdict
+import pytz
+from supabase import Client
+import json
+
+logger = logging.getLogger(__name__)
+
+class PriceHistorySystem:
+    """Comprehensive price history collection and management system"""
+    
+    def __init__(self, fmp_api_key: str, supabase_client: Client):
+        self.fmp_api_key = fmp_api_key
+        self.base_url = "https://financialmodelingprep.com"
+        self.supabase = supabase_client
+        
+        # Rate limiting configuration
+        self.rate_limit = 3000  # calls per minute
+        self.rate_period = 60   # seconds
+        self.concurrent_limit = 50  # max concurrent requests
+        
+        # Time configuration
+        self.market_tz = pytz.timezone('US/Eastern')
+        self.market_open = time(9, 30)
+        self.market_close = time(16, 0)
+        
+    # ========== DATABASE SCHEMA ==========
+    
+    def get_schema_sql(self) -> str:
+        """Return SQL for creating price history tables"""
+        return """
+        -- Historical daily prices (5 years)
+        CREATE TABLE price_history (
+            id BIGSERIAL PRIMARY KEY,
+            symbol VARCHAR(10) NOT NULL,
+            date DATE NOT NULL,
+            open DECIMAL(10,2),
+            high DECIMAL(10,2),
+            low DECIMAL(10,2),
+            close DECIMAL(10,2),
+            volume BIGINT,
+            vwap DECIMAL(10,2),
+            change DECIMAL(10,2),
+            change_percent DECIMAL(10,4),
+            created_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(symbol, date)
+        );
+        
+        -- Intraday prices (current day only)
+        CREATE TABLE price_intraday (
+            id BIGSERIAL PRIMARY KEY,
+            symbol VARCHAR(10) NOT NULL,
+            timestamp TIMESTAMP NOT NULL,
+            price DECIMAL(10,2),
+            volume BIGINT,
+            bid DECIMAL(10,2),
+            ask DECIMAL(10,2),
+            day_high DECIMAL(10,2),
+            day_low DECIMAL(10,2),
+            day_volume BIGINT,
+            created_at TIMESTAMP DEFAULT NOW(),
+            UNIQUE(symbol, timestamp)
+        );
+        
+        -- Price collection status tracking
+        CREATE TABLE price_collection_status (
+            symbol VARCHAR(10) PRIMARY KEY,
+            last_historical_update DATE,
+            last_intraday_update TIMESTAMP,
+            is_active BOOLEAN DEFAULT true,
+            error_count INTEGER DEFAULT 0,
+            last_error TEXT,
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+        
+        -- Indexes for performance
+        CREATE INDEX idx_price_history_symbol_date ON price_history(symbol, date DESC);
+        CREATE INDEX idx_price_history_date ON price_history(date DESC);
+        CREATE INDEX idx_price_intraday_symbol_time ON price_intraday(symbol, timestamp DESC);
+        CREATE INDEX idx_price_intraday_time ON price_intraday(timestamp DESC);
+        
+        -- Partition intraday table by day for easy cleanup
+        -- (PostgreSQL 12+ feature)
+        """
+    
+    # ========== HISTORICAL PRICE COLLECTION ==========
+    
+    async def collect_historical_prices_initial(self, symbols: List[str]):
+        """Initial collection of 5 years of historical data"""
+        logger.info(f"Starting initial historical collection for {len(symbols)} symbols")
+        
+        # Calculate date range
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=365 * 5)  # 5 years
+        
+        # Create batches respecting rate limits
+        batches = self._create_rate_limited_batches(symbols)
+        
+        for batch_idx, batch in enumerate(batches):
+            logger.info(f"Processing batch {batch_idx + 1}/{len(batches)} with {len(batch)} symbols")
+            await self._process_historical_batch(batch, start_date, end_date)
+            
+            # Wait between batches to respect rate limit
+            if batch_idx < len(batches) - 1:
+                await asyncio.sleep(60)  # Wait for rate limit window to reset
+    
+    def _create_rate_limited_batches(self, symbols: List[str], 
+                                    calls_per_symbol: int = 1) -> List[List[str]]:
+        """Create batches that respect rate limits"""
+        symbols_per_batch = self.rate_limit // calls_per_symbol
+        batches = []
+        
+        for i in range(0, len(symbols), symbols_per_batch):
+            batches.append(symbols[i:i + symbols_per_batch])
+        
+        return batches
+    
+    async def _process_historical_batch(self, symbols: List[str], 
+                                      start_date: datetime.date, 
+                                      end_date: datetime.date):
+        """Process a batch of symbols with concurrent requests"""
+        semaphore = asyncio.Semaphore(self.concurrent_limit)
+        
+        async def fetch_with_semaphore(symbol):
+            async with semaphore:
+                return await self._fetch_historical_prices(symbol, start_date, end_date)
+        
+        # Create tasks for all symbols in batch
+        tasks = [fetch_with_semaphore(symbol) for symbol in symbols]
+        
+        # Execute with progress tracking
+        results = []
+        for i in range(0, len(tasks), self.concurrent_limit):
+            chunk = tasks[i:i + self.concurrent_limit]
+            chunk_results = await asyncio.gather(*chunk, return_exceptions=True)
+            results.extend(chunk_results)
+            
+            # Log progress
+            progress = min(i + self.concurrent_limit, len(tasks))
+            logger.info(f"Batch progress: {progress}/{len(tasks)} symbols")
+        
+        # Process results
+        success_count = sum(1 for r in results if not isinstance(r, Exception))
+        logger.info(f"Batch complete: {success_count}/{len(symbols)} successful")
+    
+    async def _fetch_historical_prices(self, symbol: str, 
+                                     start_date: datetime.date, 
+                                     end_date: datetime.date) -> bool:
+        """Fetch historical prices for a single symbol"""
+        url = f"{self.base_url}/stable/historical-price-eod/full"
+        params = {
+            'symbol': symbol,
+            'from': start_date.strftime('%Y-%m-%d'),
+            'to': end_date.strftime('%Y-%m-%d'),
+            'apikey': self.fmp_api_key
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(url, params=params) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        if isinstance(data, list) and len(data) > 0:
+                            await self._store_historical_prices(symbol, data)
+                            await self._update_collection_status(symbol, 'historical', True)
+                            return True
+                    
+                    await self._update_collection_status(symbol, 'historical', False, 
+                                                      f"API error: {response.status}")
+                    return False
+                    
+            except Exception as e:
+                logger.error(f"Error fetching historical prices for {symbol}: {e}")
+                await self._update_collection_status(symbol, 'historical', False, str(e))
+                return False
+    
+    async def _store_historical_prices(self, symbol: str, price_data: List[Dict]):
+        """Store historical prices in database"""
+        records = []
+        
+        for day in price_data:
+            record = {
+                'symbol': symbol,
+                'date': day['date'],
+                'open': day.get('open'),
+                'high': day.get('high'),
+                'low': day.get('low'),
+                'close': day.get('close'),
+                'volume': day.get('volume'),
+                'vwap': day.get('vwap'),
+                'change': day.get('change'),
+                'change_percent': day.get('changePercent')
+            }
+            records.append(record)
+        
+        # Batch insert with conflict handling
+        if records:
+            try:
+                # Use upsert to handle any duplicates
+                self.supabase.table('price_history').upsert(records).execute()
+                logger.debug(f"Stored {len(records)} price records for {symbol}")
+            except Exception as e:
+                logger.error(f"Error storing prices for {symbol}: {e}")
+    
+    # ========== INTRADAY PRICE COLLECTION ==========
+    
+    async def collect_intraday_prices(self):
+        """Collect intraday prices using exchange batch endpoints"""
+        logger.info("Starting intraday price collection")
+        
+        # Get active symbols grouped by exchange
+        exchange_symbols = await self._get_symbols_by_exchange()
+        
+        for exchange, symbols in exchange_symbols.items():
+            logger.info(f"Collecting {exchange} prices for {len(symbols)} symbols")
+            await self._fetch_exchange_batch_quotes(exchange, symbols)
+    
+    async def _get_symbols_by_exchange(self) -> Dict[str, List[str]]:
+        """Get symbols grouped by exchange"""
+        companies = self.supabase.table('companies')\
+            .select('symbol, exchange')\
+            .execute()
+        
+        exchange_symbols = defaultdict(list)
+        for company in companies.data:
+            exchange_symbols[company['exchange']].append(company['symbol'])
+        
+        return dict(exchange_symbols)
+    
+    async def _fetch_exchange_batch_quotes(self, exchange: str, symbols: List[str]):
+        """Fetch batch quotes for an exchange"""
+        url = f"{self.base_url}/stable/batch-exchange-quote"
+        params = {
+            'exchange': exchange,
+            'apikey': self.fmp_api_key
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(url, params=params) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        # Filter for our symbols
+                        filtered_data = [q for q in data if q['symbol'] in symbols]
+                        await self._store_intraday_prices(filtered_data)
+                        return True
+                    
+                    logger.error(f"Error fetching {exchange} quotes: {response.status}")
+                    return False
+                    
+            except Exception as e:
+                logger.error(f"Error fetching {exchange} quotes: {e}")
+                return False
+    
+    async def _store_intraday_prices(self, quotes: List[Dict]):
+        """Store intraday price data"""
+        timestamp = datetime.now()
+        records = []
+        
+        for quote in quotes:
+            record = {
+                'symbol': quote['symbol'],
+                'timestamp': timestamp,
+                'price': quote.get('price'),
+                'volume': quote.get('volume'),
+                'bid': quote.get('bid'),
+                'ask': quote.get('ask'),
+                'day_high': quote.get('dayHigh'),
+                'day_low': quote.get('dayLow'),
+                'day_volume': quote.get('volume')
+            }
+            records.append(record)
+        
+        if records:
+            try:
+                self.supabase.table('price_intraday').insert(records).execute()
+                logger.info(f"Stored {len(records)} intraday prices")
+            except Exception as e:
+                logger.error(f"Error storing intraday prices: {e}")
+    
+    # ========== DATA LIFECYCLE MANAGEMENT ==========
+    
+    async def end_of_day_processing(self):
+        """Process end-of-day tasks"""
+        logger.info("Starting end-of-day processing")
+        
+        # 1. Get final prices from intraday
+        final_prices = await self._get_final_intraday_prices()
+        
+        # 2. Update historical table with today's data
+        await self._append_to_historical(final_prices)
+        
+        # 3. Clean up old data
+        await self._cleanup_old_data()
+        
+        # 4. Clear intraday table
+        await self._clear_intraday_table()
+        
+        logger.info("End-of-day processing complete")
+    
+    async def _get_final_intraday_prices(self) -> pd.DataFrame:
+        """Get final prices for the day from intraday data"""
+        # Get the last timestamp for each symbol
+        query = """
+        SELECT DISTINCT ON (symbol)
+            symbol, price as close, day_high as high, 
+            day_low as low, day_volume as volume
+        FROM price_intraday
+        WHERE DATE(timestamp) = CURRENT_DATE
+        ORDER BY symbol, timestamp DESC
+        """
+        
+        result = self.supabase.rpc('execute_query', {'query': query}).execute()
+        return pd.DataFrame(result.data)
+    
+    async def _append_to_historical(self, final_prices: pd.DataFrame):
+        """Append today's final prices to historical table"""
+        if final_prices.empty:
+            return
+        
+        today = datetime.now().date()
+        records = []
+        
+        for _, row in final_prices.iterrows():
+            record = {
+                'symbol': row['symbol'],
+                'date': today,
+                'close': row['close'],
+                'high': row['high'],
+                'low': row['low'],
+                'volume': row['volume']
+                # Open will be filled from tomorrow's first price
+            }
+            records.append(record)
+        
+        if records:
+            self.supabase.table('price_history').upsert(records).execute()
+            logger.info(f"Appended {len(records)} daily prices to historical table")
+    
+    async def _cleanup_old_data(self):
+        """Remove data older than 5 years"""
+        cutoff_date = datetime.now().date() - timedelta(days=365 * 5 + 1)
+        
+        # Delete old historical data
+        self.supabase.table('price_history')\
+            .delete()\
+            .lt('date', cutoff_date.strftime('%Y-%m-%d'))\
+            .execute()
+        
+        logger.info(f"Cleaned up data older than {cutoff_date}")
+    
+    async def _clear_intraday_table(self):
+        """Clear intraday table for next day"""
+        # Keep last day for reference if needed
+        yesterday = datetime.now() - timedelta(days=1)
+        
+        self.supabase.table('price_intraday')\
+            .delete()\
+            .lt('timestamp', yesterday.strftime('%Y-%m-%d'))\
+            .execute()
+        
+        logger.info("Cleared old intraday data")
+    
+    # ========== SCHEDULING HELPERS ==========
+    
+    def is_market_hours(self) -> bool:
+        """Check if currently in market hours"""
+        now = datetime.now(self.market_tz)
+        current_time = now.time()
+        
+        # Check if weekday (0-4 = Mon-Fri)
+        if now.weekday() > 4:
+            return False
+        
+        return self.market_open <= current_time <= self.market_close
+    
+    async def _update_collection_status(self, symbol: str, 
+                                      collection_type: str, 
+                                      success: bool, 
+                                      error: Optional[str] = None):
+        """Update collection status for a symbol"""
+        if collection_type == 'historical':
+            update = {
+                'symbol': symbol,
+                'last_historical_update': datetime.now().date() if success else None,
+                'updated_at': datetime.now()
+            }
+        else:  # intraday
+            update = {
+                'symbol': symbol,
+                'last_intraday_update': datetime.now() if success else None,
+                'updated_at': datetime.now()
+            }
+        
+        if not success:
+            update['error_count'] = self.supabase.rpc('increment', 
+                                                     {'table': 'price_collection_status',
+                                                      'column': 'error_count',
+                                                      'match': {'symbol': symbol}})
+            update['last_error'] = error
+        
+        self.supabase.table('price_collection_status').upsert(update).execute()
+
+
+# ========== SCHEDULER ==========
+
+class PriceCollectionScheduler:
+    """Handles scheduling of price collection tasks"""
+    
+    def __init__(self, price_system: PriceHistorySystem):
+        self.price_system = price_system
+        self.is_running = False
+    
+    async def start(self):
+        """Start the scheduler"""
+        self.is_running = True
+        
+        # Start both scheduled tasks
+        await asyncio.gather(
+            self._intraday_scheduler(),
+            self._daily_scheduler(),
+            return_exceptions=True
+        )
+    
+    async def _intraday_scheduler(self):
+        """Run intraday collection every 15 minutes during market hours"""
+        while self.is_running:
+            if self.price_system.is_market_hours():
+                try:
+                    await self.price_system.collect_intraday_prices()
+                except Exception as e:
+                    logger.error(f"Intraday collection error: {e}")
+            
+            # Wait 15 minutes
+            await asyncio.sleep(15 * 60)
+    
+    async def _daily_scheduler(self):
+        """Run daily tasks after market close"""
+        while self.is_running:
+            now = datetime.now(self.price_system.market_tz)
+            
+            # Schedule for 4:30 PM ET (30 min after close)
+            target_time = now.replace(hour=16, minute=30, second=0)
+            
+            if now > target_time:
+                # Already passed today, schedule for tomorrow
+                target_time += timedelta(days=1)
+            
+            # Wait until target time
+            wait_seconds = (target_time - now).total_seconds()
+            await asyncio.sleep(wait_seconds)
+            
+            # Run end of day processing
+            try:
+                await self.price_system.end_of_day_processing()
+                
+                # Also update any missing historical data
+                await self._update_missing_historical()
+            except Exception as e:
+                logger.error(f"Daily processing error: {e}")
+    
+    async def _update_missing_historical(self):
+        """Update any symbols missing recent historical data"""
+        # Find symbols that need updates
+        status = self.supabase.table('price_collection_status')\
+            .select('symbol')\
+            .or_(f"last_historical_update.lt.{datetime.now().date() - timedelta(days=1)}",
+                 "last_historical_update.is.null")\
+            .limit(100)\
+            .execute()
+        
+        if status.data:
+            symbols = [s['symbol'] for s in status.data]
+            logger.info(f"Updating historical data for {len(symbols)} symbols")
+            
+            # Fetch just the last few days
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=7)
+            
+            for symbol in symbols:
+                await self.price_system._fetch_historical_prices(symbol, start_date, end_date)
+
+
+# ========== USAGE EXAMPLE ==========
+
+async def initialize_price_system(fmp_api_key: str, supabase_url: str, supabase_key: str):
+    """Initialize and run the price collection system"""
+    from supabase import create_client
+    
+    # Create Supabase client
+    supabase = create_client(supabase_url, supabase_key)
+    
+    # Initialize price system
+    price_system = PriceHistorySystem(fmp_api_key, supabase)
+    
+    # Get all symbols
+    companies = supabase.table('companies').select('symbol').execute()
+    symbols = [c['symbol'] for c in companies.data]
+    
+    # Initial historical collection (run once)
+    # await price_system.collect_historical_prices_initial(symbols)
+    
+    # Start scheduler for ongoing collection
+    scheduler = PriceCollectionScheduler(price_system)
+    await scheduler.start()
+
+
+if __name__ == "__main__":
+    # Example configuration
+    config = {
+        'fmp_api_key': 'YOUR_API_KEY',
+        'supabase_url': 'YOUR_SUPABASE_URL',
+        'supabase_key': 'YOUR_SUPABASE_KEY'
+    }
+    
+    asyncio.run(initialize_price_system(**config))
