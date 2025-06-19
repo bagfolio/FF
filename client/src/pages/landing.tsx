@@ -425,7 +425,7 @@ export default function Landing() {
             
             {/* Social Proof Section */}
             <div className="mt-20 pt-12 border-t border-white/20">
-              <h3 className="font-bebas text-2xl text-white/80 mb-8">CLUBES QUE CONFIAM NA FUTEBOL FUTURO</h3>
+              <h3 className="font-bebas text-2xl text-white/80 mb-8">CLUBES QUE CONFIAM NA REVELA</h3>
               <div className="flex flex-wrap justify-center items-center gap-8 opacity-70">
                 <div className="w-32 h-16 bg-white/10 backdrop-blur rounded-lg flex items-center justify-center">
                   <span className="text-white font-semibold">São Paulo FC</span>
@@ -450,7 +450,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="font-bebas text-2xl verde-brasil mb-4">FUTEBOL FUTURO</h3>
+              <h3 className="font-bebas text-2xl verde-brasil mb-4">REVELA</h3>
               <p className="text-gray-400 mb-4">
                 Democratizando o acesso ao futebol profissional através da tecnologia.
               </p>

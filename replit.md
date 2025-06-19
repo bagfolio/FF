@@ -1,8 +1,8 @@
-# Futebol Futuro - Brazilian Football Talent Discovery Platform
+# Revela - Brazilian Football Talent Discovery Platform
 
 ## Overview
 
-Futebol Futuro is a comprehensive web application designed to democratize football talent discovery across Brazil. The platform connects young athletes with professional scouts using AI-powered verification systems, creating opportunities from the Amazon to São Paulo. Built as a full-stack web application with modern technologies, it provides separate interfaces for athletes and scouts while maintaining a unified backend system.
+Revela is a comprehensive web application designed to democratize football talent discovery across Brazil. The platform connects young athletes with professional scouts using AI-powered verification systems, creating opportunities from the Amazon to São Paulo. Built as a full-stack web application with modern technologies, it provides separate interfaces for athletes and scouts while maintaining a unified backend system.
 
 ## System Architecture
 
@@ -114,6 +114,10 @@ Futebol Futuro is a comprehensive web application designed to democratize footba
 - June 16, 2025: Fixed font consistency - loading screen now uses clean Inter fonts
 - June 16, 2025: Resolved infinite loading issue by fixing home page redirect loop
 - June 16, 2025: Implemented mock authentication system for development ease
+- June 19, 2025: Fixed all SVG data URL syntax errors and WebGL context issues
+- June 19, 2025: Created missing 3D components (BrazilianStadiumScene, PlayerCard3D)
+- June 19, 2025: Updated "COMEÇAR MINHA JORNADA" button styling to match modern aesthetic
+- June 19, 2025: Complete rebrand from "Futebol Futuro" to "Revela"
 
 ## User Preferences
 

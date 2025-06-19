@@ -249,7 +249,7 @@ export default function AuthCompleteEnhanced() {
                 transition={{ delay: 1 }}
                 className="font-bebas text-3xl md:text-5xl text-amarelo-ouro tracking-wider mb-4"
               >
-                BEM-VINDO AO FUTEBOL FUTURO
+                BEM-VINDO AO REVELA
               </motion.h2>
 
               <motion.p
