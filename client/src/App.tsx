@@ -17,6 +17,12 @@ import NotFound from "@/pages/not-found";
 import LoadingScreen from "@/components/ui/loading-screen";
 import TestPage from "@/pages/test";
 import TrustPyramidDemo from "@/pages/trust-pyramid-demo";
+// New Brazilian Football Auth Flow
+import AuthWelcome from "@/pages/auth/welcome";
+import AuthPosition from "@/pages/auth/position";
+import AuthProfile from "@/pages/auth/profile";
+import AuthSkills from "@/pages/auth/skills";
+import AuthComplete from "@/pages/auth/complete";
 
 function Router() {
   // Remove loading screen check since we have cached data
@@ -24,6 +30,13 @@ function Router() {
     <Switch>
       {/* Public routes */}
       <Route path="/" component={Landing} />
+      
+      {/* Brazilian Football Authentication Flow */}
+      <Route path="/auth/welcome" component={AuthWelcome} />
+      <Route path="/auth/position" component={AuthPosition} />
+      <Route path="/auth/profile" component={AuthProfile} />
+      <Route path="/auth/skills" component={AuthSkills} />
+      <Route path="/auth/complete" component={AuthComplete} />
       
       {/* Protected routes - in dev mode, always accessible */}
       <Route path="/home" component={Home} />

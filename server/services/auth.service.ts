@@ -1,11 +1,25 @@
-import express from 'express';
+// NOVO ARQUIVO: server/services/auth.service.ts
 
-const app = express();
+interface User {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    profileImageUrl: string;
+    userType: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    roleData: any;
+}
 
-app.get('/', (req, res) => {
-  res.send('Hello Express app!')
-});
+class AuthService {
+    updateUserType(user: User, userType: string): User {
+        return {
+            ...user,
+            userType,
+            updatedAt: new Date()
+        };
+    }
+}
 
-app.listen(() => {
-  console.log('Server started');
-});
+export const authService = new AuthService();

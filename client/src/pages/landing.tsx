@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import StatCounter from "@/components/features/StatCounter";
@@ -92,7 +93,7 @@ export default function Landing() {
             <span className="font-medium">Democratizando oportunidades do Amazonas a São Paulo.</span>
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8">
             <Button 
               onClick={() => handleCTAClick("athlete")}
               className="btn-primary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105"
@@ -107,6 +108,51 @@ export default function Landing() {
               <Search className="w-6 h-6" />
               SOU SCOUT
             </Button>
+          </div>
+          
+          {/* Revolutionary Brazilian Auth Experience */}
+          <div className="mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="text-center mb-6"
+            >
+              <p className="text-2xl text-amarelo-ouro font-bold drop-shadow-md mb-2">
+                🏆 EXPERIÊNCIA 3D IMERSIVA 🏆
+              </p>
+              <p className="text-lg text-white/90 max-w-2xl mx-auto mb-6">
+                Entre em um estádio virtual, escolha sua posição com lendas brasileiras,
+                crie sua camisa no vestiário e teste suas habilidades em mini-games!
+              </p>
+            </motion.div>
+            <Button 
+              onClick={() => setLocation("/auth/welcome")}
+              className="bg-gradient-to-r from-verde-brasil via-amarelo-ouro to-azul-celeste text-white px-16 py-8 text-2xl font-bebas tracking-wider flex items-center gap-4 mx-auto rounded-full shadow-2xl hover:shadow-amarelo-ouro/50 transition-all duration-500 transform hover:scale-110 border-4 border-white/30 animate-pulse-slow relative overflow-hidden"
+            >
+              <Trophy className="w-10 h-10" />
+              COMEÇAR JORNADA 3D
+              <Star className="w-10 h-10" />
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                animate={{ x: ['-200%', '200%'] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              />
+            </Button>
+            <div className="flex items-center justify-center gap-8 mt-6">
+              <div className="text-center">
+                <p className="text-3xl font-bebas text-amarelo-ouro">5</p>
+                <p className="text-xs text-white/70">Etapas Interativas</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bebas text-verde-brasil">3D</p>
+                <p className="text-xs text-white/70">Experiência Imersiva</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bebas text-azul-celeste">100%</p>
+                <p className="text-xs text-white/70">Cultura Brasileira</p>
+              </div>
+            </div>
           </div>
           
           {/* Stats row */}

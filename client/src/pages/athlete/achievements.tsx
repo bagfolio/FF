@@ -1,4 +1,4 @@
-import AthleteLayout from "@/components/layout/AthleteLayout";
+import EnhancedAthleteLayout from "@/components/layout/EnhancedAthleteLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -277,9 +277,9 @@ export default function AchievementsPage() {
   };
 
   return (
-    <AthleteLayout>
-      <div className="min-h-screen bg-cinza-claro">
-        <div className="container mx-auto px-4 pt-8 pb-16">
+    <EnhancedAthleteLayout>
+      <div className="min-h-screen">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         {/* Breadcrumb Navigation */}
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
@@ -513,6 +513,6 @@ export default function AchievementsPage() {
         </Card>
       </div>
     </div>
-    </AthleteLayout>
+    </EnhancedAthleteLayout>
   );
 }

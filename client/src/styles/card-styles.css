@@ -1,0 +1,21 @@
+/* Custom card styles for consistent appearance */
+.custom-card {
+  @apply bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200;
+}
+
+.custom-card-header {
+  @apply px-6 py-4 border-b border-gray-100;
+}
+
+.custom-card-content {
+  @apply px-6 py-4;
+}
+
+/* Remove harsh shadows from existing cards */
+.card {
+  @apply shadow-sm;
+}
+
+.card:hover {
+  @apply shadow-md;
+}

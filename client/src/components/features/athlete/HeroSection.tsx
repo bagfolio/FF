@@ -53,7 +53,7 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
   }, []);
 
   return (
-    <div className="relative bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 text-white overflow-hidden">
+    <div className="relative bg-gradient-to-br from-gray-900 via-green-900 to-gray-900 text-white overflow-hidden rounded-xl mx-6 lg:mx-8 mt-8">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-animate opacity-20" />
@@ -73,7 +73,7 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
       </div>
       
       {/* Hero Content */}
-      <div className="container mx-auto px-4 pt-24 pb-16 relative z-10">
+      <div className="px-8 py-12 relative z-10">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           {/* Left Side - Profile Info */}
           <div className="flex items-center gap-6">

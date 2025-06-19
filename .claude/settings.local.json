@@ -10,7 +10,12 @@
       "Bash(mv:*)",
       "Bash(mkdir:*)",
       "Bash(npm install:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(rm:*)",
+      "Bash(npx tsc:*)",
+      "Bash(tree:*)",
+      "Bash(find:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

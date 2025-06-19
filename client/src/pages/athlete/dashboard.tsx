@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import AthleteLayout from "@/components/layout/AthleteLayout";
+import EnhancedAthleteLayout from "@/components/layout/EnhancedAthleteLayout";
 import { generateRealisticAthlete, generateActivity, achievements } from "@/lib/brazilianData";
 import { Play } from "lucide-react";
 
@@ -97,8 +97,8 @@ export default function AthleteDashboard() {
   // }
 
   return (
-    <AthleteLayout>
-      <div className="min-h-screen bg-cinza-claro">
+    <EnhancedAthleteLayout>
+      <div className="min-h-screen">
         {/* Notifications */}
         <WelcomeNotification 
         athleteName={athlete?.fullName || realisticStats.fullName}
@@ -143,8 +143,8 @@ export default function AthleteDashboard() {
           scoutsWatching={scoutViews}
         />
 
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
             
             <div className="lg:col-span-8 space-y-8">
               <NextStepWidget profileCompletion={profileCompletion} tests={tests} />
@@ -178,7 +178,7 @@ export default function AthleteDashboard() {
         </div>
       </div>
     </div>
-    </AthleteLayout>
+    </EnhancedAthleteLayout>
   );
 }
 

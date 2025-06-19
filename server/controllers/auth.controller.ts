@@ -42,5 +42,3 @@ export async function setUserType(req: Request, res: Response, next: NextFunctio
         next(error);
     }
 }
-
-]

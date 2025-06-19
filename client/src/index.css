@@ -1,5 +1,7 @@
 /* Font imports are now handled via preload in index.html for better performance */
 
+@import "./styles/card-styles.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

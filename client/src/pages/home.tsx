@@ -24,9 +24,15 @@ export default function Home() {
     }
   }, [user, isLoading, setLocation]);
 
-  // Show loading screen only while auth is loading or if user has a type (during redirect)
-  if (isLoading || !user || (user as any).userType) {
+  // Show loading screen only while auth is loading
+  if (isLoading || !user) {
     return <LoadingScreen />;
+  }
+  
+  // If user already has a type, don't show loading screen, just return null
+  // The useEffect will handle the redirect
+  if ((user as any).userType) {
+    return null;
   }
 
   // User needs to select their type

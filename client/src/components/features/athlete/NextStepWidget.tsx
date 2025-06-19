@@ -37,7 +37,7 @@ export function NextStepWidget({ profileCompletion, tests }: NextStepWidgetProps
   if (profileCompletion < 100) {
     return (
       <Card 
-        className="relative overflow-hidden border-0 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02] group"
+        className="relative overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -87,7 +87,7 @@ export function NextStepWidget({ profileCompletion, tests }: NextStepWidgetProps
   if (tests.length === 0) {
     return (
       <Card 
-        className="relative overflow-hidden border-0 shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-[1.02] group"
+        className="relative overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
