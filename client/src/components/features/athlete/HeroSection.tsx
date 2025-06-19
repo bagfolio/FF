@@ -55,7 +55,7 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
   }, []);
 
   return (
-    <div className="relative bg-gradient-to-br from-black/60 via-verde-brasil/20 to-black/60 backdrop-blur-md text-white overflow-hidden rounded-2xl border border-white/10">
+    <div className="relative glass-morph-dark text-white overflow-hidden rounded-2xl">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-animate opacity-20" />

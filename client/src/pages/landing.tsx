@@ -70,7 +70,6 @@ export default function Landing() {
           </div>
         </div>
       </nav>
-
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 w-full h-full">
@@ -83,10 +82,15 @@ export default function Landing() {
         </div>
         
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
-          <h1 className="font-bebas text-6xl md:text-8xl lg:text-9xl leading-none mb-8 tracking-wider">
-            SEU TALENTO<br />
-            <span className="amarelo-ouro drop-shadow-lg">MERECE SER VISTO</span>
-          </h1>
+          <div className="backdrop-blur-sm rounded-3xl p-8 mb-8 bg-[#00000014]">
+            <h1 className="font-bebas text-6xl md:text-8xl lg:text-9xl leading-none mb-4 tracking-wider">
+              SEU TALENTO<br />
+              <span className="text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)] relative">
+                MERECE SER VISTO
+                <div className="absolute -inset-2 bg-gradient-to-r from-verde-brasil/30 to-amarelo-ouro/30 blur-2xl -z-10"></div>
+              </span>
+            </h1>
+          </div>
           
           <p className="text-lg md:text-xl lg:text-2xl mb-10 font-light max-w-4xl mx-auto leading-relaxed drop-shadow-md">
             A primeira plataforma brasileira que usa IA para verificar talentos do futebol.<br />
@@ -96,17 +100,19 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             <Button 
               onClick={() => setLocation("/auth/welcome")}
-              className="bg-verde-brasil hover:bg-verde-brasil/90 text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105"
+              className="glass-morph-green text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105 relative overflow-hidden group"
             >
-              <Trophy className="w-6 h-6" />
-              COMEÇAR MINHA JORNADA
+              <Trophy className="w-6 h-6 relative z-10" />
+              <span className="relative z-10">COMEÇAR MINHA JORNADA</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-verde-brasil to-verde-brasil/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
             </Button>
             <Button 
               onClick={() => handleCTAClick("scout")}
-              className="btn-secondary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105"
+              className="glass-morph-blue text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105 relative overflow-hidden group"
             >
-              <Search className="w-6 h-6" />
-              SOU SCOUT
+              <Search className="w-6 h-6 relative z-10" />
+              <span className="relative z-10">SOU SCOUT</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-azul-celeste to-azul-celeste/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
             </Button>
           </div>
           
@@ -131,7 +137,6 @@ export default function Landing() {
           <div className="text-2xl">⌄</div>
         </div>
       </section>
-
       {/* Como Funciona Section */}
       <section id="como-funciona" className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100"></div>
@@ -146,14 +151,14 @@ export default function Landing() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             <div className="text-center fade-in card-hover relative">
-              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-white relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-verde-brasil"></div>
+              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-verde-brasil to-verde-brasil/50"></div>
                 <CardContent className="p-0">
                   <div className="w-20 h-20 bg-verde-brasil rounded-full flex items-center justify-center mx-auto mb-6">
                     <Video className="text-white w-8 h-8" />
                   </div>
-                  <h3 className="font-bebas text-3xl azul-celeste mb-4 tracking-wider">1. GRAVE SEU TESTE</h3>
-                  <p className="text-gray-700 mb-6 text-base leading-relaxed">
+                  <h3 className="font-bebas text-3xl text-white mb-4 tracking-wider">1. GRAVE SEU TESTE</h3>
+                  <p className="text-white/80 mb-6 text-base leading-relaxed">
                     Use nosso Combine Digital para realizar testes físicos verificados por IA. 
                     Velocidade, agilidade e habilidades técnicas.
                   </p>
@@ -174,14 +179,14 @@ export default function Landing() {
             </div>
             
             <div className="text-center fade-in card-hover relative">
-              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-white relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-amarelo-ouro"></div>
+              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amarelo-ouro to-amarelo-ouro/50"></div>
                 <CardContent className="p-0">
                   <div className="w-20 h-20 bg-amarelo-ouro rounded-full flex items-center justify-center mx-auto mb-6">
                     <Bot className="azul-celeste w-8 h-8" />
                   </div>
-                  <h3 className="font-bebas text-3xl azul-celeste mb-4 tracking-wider">2. IA VERIFICA</h3>
-                  <p className="text-gray-700 mb-6 text-base leading-relaxed">
+                  <h3 className="font-bebas text-3xl text-white mb-4 tracking-wider">2. IA VERIFICA</h3>
+                  <p className="text-white/80 mb-6 text-base leading-relaxed">
                     Nosso "Árbitro Digital" analisa cada movimento com precisão científica. 
                     100% objetivo, sem favorecimento.
                   </p>
@@ -205,14 +210,14 @@ export default function Landing() {
             </div>
             
             <div className="text-center fade-in card-hover relative">
-              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-white relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-azul-celeste"></div>
+              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-azul-celeste to-azul-celeste/50"></div>
                 <CardContent className="p-0">
                   <div className="w-20 h-20 bg-azul-celeste rounded-full flex items-center justify-center mx-auto mb-6">
                     <Handshake className="text-white w-8 h-8" />
                   </div>
-                  <h3 className="font-bebas text-3xl azul-celeste mb-4 tracking-wider">3. SCOUTS ENCONTRAM</h3>
-                  <p className="text-gray-700 mb-6 text-base leading-relaxed">
+                  <h3 className="font-bebas text-3xl text-white mb-4 tracking-wider">3. SCOUTS ENCONTRAM</h3>
+                  <p className="text-white/80 mb-6 text-base leading-relaxed">
                     Clubes e agentes descobrem seu talento através de dados verificados. 
                     Sua performance fala por você.
                   </p>
@@ -233,7 +238,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* Combine Digital Section */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-tl from-blue-50 via-white to-green-50 opacity-50"></div>
@@ -325,7 +329,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* Pirâmide da Confiança */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0">
@@ -392,7 +395,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* CTA Final */}
       <section className="py-20 bg-texture-grass relative overflow-hidden">
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -408,18 +410,19 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
               <Button 
                 onClick={() => handleCTAClick("athlete")}
-                className="btn-primary text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50"
+                className="glass-morph-green text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 relative overflow-hidden group"
               >
-                <Terminal className="w-6 h-6" />
-                COMECE SUA JORNADA (ATLETA)
+                <Terminal className="w-6 h-6 relative z-10" />
+                <span className="relative z-10">COMECE SUA JORNADA (ATLETA)</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-verde-brasil to-verde-brasil/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Button>
               <Button 
                 onClick={() => handleCTAClick("scout")}
-                variant="outline"
-                className="border-2 border-white text-white bg-transparent px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:bg-white hover:text-azul-celeste transition-all duration-300"
+                className="glass-morph text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-white/30 relative overflow-hidden group border border-white/20"
               >
-                <Search className="w-6 h-6" />
-                DESCOBRIR TALENTOS (SCOUT)
+                <Search className="w-6 h-6 relative z-10" />
+                <span className="relative z-10">DESCOBRIR TALENTOS (SCOUT)</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Button>
             </div>
             
@@ -444,7 +447,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -497,7 +499,6 @@ export default function Landing() {
           </div>
         </div>
       </footer>
-
       <UserTypeModal 
         isOpen={showUserTypeModal}
         onClose={() => setShowUserTypeModal(false)}

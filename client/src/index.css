@@ -47,35 +47,70 @@
   --laranja-destaque: hsl(25, 95%, 53%);
 }
 
-/* Enhanced Glassmorphic styles */
+/* Enhanced Glassmorphic styles - Revela Theme */
 .glass-morph {
   background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .glass-morph:hover {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.42),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
-/* Dark glass morphism variant */
+/* Dark glass morphism variant - Soccer theme */
 .glass-morph-dark {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 /* Glass sphere for empty states */
 .glass-sphere {
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.15),
+              0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Green glass variant - Verde Brasil */
+.glass-morph-green {
+  background: rgba(0, 156, 59, 0.08);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(0, 156, 59, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 156, 59, 0.15),
+              inset 0 0 0 1px rgba(0, 156, 59, 0.1);
+}
+
+/* Yellow glass variant - Amarelo Ouro */
+.glass-morph-yellow {
+  background: rgba(255, 223, 0, 0.08);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(255, 223, 0, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(255, 223, 0, 0.15),
+              inset 0 0 0 1px rgba(255, 223, 0, 0.1);
+}
+
+/* Blue glass variant - Azul Celeste */
+.glass-morph-blue {
+  background: rgba(0, 39, 118, 0.08);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(0, 39, 118, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 39, 118, 0.15),
+              inset 0 0 0 1px rgba(0, 39, 118, 0.1);
 }
 
 /* Icon glow effects */

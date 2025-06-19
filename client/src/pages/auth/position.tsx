@@ -154,7 +154,7 @@ export default function AuthPosition() {
                   style={{
                     left: `${position.x}%`,
                     top: `${position.y}%`,
-                    zIndex: isHovered || isSelected ? 50 : 10 + (100 - position.y)
+                    zIndex: isHovered || isSelected ? 1000 : 10 + (100 - position.y)
                   }}
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{
@@ -224,7 +224,8 @@ export default function AuthPosition() {
                         exit={{ opacity: 0, y: 10, scale: 0.8 }}
                         className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-4 
                                  bg-black/90 backdrop-blur-md text-white px-4 py-3 rounded-lg 
-                                 whitespace-nowrap pointer-events-none z-50 shadow-xl"
+                                 whitespace-nowrap pointer-events-none shadow-xl"
+                        style={{ zIndex: 9999 }}
                       >
                         <div className="text-center">
                           <p className="font-bebas text-lg tracking-wider text-amarelo-ouro">
@@ -342,13 +343,25 @@ export default function AuthPosition() {
         animate={{ opacity: selectedPosition ? 1 : 0.5 }}
         className="text-center mt-8 pb-8"
       >
-        <Button
-          onClick={handleContinue}
-          disabled={!selectedPosition}
-          className="bg-gradient-to-r from-verde-brasil to-amarelo-ouro text-white px-12 py-4 text-xl font-bebas tracking-wider rounded-full shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+        <motion.div
+          animate={selectedPosition ? {
+            scale: [1, 1.05, 1],
+          } : {}}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
         >
-          CONTINUAR PARA O VESTIÁRIO
-        </Button>
+          <Button
+            onClick={handleContinue}
+            disabled={!selectedPosition}
+            className="bg-gradient-to-r from-verde-brasil to-amarelo-ouro text-white px-12 py-6 text-2xl font-bebas tracking-wider rounded-full shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 border-2 border-white/20 relative overflow-hidden group"
+          >
+            <span className="relative z-10">CONTINUAR PARA O VESTIÁRIO</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-verde-brasil/50 to-amarelo-ouro/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </Button>
+        </motion.div>
       </motion.div>
     </div>
   );

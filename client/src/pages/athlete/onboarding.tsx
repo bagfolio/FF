@@ -132,10 +132,10 @@ export default function AthleteOnboarding() {
   const isMinor = birthDate ? new Date().getFullYear() - new Date(birthDate).getFullYear() < 18 : false;
 
   return (
-    <div className="min-h-screen bg-cinza-claro flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl glass-morph-dark border-white/10">
         <CardHeader className="text-center">
-          <CardTitle className="font-bebas text-3xl azul-celeste">
+          <CardTitle className="font-bebas text-4xl text-white">
             {step === 1 && "DADOS BÁSICOS"}
             {step === 2 && "PERFIL ATLÉTICO"}
             {step === 3 && "CONSENTIMENTO PARENTAL"}
@@ -178,7 +178,13 @@ export default function AthleteOnboarding() {
                       <FormItem>
                         <FormLabel>Data de Nascimento</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input 
+                            type="date" 
+                            {...field} 
+                            placeholder="dd/mm/aaaa"
+                            max={new Date().toISOString().split('T')[0]}
+                            min="1900-01-01"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

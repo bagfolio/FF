@@ -14,7 +14,18 @@ import { Camera, Upload, Sparkles } from "lucide-react";
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  birthDate: z.string().min(1, "Data de nascimento é obrigatória"),
+  birthDate: z.string()
+    .min(1, "Data de nascimento é obrigatória")
+    .refine((date) => {
+      const birthDate = new Date(date);
+      const today = new Date();
+      return birthDate <= today;
+    }, "Data não pode ser no futuro")
+    .refine((date) => {
+      const birthDate = new Date(date);
+      const minDate = new Date('1900-01-01');
+      return birthDate >= minDate;
+    }, "Data inválida"),
   city: z.string().min(2, "Cidade é obrigatória"),
   state: z.string().min(2, "Estado é obrigatório"),
   height: z.number().min(100).max(250).optional(),
@@ -394,6 +405,9 @@ export default function AuthProfile() {
                             type="date" 
                             {...field} 
                             className="bg-white/10 border-white/30 text-white h-12"
+                            placeholder="dd/mm/aaaa"
+                            max={new Date().toISOString().split('T')[0]}
+                            min="1900-01-01"
                           />
                         </FormControl>
                         <FormMessage className="text-red-400" />

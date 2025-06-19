@@ -99,7 +99,7 @@ export default function AuthWelcome() {
             animate={{ letterSpacing: "0.1em", opacity: 1 }}
             transition={{ duration: 1.5 }}
           >
-            FUTEBOL
+            REVELA
             {/* Gold shimmer effect */}
             <motion.span
               className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400"
@@ -115,7 +115,7 @@ export default function AuthWelcome() {
                 WebkitTextStroke: "1px rgba(255, 215, 0, 0.3)",
                 backgroundSize: "200% 100%"
               }}
-            >Revela</motion.span>
+            >REVELA</motion.span>
           </motion.h1>
           
           <motion.h2
@@ -124,7 +124,7 @@ export default function AuthWelcome() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.8 }}
           >
-            FUTURO
+            FUTEBOL
           </motion.h2>
           
           <motion.p
