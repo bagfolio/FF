@@ -82,15 +82,12 @@ export default function Landing() {
         </div>
         
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
-          <div className="backdrop-blur-sm rounded-3xl p-8 mb-8 bg-[#00000014]">
-            <h1 className="font-bebas text-6xl md:text-8xl lg:text-9xl leading-none mb-4 tracking-wider">
-              SEU TALENTO<br />
-              <span className="text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)] relative">
-                MERECE SER VISTO
-                <div className="absolute -inset-2 bg-gradient-to-r from-verde-brasil/30 to-amarelo-ouro/30 blur-2xl -z-10"></div>
-              </span>
-            </h1>
-          </div>
+          <h1 className="font-bebas text-6xl md:text-8xl lg:text-9xl leading-none mb-8 tracking-wider">
+            SEU TALENTO<br />
+            <span className="amarelo-ouro drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] text-shadow-strong font-light">
+              MERECE SER VISTO
+            </span>
+          </h1>
           
           <p className="text-lg md:text-xl lg:text-2xl mb-10 font-light max-w-4xl mx-auto leading-relaxed drop-shadow-md">
             A primeira plataforma brasileira que usa IA para verificar talentos do futebol.<br />
