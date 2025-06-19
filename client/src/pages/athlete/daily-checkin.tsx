@@ -6,6 +6,7 @@ import { MoodSelector } from "@/components/features/athlete/checkin/MoodSelector
 import { IntensityWheel } from "@/components/features/athlete/checkin/IntensityWheel";
 import { ReflectionInput } from "@/components/features/athlete/checkin/ReflectionInput";
 import { CheckInCelebration } from "@/components/features/athlete/checkin/CheckInCelebration";
+import TrainingFocusSelector, { TrainingFocusData } from "@/components/features/athlete/checkin/TrainingFocusSelector";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -20,11 +21,12 @@ export interface CheckInData {
     xp: number;
   } | null;
   intensity: number;
+  trainingFocus: TrainingFocusData | null;
   reflection: string;
   timestamp: Date;
 }
 
-const STEPS = ['mood', 'intensity', 'reflection', 'complete'] as const;
+const STEPS = ['mood', 'intensity', 'training', 'reflection', 'complete'] as const;
 type Step = typeof STEPS[number];
 
 export default function DailyCheckIn() {
@@ -33,6 +35,7 @@ export default function DailyCheckIn() {
   const [checkInData, setCheckInData] = useState<CheckInData>({
     mood: null,
     intensity: 0,
+    trainingFocus: null,
     reflection: '',
     timestamp: new Date()
   });
@@ -95,6 +98,8 @@ export default function DailyCheckIn() {
         return checkInData.mood !== null;
       case 'intensity':
         return checkInData.intensity > 0;
+      case 'training':
+        return checkInData.trainingFocus !== null && checkInData.trainingFocus.totalAllocatedTime > 0;
       case 'reflection':
         return true; // Reflection is optional
       default:
@@ -130,7 +135,7 @@ export default function DailyCheckIn() {
         </div>
 
         {/* Progress indicator */}
-        {currentStep < 3 && (
+        {currentStep < 4 && (
           <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
             <div className="flex items-center gap-2">
               {STEPS.slice(0, -1).map((_, index) => (
@@ -173,12 +178,21 @@ export default function DailyCheckIn() {
               />
             )}
             {currentStep === 2 && (
+              <TrainingFocusSelector
+                maxMinutes={checkInData.intensity}
+                onComplete={(trainingFocus) => {
+                  setCheckInData({ ...checkInData, trainingFocus });
+                }}
+                onBack={handleBack}
+              />
+            )}
+            {currentStep === 3 && (
               <ReflectionInput
                 value={checkInData.reflection}
                 onChange={(reflection) => setCheckInData({ ...checkInData, reflection })}
               />
             )}
-            {currentStep === 3 && (
+            {currentStep === 4 && (
               <CheckInCelebration
                 checkInData={checkInData}
                 onComplete={() => setLocation('/athlete/dashboard')}
@@ -188,7 +202,7 @@ export default function DailyCheckIn() {
         </AnimatePresence>
 
         {/* Navigation buttons */}
-        {currentStep < 3 && (
+        {currentStep < 4 && (
           <div className="absolute bottom-8 left-0 right-0 flex items-center justify-between px-8 z-20">
             <Button
               variant="ghost"
@@ -203,8 +217,8 @@ export default function DailyCheckIn() {
 
             <Button
               size="lg"
-              onClick={currentStep === 2 ? handleComplete : handleNext}
-              disabled={!canProceed()}
+              onClick={currentStep === 3 ? handleComplete : handleNext}
+              disabled={!canProceed() || (currentStep === 2 && (!checkInData.trainingFocus || checkInData.trainingFocus.totalAllocatedTime === 0))}
               className="bg-gradient-to-r from-verde-brasil to-verde-brasil/80 hover:from-verde-brasil/90 hover:to-verde-brasil/70 text-white shadow-lg shadow-verde-brasil/20"
             >
               {currentStep === 2 ? 'Concluir' : 'Próximo'}

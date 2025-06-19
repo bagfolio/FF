@@ -23,7 +23,10 @@ export function CheckInCelebration({ checkInData, onComplete }: CheckInCelebrati
   const baseXP = checkInData.mood?.xp || 50;
   const intensityBonus = Math.floor(checkInData.intensity / 30) * 10; // +10 XP per 30 min
   const reflectionBonus = checkInData.reflection.length > 30 ? 15 : 0;
-  const totalXP = baseXP + intensityBonus + reflectionBonus;
+  const varietyBonus = (checkInData.trainingFocus?.focusAreas.length || 0) * 5; // +5 XP per focus area
+  const drillsBonus = (checkInData.trainingFocus?.focusAreas.reduce((sum, area) => sum + area.drills.length, 0) || 0) * 3; // +3 XP per drill
+  const customDrillBonus = (checkInData.trainingFocus?.customDrills.length || 0) * 10; // +10 XP per custom drill
+  const totalXP = baseXP + intensityBonus + reflectionBonus + varietyBonus + drillsBonus + customDrillBonus;
 
   // Get current streak (would come from API/storage)
   const currentStreak = parseInt(localStorage.getItem('currentStreak') || '0') + 1;
@@ -112,6 +115,21 @@ export function CheckInCelebration({ checkInData, onComplete }: CheckInCelebrati
             {reflectionBonus > 0 && (
               <p className="text-amarelo-ouro text-sm">
                 Bônus de reflexão: +{reflectionBonus} XP
+              </p>
+            )}
+            {varietyBonus > 0 && (
+              <p className="text-verde-brasil text-sm">
+                Bônus de variedade: +{varietyBonus} XP
+              </p>
+            )}
+            {drillsBonus > 0 && (
+              <p className="text-white/60 text-sm">
+                Bônus de exercícios: +{drillsBonus} XP
+              </p>
+            )}
+            {customDrillBonus > 0 && (
+              <p className="text-amarelo-ouro text-sm">
+                Bônus de criatividade: +{customDrillBonus} XP
               </p>
             )}
           </motion.div>
@@ -219,6 +237,35 @@ export function CheckInCelebration({ checkInData, onComplete }: CheckInCelebrati
           <div className="glass-morph rounded-lg p-4 border border-white/10">
             <p className="text-3xl font-bold text-verde-brasil">{currentStreak}</p>
             <p className="text-xs text-white/60 mt-1">Dias</p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Training Breakdown */}
+      {showElements.actions && checkInData.trainingFocus && checkInData.trainingFocus.focusAreas.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="mt-6 max-w-md mx-auto"
+        >
+          <div className="glass-morph rounded-lg p-4 border border-white/10">
+            <p className="text-sm text-white/60 mb-2">Treino de hoje</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {checkInData.trainingFocus.focusAreas.map((area, index) => (
+                <span
+                  key={area.id}
+                  className="px-3 py-1 rounded-full bg-gradient-to-r from-verde-brasil/20 to-amarelo-ouro/10 border border-verde-brasil/30 text-sm text-white"
+                >
+                  {area.name} • {area.timeSpent}min
+                </span>
+              ))}
+            </div>
+            {checkInData.trainingFocus.focusAreas.reduce((total, area) => total + area.drills.length, 0) > 0 && (
+              <p className="text-xs text-white/40 mt-2">
+                {checkInData.trainingFocus.focusAreas.reduce((total, area) => total + area.drills.length, 0)} exercícios praticados
+              </p>
+            )}
           </div>
         </motion.div>
       )}

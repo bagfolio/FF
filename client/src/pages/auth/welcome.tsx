@@ -61,7 +61,6 @@ export default function AuthWelcome() {
           }}
         />
       </div>
-
       {/* Animated grass particles */}
       <div className="absolute bottom-0 left-0 right-0 h-48 z-20">
         {[...Array(30)].map((_, i) => (
@@ -85,7 +84,6 @@ export default function AuthWelcome() {
           />
         ))}
       </div>
-
       {/* Main Content */}
       <div className="relative z-30 min-h-screen flex flex-col items-center justify-center px-4">
         {/* Animated Title */}
@@ -117,9 +115,7 @@ export default function AuthWelcome() {
                 WebkitTextStroke: "1px rgba(255, 215, 0, 0.3)",
                 backgroundSize: "200% 100%"
               }}
-            >
-              FUTEBOL
-            </motion.span>
+            >Revela</motion.span>
           </motion.h1>
           
           <motion.h2
@@ -278,7 +274,6 @@ export default function AuthWelcome() {
           <div className="w-16 h-2 bg-azul-celeste rounded" />
         </motion.div>
       </div>
-
       {/* Transition overlay */}
       {isButtonClicked && (
         <motion.div
