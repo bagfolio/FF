@@ -1,255 +1,169 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Info, X } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Info, Star, Trophy, Heart } from "lucide-react";
 
-interface CulturalTooltip {
-  id: string;
-  title: string;
-  content: string;
-  icon?: string;
-  position?: { top?: string; bottom?: string; left?: string; right?: string };
+interface CulturalTooltipsProps {
+  page: 'welcome' | 'position' | 'profile' | 'skills' | 'complete';
 }
 
-const culturalFacts: { [key: string]: CulturalTooltip[] } = {
+const tooltipData = {
   welcome: [
     {
-      id: 'maracana',
-      title: 'Estádio do Maracanã',
-      content: 'O maior estádio do Brasil já recebeu mais de 200.000 torcedores em uma partida. Hoje comporta 78.838 pessoas e é a casa da Seleção Brasileira.',
-      icon: '🏟️'
+      id: 'welcome-1',
+      icon: Star,
+      title: 'Joga Bonito',
+      description: 'O futebol brasileiro é conhecido mundialmente pelo seu estilo único e criativo.',
+      position: { top: '20%', left: '10%' },
+      delay: 3000
     },
     {
-      id: 'pentacampeao',
-      title: 'Única Pentacampeã',
-      content: 'O Brasil é o único país pentacampeão mundial de futebol, com títulos em 1958, 1962, 1970, 1994 e 2002.',
-      icon: '🏆'
+      id: 'welcome-2',
+      icon: Trophy,
+      title: 'Terra dos Campeões',
+      description: 'O Brasil é o único país pentacampeão mundial de futebol.',
+      position: { top: '60%', right: '15%' },
+      delay: 6000
     }
   ],
   position: [
     {
-      id: 'pele10',
-      title: 'A Camisa 10',
-      content: 'Pelé eternizou a camisa 10. No Brasil, ela representa criatividade, magia e a responsabilidade de fazer a diferença em campo.',
-      icon: '👑'
-    },
-    {
-      id: 'garrincha',
-      title: 'Posições Lendárias',
-      content: 'Garrincha (7) revolucionou a ponta direita, Cafú (2) redefiniu o lateral, e Ronaldo (9) mostrou como um centroavante brasileiro joga.',
-      icon: '⭐'
+      id: 'position-1',
+      icon: Heart,
+      title: 'Paixão Nacional',
+      description: 'Cada posição tem sua magia no futebol brasileiro.',
+      position: { top: '30%', left: '20%' },
+      delay: 2000
     }
   ],
   profile: [
     {
-      id: 'pelada',
-      title: 'Futebol de Rua',
-      content: 'A "pelada" é onde nascem os craques brasileiros. Nas ruas, praias e quadras, desenvolvemos o famoso "jogo bonito".',
-      icon: '⚽'
-    },
-    {
-      id: 'apelidos',
-      title: 'Tradição dos Apelidos',
-      content: 'No Brasil, jogadores são conhecidos por apelidos carinhosos: Pelé (Edson), Zico (Arthur), Kaká (Ricardo). É parte da nossa cultura!',
-      icon: '🎭'
+      id: 'profile-1',
+      icon: Star,
+      title: 'Sua História',
+      description: 'Todo grande jogador tem uma origem humilde e uma história inspiradora.',
+      position: { top: '40%', right: '10%' },
+      delay: 4000
     }
   ],
   skills: [
     {
-      id: 'ginga',
+      id: 'skills-1',
+      icon: Trophy,
       title: 'Ginga Brasileira',
-      content: 'A ginga é o movimento corporal único do futebol brasileiro, influenciado pela capoeira e pelo samba. É ritmo, é arte, é futebol!',
-      icon: '🕺'
-    },
-    {
-      id: 'dribles',
-      title: 'Arte do Drible',
-      content: 'Elástico, lambreta, caneta, chapéu... O Brasil criou os dribles mais famosos do mundo. Aqui, driblar é tão importante quanto marcar gols.',
-      icon: '🌟'
+      description: 'A ginga é mais que habilidade, é arte em movimento.',
+      position: { top: '25%', left: '15%' },
+      delay: 3000
     }
   ],
   complete: [
     {
-      id: 'torcida',
-      title: 'A 12ª Jogador',
-      content: 'A torcida brasileira é conhecida mundialmente por sua paixão. Cantos, bandeiras e festa fazem parte de cada jogo.',
-      icon: '🥁'
-    },
-    {
-      id: 'sonho',
-      title: 'O Sonho Brasileiro',
-      content: 'Para milhões de jovens brasileiros, o futebol representa esperança, uma chance de mudar de vida e orgulhar sua família.',
-      icon: '💚'
+      id: 'complete-1',
+      icon: Heart,
+      title: 'Bem-vindo ao Time',
+      description: 'Agora você faz parte da família do futebol brasileiro digital.',
+      position: { top: '50%', left: '50%' },
+      delay: 1000
     }
   ]
 };
 
-interface CulturalTooltipsProps {
-  page: 'welcome' | 'position' | 'profile' | 'skills' | 'complete';
-  autoShow?: boolean;
-  delay?: number;
-}
-
-export default function CulturalTooltips({ page, autoShow = true, delay = 3000 }: CulturalTooltipsProps) {
+export default function CulturalTooltips({ page }: CulturalTooltipsProps) {
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
-  const [shownTooltips, setShownTooltips] = useState<Set<string>>(new Set());
-  const [showHint, setShowHint] = useState(false);
+  const [tooltipQueue, setTooltipQueue] = useState<string[]>([]);
 
-  const tooltips = culturalFacts[page] || [];
-
-  useEffect(() => {
-    if (autoShow && tooltips.length > 0) {
-      const timer = setTimeout(() => {
-        // Show a tooltip that hasn't been shown yet
-        const unshownTooltip = tooltips.find(t => !shownTooltips.has(t.id));
-        if (unshownTooltip) {
-          setActiveTooltip(unshownTooltip.id);
-          setShownTooltips(prev => new Set(Array.from(prev).concat(unshownTooltip.id)));
-        }
-      }, delay);
-
-      return () => clearTimeout(timer);
-    }
-  }, [page, autoShow, delay, shownTooltips]);
+  const currentTooltips = tooltipData[page] || [];
 
   useEffect(() => {
-    // Show hint after all tooltips have been shown
-    if (shownTooltips.size === tooltips.length && tooltips.length > 0) {
-      const timer = setTimeout(() => setShowHint(true), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [shownTooltips, tooltips]);
+    if (currentTooltips.length === 0) return;
 
-  const currentTooltip = tooltips.find(t => t.id === activeTooltip);
+    // Create queue of tooltip IDs
+    const queue = currentTooltips.map(tooltip => tooltip.id);
+    setTooltipQueue(queue);
+
+    // Set up timers for each tooltip
+    const timers = currentTooltips.map((tooltip, index) => {
+      return setTimeout(() => {
+        setActiveTooltip(tooltip.id);
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          setActiveTooltip(null);
+        }, 5000);
+      }, tooltip.delay);
+    });
+
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+    };
+  }, [page, currentTooltips]);
+
+  const handleDismiss = () => {
+    setActiveTooltip(null);
+  };
+
+  const activeTooltipData = currentTooltips.find(tooltip => tooltip.id === activeTooltip);
+
+  if (!activeTooltipData) return null;
+
+  const IconComponent = activeTooltipData.icon;
 
   return (
-    <>
-      {/* Floating hint button */}
-      <AnimatePresence>
-        {showHint && !activeTooltip && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={() => {
-              const randomTooltip = tooltips[Math.floor(Math.random() * tooltips.length)];
-              setActiveTooltip(randomTooltip.id);
-            }}
-            className="fixed top-32 right-8 z-40 w-12 h-12 rounded-full bg-amarelo-ouro text-azul-celeste flex items-center justify-center shadow-lg hover:bg-yellow-400 transition-colors"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Info className="w-5 h-5" />
-            <motion.div
-              className="absolute inset-0 rounded-full border-2 border-amarelo-ouro"
-              animate={{
-                scale: [1, 1.5, 1.5],
-                opacity: [0.5, 0, 0]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeOut"
-              }}
-            />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      {/* Tooltip modal */}
-      <AnimatePresence>
-        {activeTooltip && currentTooltip && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            onClick={() => setActiveTooltip(null)}
-          >
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
-
-            {/* Tooltip content */}
-            <motion.div
-              initial={{ scale: 0.8, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.8, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative max-w-md w-full bg-gradient-to-br from-verde-brasil to-azul-celeste p-6 rounded-2xl shadow-2xl border-2 border-amarelo-ouro"
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.8, y: -20 }}
+        className="fixed z-50 pointer-events-none"
+        style={{
+          ...activeTooltipData.position,
+          transform: 'translate(-50%, -50%)'
+        }}
+      >
+        <motion.div
+          className="bg-gradient-to-br from-verde-brasil to-verde-brasil/80 backdrop-blur-md rounded-xl p-4 shadow-2xl border border-amarelo-ouro/30 max-w-xs pointer-events-auto"
+          whileHover={{ scale: 1.05 }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-amarelo-ouro rounded-full flex items-center justify-center">
+                <IconComponent className="w-4 h-4 text-verde-brasil" />
+              </div>
+              <h3 className="font-bebas text-lg text-white tracking-wide">
+                {activeTooltipData.title}
+              </h3>
+            </div>
+            <button
+              onClick={handleDismiss}
+              className="text-white/60 hover:text-white transition-colors"
             >
-              {/* Close button */}
-              <button
-                onClick={() => setActiveTooltip(null)}
-                className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <Info className="w-4 h-4" />
+            </button>
+          </div>
 
-              {/* Icon */}
-              <motion.div
-                initial={{ rotate: -180, scale: 0 }}
-                animate={{ rotate: 0, scale: 1 }}
-                transition={{ type: "spring", duration: 0.5 }}
-                className="text-5xl mb-4 text-center"
-              >
-                {currentTooltip.icon}
-              </motion.div>
+          {/* Content */}
+          <p className="text-white/90 text-sm leading-relaxed">
+            {activeTooltipData.description}
+          </p>
 
-              {/* Title */}
-              <motion.h3
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="font-bebas text-3xl text-white mb-3 text-center"
-              >
-                {currentTooltip.title}
-              </motion.h3>
+          {/* Brazilian flag accent */}
+          <div className="absolute -top-1 -right-1 w-6 h-4 bg-gradient-to-r from-verde-brasil via-amarelo-ouro to-azul-celeste rounded-sm opacity-80" />
+        </motion.div>
 
-              {/* Content */}
-              <motion.p
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="text-white/90 text-center leading-relaxed"
-              >
-                {currentTooltip.content}
-              </motion.p>
-
-              {/* Brazilian flag decoration */}
-              <motion.div
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ delay: 0.3 }}
-                className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-verde-brasil via-amarelo-ouro to-azul-celeste rounded-b-2xl"
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Quick tips (non-intrusive) */}
-      <AnimatePresence>
-        {tooltips.map((tooltip, index) => (
-          <motion.div
-            key={tooltip.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 0.8, x: 0 }}
-            transition={{ delay: index * 0.2 + 5 }}
-            className="fixed z-30 cursor-pointer hover:opacity-100 transition-opacity"
-            style={{
-              top: `${20 + index * 15}%`,
-              left: '20px'
-            }}
-            onClick={() => setActiveTooltip(tooltip.id)}
-          >
-            <div className="w-2 h-2 rounded-full bg-amarelo-ouro animate-pulse" />
-          </motion.div>
-        ))}
-      </AnimatePresence>
-    </>
+        {/* Pulsing indicator */}
+        <motion.div
+          className="absolute inset-0 rounded-xl border-2 border-amarelo-ouro/50"
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.5, 0.8, 0.5]
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      </motion.div>
+    </AnimatePresence>
   );
 }

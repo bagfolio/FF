@@ -1,400 +1,249 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { motion, AnimatePresence } from "framer-motion";
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Text, Box, Sphere, Float, MeshWobbleMaterial } from '@react-three/drei';
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import ProgressJourney from "@/components/features/auth/ProgressJourney";
-import SoundController from "@/components/features/auth/SoundController";
-import CulturalTooltips from "@/components/features/auth/CulturalTooltips";
-import * as THREE from 'three';
+import { positions } from "@/lib/brazilianData";
 
-interface Position3D {
+interface PositionData {
   id: string;
-  name: string;
+  name: keyof typeof positions;
   x: number;
   y: number;
-  z: number;
   number: number;
-  color: string;
-  legend?: string;
-  attributes: {
-    speed: number;
-    strength: number;
-    technique: number;
-    vision: number;
-  };
 }
 
-// 3D positions with Brazilian legends
-const positions3D: Position3D[] = [
-  { 
-    id: "gk", name: "Goleiro", x: 0, y: 0, z: -4, number: 1, color: "#FFD700",
-    legend: "Taffarel", attributes: { speed: 3, strength: 4, technique: 3, vision: 5 }
-  },
-  { 
-    id: "lb", name: "Lateral Esquerdo", x: -3, y: 0, z: -2, number: 6, color: "#00FF00",
-    legend: "Roberto Carlos", attributes: { speed: 5, strength: 4, technique: 4, vision: 4 }
-  },
-  { 
-    id: "cb1", name: "Zagueiro", x: -1, y: 0, z: -3, number: 4, color: "#0080FF",
-    legend: "Lúcio", attributes: { speed: 3, strength: 5, technique: 3, vision: 4 }
-  },
-  { 
-    id: "cb2", name: "Zagueiro", x: 1, y: 0, z: -3, number: 3, color: "#0080FF",
-    legend: "Thiago Silva", attributes: { speed: 3, strength: 5, technique: 3, vision: 4 }
-  },
-  { 
-    id: "rb", name: "Lateral Direito", x: 3, y: 0, z: -2, number: 2, color: "#00FF00",
-    legend: "Cafú", attributes: { speed: 5, strength: 4, technique: 4, vision: 4 }
-  },
-  { 
-    id: "cdm", name: "Volante", x: 0, y: 0, z: -1, number: 5, color: "#FF8C00",
-    legend: "Gilberto Silva", attributes: { speed: 3, strength: 5, technique: 3, vision: 4 }
-  },
-  { 
-    id: "cm1", name: "Meio-campo", x: -2, y: 0, z: 0, number: 8, color: "#FFD700",
-    legend: "Kaká", attributes: { speed: 4, strength: 3, technique: 5, vision: 5 }
-  },
-  { 
-    id: "cm2", name: "Meia-atacante", x: 2, y: 0, z: 0, number: 10, color: "#FFD700",
-    legend: "Pelé", attributes: { speed: 4, strength: 3, technique: 5, vision: 5 }
-  },
-  { 
-    id: "lw", name: "Ponta Esquerda", x: -3, y: 0, z: 2, number: 11, color: "#FF0000",
-    legend: "Neymar", attributes: { speed: 5, strength: 2, technique: 5, vision: 4 }
-  },
-  { 
-    id: "st", name: "Centroavante", x: 0, y: 0, z: 3, number: 9, color: "#FF0000",
-    legend: "Ronaldo", attributes: { speed: 4, strength: 4, technique: 5, vision: 4 }
-  },
-  { 
-    id: "rw", name: "Ponta Direita", x: 3, y: 0, z: 2, number: 7, color: "#FF0000",
-    legend: "Garrincha", attributes: { speed: 5, strength: 2, technique: 5, vision: 4 }
-  }
+// 4-3-3 Formation positions with realistic coordinates
+const fieldPositions: PositionData[] = [
+  { id: "gk", name: "Goleiro", x: 50, y: 85, number: 1 },
+  { id: "lb", name: "Lateral Esquerdo", x: 15, y: 65, number: 3 },
+  { id: "cb1", name: "Zagueiro", x: 35, y: 70, number: 4 },
+  { id: "cb2", name: "Zagueiro", x: 65, y: 70, number: 5 },
+  { id: "rb", name: "Lateral Direito", x: 85, y: 65, number: 2 },
+  { id: "cm1", name: "Volante", x: 30, y: 45, number: 6 },
+  { id: "cm2", name: "Meio-campo", x: 50, y: 40, number: 8 },
+  { id: "cm3", name: "Meia-atacante", x: 70, y: 45, number: 10 },
+  { id: "lw", name: "Ponta Esquerda", x: 20, y: 20, number: 11 },
+  { id: "st", name: "Centroavante", x: 50, y: 15, number: 9 },
+  { id: "rw", name: "Ponta Direita", x: 80, y: 20, number: 7 },
 ];
-
-// 3D Player Model
-function PlayerModel({ position, isSelected, onSelect }: { 
-  position: Position3D; 
-  isSelected: boolean;
-  onSelect: () => void;
-}) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <Float speed={2} rotationIntensity={0.2} floatIntensity={0.3}>
-      <group
-        position={[position.x, position.y + 0.5, position.z]}
-        onClick={onSelect}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-      >
-        {/* Player body (cylinder) */}
-        <mesh ref={meshRef} castShadow>
-          <cylinderGeometry args={[0.3, 0.3, 1, 8]} />
-          <MeshWobbleMaterial
-            factor={hovered ? 0.4 : 0.1}
-            speed={2}
-            color={isSelected ? "#FFD700" : position.color}
-            emissive={position.color}
-            emissiveIntensity={hovered ? 0.4 : 0.2}
-          />
-        </mesh>
-
-        {/* Player head */}
-        <mesh position={[0, 0.7, 0]} castShadow>
-          <sphereGeometry args={[0.2, 16, 16]} />
-          <meshStandardMaterial color="#FDB5A6" />
-        </mesh>
-
-        {/* Jersey number */}
-        <Text
-          position={[0, 0, 0.31]}
-          fontSize={0.3}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-          font="/fonts/bebas-neue-v9-latin-regular.woff"
-        >
-          {position.number}
-        </Text>
-
-        {/* Position name */}
-        <Text
-          position={[0, -0.8, 0]}
-          fontSize={0.15}
-          color="white"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {position.name}
-        </Text>
-
-        {/* Legend name (on hover) */}
-        {hovered && (
-          <Text
-            position={[0, 1.2, 0]}
-            fontSize={0.12}
-            color="#FFD700"
-            anchorX="center"
-            anchorY="middle"
-          >
-            {position.legend}
-          </Text>
-        )}
-
-        {/* Selection indicator */}
-        {isSelected && (
-          <Sphere args={[0.8, 16, 16]} position={[0, 0, 0]}>
-            <meshBasicMaterial
-              color="#FFD700"
-              transparent
-              opacity={0.3}
-              wireframe
-            />
-          </Sphere>
-        )}
-
-        {/* Hover effect */}
-        {hovered && !isSelected && (
-          <Sphere args={[0.6, 16, 16]} position={[0, 0, 0]}>
-            <meshBasicMaterial
-              color="white"
-              transparent
-              opacity={0.2}
-              wireframe
-            />
-          </Sphere>
-        )}
-      </group>
-    </Float>
-  );
-}
-
-// Tactical Field
-function TacticalField() {
-  return (
-    <group position={[0, -0.5, 0]}>
-      {/* Field base */}
-      <Box args={[8, 0.1, 10]} receiveShadow>
-        <meshStandardMaterial color="#2F5E1F" />
-      </Box>
-
-      {/* Field lines */}
-      <group position={[0, 0.06, 0]}>
-        {/* Center line */}
-        <Box args={[8, 0.01, 0.1]} position={[0, 0, 0]}>
-          <meshBasicMaterial color="white" />
-        </Box>
-
-        {/* Center circle */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[1.5, 1.6, 32]} />
-          <meshBasicMaterial color="white" />
-        </mesh>
-
-        {/* Penalty areas */}
-        <group position={[0, 0, 4]}>
-          <Box args={[3, 0.01, 0.1]}><meshBasicMaterial color="white" /></Box>
-          <Box args={[0.1, 0.01, 1.5]} position={[-1.5, 0, -0.75]}><meshBasicMaterial color="white" /></Box>
-          <Box args={[0.1, 0.01, 1.5]} position={[1.5, 0, -0.75]}><meshBasicMaterial color="white" /></Box>
-        </group>
-
-        <group position={[0, 0, -4]}>
-          <Box args={[3, 0.01, 0.1]}><meshBasicMaterial color="white" /></Box>
-          <Box args={[0.1, 0.01, 1.5]} position={[-1.5, 0, 0.75]}><meshBasicMaterial color="white" /></Box>
-          <Box args={[0.1, 0.01, 1.5]} position={[1.5, 0, 0.75]}><meshBasicMaterial color="white" /></Box>
-        </group>
-      </group>
-
-      {/* Field texture pattern */}
-      <group position={[0, 0.07, 0]}>
-        {[-3, -1, 1, 3].map((z, i) => (
-          <Box key={i} args={[8, 0.001, 1.8]} position={[0, 0, z]}>
-            <meshBasicMaterial color="#3A6F2F" transparent opacity={0.3} />
-          </Box>
-        ))}
-      </group>
-    </group>
-  );
-}
 
 export default function AuthPosition() {
   const [, setLocation] = useLocation();
-  const [selectedPosition, setSelectedPosition] = useState<Position3D | null>(null);
-  const [showAttributes, setShowAttributes] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState<PositionData | null>(null);
+  const [hoveredPosition, setHoveredPosition] = useState<string | null>(null);
 
-  const handlePositionSelect = (position: Position3D) => {
+  const handlePositionSelect = (position: PositionData) => {
     setSelectedPosition(position);
-    setShowAttributes(true);
+    // Save to localStorage for later steps
     localStorage.setItem("authPosition", JSON.stringify(position));
-    
-    if (window.soundController) {
-      window.soundController.playEffect('click');
-    }
   };
 
   const handleContinue = () => {
     if (selectedPosition) {
-      if (window.soundController) {
-        window.soundController.playEffect('success');
-      }
       setLocation("/auth/profile");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
-      {/* Progress Journey */}
-      <ProgressJourney currentStep={1} />
-
-      {/* Sound Controller */}
-      <SoundController variant="training" />
-
-      {/* Cultural Tooltips */}
-      <CulturalTooltips page="position" />
-
+    <div className="min-h-screen bg-gradient-to-b from-cinza-claro to-white relative overflow-hidden">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 text-center pt-32 pb-4"
+        transition={{ duration: 0.8 }}
+        className="relative z-10 text-center pt-8 pb-4"
       >
-        <h1 className="font-bebas text-4xl md:text-6xl text-white mb-2">
+        <h1 className="font-bebas text-4xl md:text-6xl azul-celeste mb-2">
           ESCOLHA SUA POSIÇÃO
         </h1>
-        <p className="text-gray-400 text-lg font-medium">
-          Clique no jogador para ver as lendas que jogaram nessa posição
+        <p className="text-cinza-medio text-lg font-medium">
+          Onde você manda bem em campo, craque?
         </p>
+        
+        {/* Progress Indicator */}
+        <div className="flex justify-center space-x-2 mt-6">
+          <div className="w-3 h-3 rounded-full bg-verde-brasil" />
+          <div className="w-3 h-3 rounded-full bg-verde-brasil" />
+          <div className="w-3 h-3 rounded-full bg-gray-300" />
+          <div className="w-3 h-3 rounded-full bg-gray-300" />
+          <div className="w-3 h-3 rounded-full bg-gray-300" />
+        </div>
       </motion.div>
 
-      {/* 3D Tactical Board */}
+      {/* Football Field */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
+        initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8 }}
-        className="relative w-full h-[500px]"
+        transition={{ duration: 1, delay: 0.3 }}
+        className="relative mx-auto max-w-4xl px-4"
       >
-        <Canvas
-          shadows
-          camera={{ position: [0, 8, 12], fov: 50 }}
-          className="w-full h-full"
-        >
-          <ambientLight intensity={0.5} />
-          <spotLight
-            position={[10, 20, 10]}
-            angle={0.3}
-            penumbra={1}
-            intensity={1}
-            castShadow
-            shadow-mapSize={[2048, 2048]}
-          />
-          <pointLight position={[-10, 10, -10]} intensity={0.5} />
+        <div className="relative bg-gradient-to-b from-green-400 to-green-500 rounded-lg shadow-2xl overflow-hidden"
+             style={{ aspectRatio: "4/6" }}>
+          
+          {/* Field Lines */}
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 600">
+            {/* Outer boundary */}
+            <rect x="20" y="20" width="360" height="560" 
+                  fill="none" stroke="white" strokeWidth="3" />
+            
+            {/* Center line */}
+            <line x1="20" y1="300" x2="380" y2="300" 
+                  stroke="white" strokeWidth="2" />
+            
+            {/* Center circle */}
+            <circle cx="200" cy="300" r="50" 
+                    fill="none" stroke="white" strokeWidth="2" />
+            
+            {/* Goal areas */}
+            <rect x="20" y="20" width="360" height="80" 
+                  fill="none" stroke="white" strokeWidth="2" />
+            <rect x="20" y="500" width="360" height="80" 
+                  fill="none" stroke="white" strokeWidth="2" />
+            
+            {/* Penalty areas */}
+            <rect x="80" y="20" width="240" height="120" 
+                  fill="none" stroke="white" strokeWidth="2" />
+            <rect x="80" y="460" width="240" height="120" 
+                  fill="none" stroke="white" strokeWidth="2" />
+          </svg>
 
-          <OrbitControls
-            enablePan={false}
-            maxPolarAngle={Math.PI / 2.5}
-            minPolarAngle={Math.PI / 6}
-            maxDistance={20}
-            minDistance={8}
-          />
+          {/* Grass Texture Overlay */}
+          <div className="absolute inset-0 opacity-20"
+               style={{
+                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' opacity='0.1'%3E%3Cpath d='M0 0l1 50-1 50zM10 0l1 50-1 50zM20 0l1 50-1 50zM30 0l1 50-1 50z'/%3E%3C/g%3E%3C/svg%3E")`,
+                 backgroundSize: '20px 20px'
+               }} />
 
-          <TacticalField />
+          {/* Position Jerseys */}
+          {fieldPositions.map((position) => {
+            const isSelected = selectedPosition?.id === position.id;
+            const isHovered = hoveredPosition === position.id;
+            const positionColor = positions[position.name]?.color || "bg-blue-600";
+            
+            return (
+              <motion.button
+                key={position.id}
+                onClick={() => handlePositionSelect(position)}
+                onMouseEnter={() => setHoveredPosition(position.id)}
+                onMouseLeave={() => setHoveredPosition(null)}
+                className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                style={{
+                  left: `${position.x}%`,
+                  top: `${position.y}%`,
+                }}
+                initial={{ scale: 0, rotate: 0 }}
+                animate={{
+                  scale: isSelected ? 1.3 : isHovered ? 1.2 : 1,
+                  rotate: isSelected ? [0, 360] : 0,
+                  y: isSelected ? [-10, 0] : 0,
+                }}
+                transition={{
+                  scale: { duration: 0.3 },
+                  rotate: { duration: 0.8, ease: "easeOut" },
+                  y: { duration: 0.5, repeat: isSelected ? Infinity : 0, repeatType: "reverse" }
+                }}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {/* Jersey */}
+                <div className={`relative w-16 h-16 ${positionColor} rounded-lg shadow-lg border-2 
+                                ${isSelected ? 'border-amarelo-ouro border-4' : 'border-white'} 
+                                transition-all duration-300`}>
+                  
+                  {/* Jersey Number */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-white font-bebas text-xl font-bold">
+                      {position.number}
+                    </span>
+                  </div>
 
-          {positions3D.map((position) => (
-            <PlayerModel
-              key={position.id}
-              position={position}
-              isSelected={selectedPosition?.id === position.id}
-              onSelect={() => handlePositionSelect(position)}
-            />
-          ))}
-        </Canvas>
+                  {/* Selection Glow */}
+                  {isSelected && (
+                    <motion.div
+                      className="absolute inset-0 rounded-lg border-4 border-amarelo-ouro"
+                      animate={{ boxShadow: [
+                        "0 0 20px rgba(255, 215, 0, 0.6)",
+                        "0 0 40px rgba(255, 215, 0, 0.8)",
+                        "0 0 20px rgba(255, 215, 0, 0.6)"
+                      ]}}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                  )}
+
+                  {/* Particle Effect for Selection */}
+                  {isSelected && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      {[...Array(6)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          className="absolute w-1 h-1 bg-amarelo-ouro rounded-full"
+                          style={{
+                            left: "50%",
+                            top: "50%",
+                          }}
+                          animate={{
+                            x: [0, (Math.cos(i * 60 * Math.PI / 180) * 30)],
+                            y: [0, (Math.sin(i * 60 * Math.PI / 180) * 30)],
+                            opacity: [1, 0],
+                            scale: [1, 0.5]
+                          }}
+                          transition={{
+                            duration: 1.5,
+                            repeat: Infinity,
+                            delay: i * 0.2
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Position Label */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ 
+                    opacity: isHovered || isSelected ? 1 : 0,
+                    y: isHovered || isSelected ? 0 : 10
+                  }}
+                  className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 
+                           bg-black/80 text-white px-2 py-1 rounded text-xs font-medium 
+                           whitespace-nowrap pointer-events-none"
+                >
+                  {position.name}
+                </motion.div>
+              </motion.button>
+            );
+          })}
+        </div>
       </motion.div>
 
-      {/* Position Details Panel */}
-      <AnimatePresence>
-        {showAttributes && selectedPosition && (
-          <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            className="fixed right-8 top-1/2 transform -translate-y-1/2 bg-black/90 backdrop-blur-md rounded-xl p-6 border border-white/20 max-w-sm"
-          >
-            <h3 className="font-bebas text-2xl text-white mb-2">
-              {selectedPosition.name} #{selectedPosition.number}
-            </h3>
-            <p className="text-amarelo-ouro mb-4">
-              Lenda: {selectedPosition.legend}
-            </p>
-
-            {/* Attributes */}
-            <div className="space-y-3 mb-6">
-              {Object.entries(selectedPosition.attributes).map(([key, value]) => (
-                <div key={key}>
-                  <div className="flex justify-between text-sm text-gray-400 mb-1">
-                    <span className="capitalize">{key === 'vision' ? 'Visão' : key}</span>
-                    <span>{value}/5</span>
-                  </div>
-                  <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(value / 5) * 100}%` }}
-                      transition={{ duration: 0.5, delay: 0.1 }}
-                      className="h-full bg-gradient-to-r from-verde-brasil to-amarelo-ouro"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <p className="text-sm text-gray-400 italic mb-4">
-              "Jogue como {selectedPosition.legend} e faça história!"
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Selection Display */}
+      {selectedPosition && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mt-8"
+        >
+          <p className="text-xl font-medium text-azul-celeste">
+            Você escolheu: <span className="font-bebas text-2xl">{selectedPosition.name} #{selectedPosition.number}</span>
+          </p>
+        </motion.div>
+      )}
 
       {/* Continue Button */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: selectedPosition ? 1 : 0.5 }}
-        className="fixed bottom-8 left-1/2 transform -translate-x-1/2"
+        className="text-center mt-8 pb-8"
       >
         <Button
           onClick={handleContinue}
           disabled={!selectedPosition}
-          className="btn-primary px-12 py-6 text-xl font-bebas tracking-wider rounded-full shadow-2xl"
+          className="btn-primary px-8 py-3 text-lg font-bebas tracking-wider"
         >
-          CONTINUAR PARA O VESTIÁRIO
+          CONTINUAR JORNADA
         </Button>
       </motion.div>
-
-      {/* Background particles */}
-      <div className="fixed inset-0 pointer-events-none">
-        {[...Array(30)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight
-            }}
-            animate={{
-              y: [-20, 0, -20],
-              opacity: [0.2, 0.5, 0.2]
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: Math.random() * 3
-            }}
-          />
-        ))}
-      </div>
     </div>
   );
 }

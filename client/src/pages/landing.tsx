@@ -118,21 +118,17 @@ export default function Landing() {
               transition={{ delay: 0.5 }}
               className="text-center mb-6"
             >
-              <p className="text-2xl text-amarelo-ouro font-bold drop-shadow-md mb-2">
-                🏆 EXPERIÊNCIA 3D IMERSIVA 🏆
-              </p>
-              <p className="text-lg text-white/90 max-w-2xl mx-auto mb-6">
-                Entre em um estádio virtual, escolha sua posição com lendas brasileiras,
-                crie sua camisa no vestiário e teste suas habilidades em mini-games!
+              <p className="text-lg text-amarelo-ouro font-semibold drop-shadow-md">
+                ⚽ NOVA EXPERIÊNCIA REVOLUCIONÁRIA ⚽
               </p>
             </motion.div>
             <Button 
               onClick={() => setLocation("/auth/welcome")}
-              className="bg-gradient-to-r from-verde-brasil via-amarelo-ouro to-azul-celeste text-white px-16 py-8 text-2xl font-bebas tracking-wider flex items-center gap-4 mx-auto rounded-full shadow-2xl hover:shadow-amarelo-ouro/50 transition-all duration-500 transform hover:scale-110 border-4 border-white/30 animate-pulse-slow relative overflow-hidden"
+              className="bg-gradient-to-r from-verde-brasil via-amarelo-ouro to-azul-celeste text-white px-12 py-6 text-xl font-bebas tracking-wider flex items-center gap-4 mx-auto rounded-3xl shadow-2xl hover:shadow-amarelo-ouro/50 transition-all duration-500 transform hover:scale-110 border-4 border-white/30 animate-pulse-slow relative overflow-hidden"
             >
-              <Trophy className="w-10 h-10" />
-              COMEÇAR JORNADA 3D
-              <Star className="w-10 h-10" />
+              <Trophy className="w-8 h-8" />
+              JORNADA DO CRAQUE BRASILEIRO
+              <Star className="w-8 h-8" />
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                 animate={{ x: ['-200%', '200%'] }}
