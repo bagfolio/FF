@@ -48,14 +48,14 @@ export default function AchievementsPage() {
 
   // Fetch athlete data and achievements from API
   const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
-  const { data: athlete } = useQuery({ 
+  const { data: athlete } = useQuery<{ id: number; [key: string]: any }>({ 
     queryKey: ["/api/athletes/me"],
     enabled: !!user 
   });
   
   const { data: achievementsData = [], isLoading } = useQuery({ 
     queryKey: ['athlete-achievements', athlete?.id],
-    queryFn: () => achievementService.getAthleteAchievements(athlete!.id),
+    queryFn: () => achievementService.getAthleteAchievements(athlete!.id.toString()),
     enabled: !!athlete?.id,
   });
   
@@ -65,16 +65,16 @@ export default function AchievementsPage() {
   // Map API data to include icons
   const allAchievements = achievementsData.map((achievement: any) => ({
     ...achievement,
-    icon: iconMap[achievement.iconKey] || Trophy
+    icon: iconMap[achievement.iconKey as keyof typeof iconMap] || Trophy
   }));
 
   const statusFilters = [
     { id: "all", name: "Todas", count: allAchievements.length },
-    { id: "unlocked", name: "Desbloqueadas", count: allAchievements.filter(a => a.unlocked).length },
-    { id: "locked", name: "Bloqueadas", count: allAchievements.filter(a => !a.unlocked).length }
+    { id: "unlocked", name: "Desbloqueadas", count: allAchievements.filter((a: any) => a.unlocked).length },
+    { id: "locked", name: "Bloqueadas", count: allAchievements.filter((a: any) => !a.unlocked).length }
   ];
 
-  const filteredAchievements = allAchievements.filter(achievement => {
+  const filteredAchievements = allAchievements.filter((achievement: any) => {
     const statusMatch = selectedStatus === "all" || 
       (selectedStatus === "unlocked" && achievement.unlocked) ||
       (selectedStatus === "locked" && !achievement.unlocked);
@@ -82,9 +82,9 @@ export default function AchievementsPage() {
     return statusMatch && rarityMatch;
   });
 
-  const unlockedCount = allAchievements.filter(a => a.unlocked).length;
-  const totalXP = allAchievements.filter(a => a.unlocked).reduce((sum, a) => sum + a.points, 0);
-  const nextAchievement = allAchievements.find(a => !a.unlocked && a.progress && a.progress > 50);
+  const unlockedCount = allAchievements.filter((a: any) => a.unlocked).length;
+  const totalXP = allAchievements.filter((a: any) => a.unlocked).reduce((sum: any, a: any) => sum + a.points, 0);
+  const nextAchievement = allAchievements.find((a: any) => !a.unlocked && a.progress && a.progress > 50);
 
   const getRarityConfig = (rarity?: string) => {
     const configs = {
@@ -245,7 +245,7 @@ export default function AchievementsPage() {
 
         {/* Achievements Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAchievements.map(achievement => {
+          {filteredAchievements.map((achievement: any) => {
             const Icon = achievement.icon;
             const rarityConfig = getRarityConfig(achievement.rarity);
             const isUnlocked = achievement.unlocked;

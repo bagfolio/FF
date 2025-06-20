@@ -1,12 +1,8 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { isUnauthorizedError } from "@/lib/authUtils";
 import { Terminal, Search, Trophy, Users, BarChart3, Eye } from "lucide-react";
 
 interface UserTypeModalProps {
@@ -18,36 +14,6 @@ interface UserTypeModalProps {
 export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTypeModalProps) {
   const [localSelectedType, setLocalSelectedType] = useState<"athlete" | "scout" | null>(selectedType);
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const setUserType = useMutation({
-    mutationFn: async (userType: "athlete" | "scout") => {
-      const response = await apiRequest("POST", "/api/auth/user-type", { userType });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      toast({
-        title: "Sucesso!",
-        description: `Perfil de ${localSelectedType === 'athlete' ? 'Atleta' : 'Olheiro'} selecionado.`,
-      });
-      
-      // Redirect to appropriate dashboard
-      if (localSelectedType === "athlete") {
-        setLocation("/athlete/dashboard");
-      } else {
-        setLocation("/scout/dashboard");
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro. Tente novamente.",
-        variant: "destructive",
-      });
-    },
-  });
 
   const handleTypeSelection = (type: "athlete" | "scout") => {
     setLocalSelectedType(type);
@@ -55,7 +21,15 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
 
   const handleContinue = () => {
     if (localSelectedType) {
-      setUserType.mutate(localSelectedType);
+      // Store the selected type in sessionStorage for the onboarding flow
+      sessionStorage.setItem('selectedUserType', localSelectedType);
+      
+      // Redirect to appropriate onboarding
+      if (localSelectedType === "athlete") {
+        setLocation("/athlete/onboarding");
+      } else {
+        setLocation("/scout/onboarding");
+      }
     }
   };
 
@@ -167,12 +141,12 @@ export default function UserTypeModal({ isOpen, onClose, selectedType }: UserTyp
           </Button>
           <Button 
             onClick={handleContinue}
-            disabled={!localSelectedType || setUserType.isPending}
+            disabled={!localSelectedType}
             className={`flex-1 text-white py-3 ${
               localSelectedType === "athlete" ? "bg-green-500 hover:bg-green-600" : "bg-blue-500 hover:bg-blue-600"
             }`}
           >
-            {setUserType.isPending ? "Redirecionando..." : "Continuar"}
+            Continuar
           </Button>
         </div>
 

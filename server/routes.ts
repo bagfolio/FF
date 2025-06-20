@@ -1,10 +1,18 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-// Auth system removed for development
+import { isAuthenticated } from "./replitAuth";
 import { insertAthleteSchema, insertScoutSchema, insertTestSchema, insertCheckinSchema } from "@shared/schema";
 import { z } from "zod";
 import { checkAndAwardAchievements } from "./achievementSeeder";
+import { AuthService } from "./services/auth.service";
+import { passwordSchema, generateSecureToken } from "./utils/password";
+import { emailSchema, cpfSchema } from "./utils/validation";
+import { setupDevRoutes } from "./routes/dev.routes";
+import { emailService } from "./services/email.service";
+import { setupMediaRoutes } from "./routes/media.routes";
+import { setupNotificationRoutes } from "./routes/notification.routes";
+import { notificationService } from "./services/notification.service";
 
 // Helper function to format time ago in Portuguese
 function formatTimeAgo(date: Date): string {
@@ -66,43 +74,50 @@ function calculateOverallTrustLevel(verifications: any[]): "bronze" | "silver" |
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware disabled for development
+  const authService = new AuthService();
 
-  // Get the first user from database for development
-  // In production this comes from auth (req.user.claims.sub)
-  let DEV_USER_ID: string | null = null;
-  
-  // Helper to get development user ID
-  async function getDevUserId(): Promise<string> {
-    if (DEV_USER_ID) return DEV_USER_ID;
-    
-    // Get the first user from database
-    const users = await storage.getAllUsers();
-    if (users.length > 0) {
-      DEV_USER_ID = users[0].id;
-      return DEV_USER_ID;
+  // Helper to get authenticated user ID from request
+  async function getAuthenticatedUserId(req: any): Promise<string> {
+    // Check if we're in development mode with bypass auth
+    if (process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true') {
+      // Use the simulated user from the auth middleware
+      if (req.user?.claims?.sub) {
+        return req.user.claims.sub;
+      }
+      
+      // Fallback: get or create a dev user
+      const users = await storage.getAllUsers();
+      if (users.length > 0) {
+        return users[0].id;
+      }
+      
+      // Create a development user if none exists
+      const devUser = await storage.createUser({
+        id: "dev-user-" + Date.now(),
+        email: "dev@futebol-futuro.com",
+        firstName: "Dev",
+        lastName: "User",
+        profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+        userType: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      return devUser.id;
     }
     
-    // Create a development user if none exists
-    const devUser = await storage.createUser({
-      id: "dev-user-" + Date.now(),
-      email: "dev@futebol-futuro.com",
-      firstName: "Dev",
-      lastName: "User",
-      profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-      userType: null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
+    // Production: get user ID from authenticated session
+    if (!req.user?.claims?.sub) {
+      throw new Error("User not authenticated");
+    }
     
-    DEV_USER_ID = devUser.id;
-    return DEV_USER_ID;
+    return req.user.claims.sub;
   }
 
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
     try {
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       
       // Get user from database
       let user = await storage.getUser(userId);
@@ -140,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/user-type', async (req: any, res) => {
     try {
       const { userType } = req.body;
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       
       if (!['athlete', 'scout'].includes(userType)) {
         return res.status(400).json({ message: "Invalid user type" });
@@ -167,10 +182,369 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Combined registration endpoints
+  app.post('/api/auth/register/athlete', async (req: any, res) => {
+    try {
+      const userId = await getAuthenticatedUserId(req);
+      
+      // Start a transaction to ensure atomicity
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if user already has a type
+      if (user.userType) {
+        return res.status(400).json({ message: "User already has a profile type" });
+      }
+      
+      // Parse and validate athlete data
+      const athleteData = insertAthleteSchema.parse({ ...req.body, userId });
+      
+      // Update user type and create athlete profile
+      const [updatedUser, athlete] = await Promise.all([
+        storage.updateUser(userId, { userType: 'athlete', updatedAt: new Date() }),
+        storage.createAthlete(athleteData)
+      ]);
+      
+      res.json({
+        user: updatedUser,
+        athlete
+      });
+    } catch (error) {
+      console.error("Error registering athlete:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to register athlete" });
+    }
+  });
+
+  app.post('/api/auth/register/scout', async (req: any, res) => {
+    try {
+      const userId = await getAuthenticatedUserId(req);
+      
+      // Start a transaction to ensure atomicity
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if user already has a type
+      if (user.userType) {
+        return res.status(400).json({ message: "User already has a profile type" });
+      }
+      
+      // Parse and validate scout data
+      const scoutData = insertScoutSchema.parse({ ...req.body, userId });
+      
+      // Update user type and create scout profile
+      const [updatedUser, scout] = await Promise.all([
+        storage.updateUser(userId, { userType: 'scout', updatedAt: new Date() }),
+        storage.createScout(scoutData)
+      ]);
+      
+      res.json({
+        user: updatedUser,
+        scout
+      });
+    } catch (error) {
+      console.error("Error registering scout:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to register scout" });
+    }
+  });
+
+  // Email/Password Auth Routes
+  
+  // Register with email/password
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      // Define registration schema
+      const registerSchema = z.object({
+        email: emailSchema,
+        password: passwordSchema,
+        firstName: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+        lastName: z.string().min(2, 'Sobrenome deve ter pelo menos 2 caracteres'),
+        userType: z.enum(['athlete', 'scout'])
+      });
+
+      const data = registerSchema.parse(req.body);
+      
+      // Register user
+      const user = await authService.register(data);
+      
+      // Set session
+      req.session.userId = user.id;
+      req.session.save();
+      
+      res.json({ 
+        message: 'Cadastro realizado com sucesso! Verifique seu email.',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          userType: user.userType,
+          emailVerified: user.emailVerified
+        }
+      });
+    } catch (error) {
+      console.error("Error registering user:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Erro de validação", 
+          errors: error.errors 
+        });
+      }
+      if (error instanceof Error && error.message === 'Este email já está cadastrado') {
+        return res.status(409).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Falha ao criar conta" });
+    }
+  });
+
+  // Login with email/password
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const loginSchema = z.object({
+        email: emailSchema,
+        password: z.string().min(1, 'Senha é obrigatória'),
+        rememberMe: z.boolean().optional()
+      });
+
+      const credentials = loginSchema.parse(req.body);
+      
+      // Login user
+      const { user, rememberMeToken } = await authService.login(credentials);
+      
+      // Set session
+      req.session.userId = user.id;
+      req.session.save();
+      
+      // Set remember me cookie if requested
+      if (rememberMeToken) {
+        res.cookie('remember_me', rememberMeToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+        });
+      }
+      
+      // Get role data
+      let roleData = null;
+      if (user.userType === 'athlete') {
+        roleData = await storage.getAthleteByUserId(user.id);
+      } else if (user.userType === 'scout') {
+        roleData = await storage.getScoutByUserId(user.id);
+      }
+      
+      res.json({ 
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          userType: user.userType,
+          emailVerified: user.emailVerified,
+          profileImageUrl: user.profileImageUrl
+        },
+        roleData
+      });
+    } catch (error) {
+      console.error("Error logging in:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Erro de validação", 
+          errors: error.errors 
+        });
+      }
+      if (error instanceof Error) {
+        if (error.message === 'Email ou senha incorretos' || 
+            error.message === 'Por favor, faça login com sua conta social') {
+          return res.status(401).json({ message: error.message });
+        }
+      }
+      res.status(500).json({ message: "Falha ao fazer login" });
+    }
+  });
+
+  // Verify email
+  app.get('/api/auth/verify-email', async (req, res) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: 'Token inválido' });
+      }
+      
+      await authService.verifyEmail(token);
+      
+      // Redirect to success page
+      res.redirect('/auth/email-verified');
+    } catch (error) {
+      console.error("Error verifying email:", error);
+      if (error instanceof Error) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Falha ao verificar email" });
+    }
+  });
+
+  // Request password reset
+  app.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+      const { email } = z.object({ email: emailSchema }).parse(req.body);
+      
+      await authService.requestPasswordReset(email);
+      
+      // Always return success to prevent email enumeration
+      res.json({ 
+        message: 'Se o email estiver cadastrado, você receberá instruções para redefinir sua senha.' 
+      });
+    } catch (error) {
+      console.error("Error requesting password reset:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Email inválido", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Falha ao solicitar redefinição de senha" });
+    }
+  });
+
+  // Reset password
+  app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+      const resetSchema = z.object({
+        token: z.string().min(1, 'Token é obrigatório'),
+        password: passwordSchema
+      });
+
+      const { token, password } = resetSchema.parse(req.body);
+      
+      await authService.resetPassword(token, password);
+      
+      res.json({ message: 'Senha redefinida com sucesso!' });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Erro de validação", 
+          errors: error.errors 
+        });
+      }
+      if (error instanceof Error) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Falha ao redefinir senha" });
+    }
+  });
+
+  // Enhanced logout with cleanup
+  app.post('/api/auth/logout', async (req: any, res) => {
+    try {
+      const userId = req.session?.userId || req.user?.claims?.sub;
+      
+      if (userId) {
+        await authService.logout(userId);
+      }
+      
+      // Clear session
+      req.session?.destroy((err: any) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+        }
+      });
+      
+      // Clear remember me cookie
+      res.clearCookie('remember_me');
+      
+      res.json({ message: 'Logout realizado com sucesso' });
+    } catch (error) {
+      console.error("Error logging out:", error);
+      res.status(500).json({ message: "Falha ao fazer logout" });
+    }
+  });
+
+  // Email verification
+  app.post('/api/auth/verify-email', async (req, res) => {
+    try {
+      const { token } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ message: 'Token de verificação é obrigatório' });
+      }
+      
+      await authService.verifyEmail(token);
+      
+      res.json({ message: 'Email verificado com sucesso!' });
+    } catch (error) {
+      console.error("Error verifying email:", error);
+      if (error instanceof Error) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Falha ao verificar email" });
+    }
+  });
+
+  // Resend verification email
+  app.post('/api/auth/resend-verification', async (req: any, res) => {
+    try {
+      const userId = req.session?.userId || req.user?.claims?.sub;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Não autenticado' });
+      }
+      
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'Usuário não encontrado' });
+      }
+      
+      if (user.emailVerified) {
+        return res.status(400).json({ message: 'Email já verificado' });
+      }
+      
+      // Generate new verification token
+      const emailVerificationToken = generateSecureToken();
+      const emailVerificationExpires = new Date();
+      emailVerificationExpires.setHours(emailVerificationExpires.getHours() + 24);
+      
+      // Update user with new token
+      await storage.updateUser(userId, {
+        emailVerificationToken,
+        emailVerificationExpires
+      });
+      
+      // Send email
+      try {
+        await emailService.sendVerificationEmail(
+          user.email,
+          `${user.firstName} ${user.lastName}`,
+          emailVerificationToken
+        );
+      } catch (error) {
+        console.error('Failed to send verification email:', error);
+        return res.status(500).json({ message: 'Falha ao enviar email de verificação' });
+      }
+      
+      res.json({ message: 'Email de verificação enviado' });
+    } catch (error) {
+      console.error("Error resending verification email:", error);
+      res.status(500).json({ message: "Falha ao reenviar email de verificação" });
+    }
+  });
+
   // Athlete routes
   app.post('/api/athletes', async (req: any, res) => {
     try {
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       const athleteData = insertAthleteSchema.parse({ ...req.body, userId });
       
       const athlete = await storage.createAthlete(athleteData);
@@ -186,7 +560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/athletes/me', async (req: any, res) => {
     try {
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       
       const athlete = await storage.getAthleteByUserId(userId);
       
@@ -325,59 +699,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get real athletes from database with skills data
       const athletes = await storage.searchAthletes(filters);
       
-      // If no athletes found and in development, optionally return mock data
-      if (athletes.length === 0 && process.env.NODE_ENV === 'development') {
-        const { generateMockAthletes } = require("./mockData");
-        const mockAthletes = generateMockAthletes(5);
-        
-        // Add mock skills data to each athlete
-        const athletesWithSkills = mockAthletes.map((athlete: any) => ({
-          ...athlete,
-          skillsAssessment: [
-            {
-              id: "speed",
-              name: "Velocidade",
-              data: {
-                selfRating: ["slower", "average", "above_average", "fastest"][Math.floor(Math.random() * 4)],
-                sliderValue: Math.floor(Math.random() * 5) + 6 // 6-10
-              }
-            },
-            {
-              id: "strength",
-              name: "Força",
-              data: {
-                comparison: ["win_most", "fifty_fifty", "avoid"][Math.floor(Math.random() * 3)],
-                sliderValue: Math.floor(Math.random() * 5) + 5 // 5-9
-              }
-            },
-            {
-              id: "technique",
-              name: "Técnica",
-              data: {
-                skills: {
-                  shortPass: Math.floor(Math.random() * 3) + 3, // 3-5
-                  longPass: Math.floor(Math.random() * 3) + 2, // 2-4
-                  control: Math.floor(Math.random() * 3) + 3, // 3-5
-                  finishing: Math.floor(Math.random() * 3) + 2 // 2-4
-                },
-                preferredFoot: ["left", "right", "both"][Math.floor(Math.random() * 3)]
-              }
-            },
-            {
-              id: "stamina",
-              name: "Resistência",
-              data: {
-                duration: ["45", "60", "90", "90+"][Math.floor(Math.random() * 4)],
-                recovery: ["fast", "normal", "slow"][Math.floor(Math.random() * 3)]
-              }
-            }
-          ],
-          skillsVerified: Math.random() > 0.5,
-          skillsUpdatedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000)
-        }));
-        
-        return res.json(athletesWithSkills);
-      }
+      // Return empty array if no athletes found
+      // Mock data has been removed - using real data only
       
       res.json(athletes);
     } catch (error) {
@@ -385,6 +708,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to search athletes" });
     }
   });
+
+  // Recent athletes endpoint for scouts
+  app.get('/api/athletes/recent', async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      // Get recently created athletes
+      const athletes = await storage.searchAthletes({ limit, orderBy: 'createdAt' });
+      
+      res.json(athletes);
+    } catch (error) {
+      console.error("Error fetching recent athletes:", error);
+      res.status(500).json({ message: "Failed to fetch recent athletes" });
+    }
+  });
+  
+  // Get athlete achievements
+  app.get('/api/athletes/:id/achievements', async (req, res) => {
+    try {
+      const athleteId = parseInt(req.params.id);
+      const achievements = await storage.getAthleteAchievements(athleteId);
+      
+      // Map to frontend format
+      const formattedAchievements = achievements.map(achievement => ({
+        id: achievement.id.toString(),
+        name: achievement.title,
+        description: achievement.description || '',
+        iconKey: achievement.icon || 'trophy',
+        points: achievement.points || 0,
+        unlockedAt: achievement.unlockedAt,
+        category: getCategoryFromType(achievement.achievementType),
+        rarity: getRarityFromPoints(achievement.points || 0)
+      }));
+      
+      res.json(formattedAchievements);
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+  
+  // Helper functions for achievements
+  function getCategoryFromType(type: string): string {
+    const categoryMap: Record<string, string> = {
+      first_test: 'performance',
+      speed_demon: 'performance',
+      all_rounder: 'performance',
+      perfectionist: 'performance',
+      complete_profile: 'profile',
+      verified_gold: 'profile',
+      team_player: 'profile',
+      media_star: 'profile',
+      week_streak: 'engagement',
+      month_warrior: 'engagement',
+      year_legend: 'engagement',
+      rising_star: 'social',
+      popular_athlete: 'social',
+      influencer: 'social',
+      champion: 'elite',
+      legend: 'elite'
+    };
+    return categoryMap[type] || 'performance';
+  }
+  
+  function getRarityFromPoints(points: number): string {
+    if (points >= 1000) return 'legendary';
+    if (points >= 500) return 'epic';
+    if (points >= 200) return 'rare';
+    return 'common';
+  }
 
   // Skills assessment endpoints
   app.post('/api/athletes/:id/skills', async (req, res) => {
@@ -599,7 +992,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tests = await storage.getTests(athleteId);
       
       // Calculate trust score breakdown
-      const trustScore = {
+      const trustScore: {
+        overall: number;
+        breakdown: Record<string, number>;
+        level: string;
+        nextLevelRequirements: string[];
+      } = {
         overall: 0,
         breakdown: {
           profileComplete: 0,
@@ -672,7 +1070,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Scout routes
   app.post('/api/scouts', async (req: any, res) => {
     try {
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       const scoutData = insertScoutSchema.parse({ ...req.body, userId });
       
       const scout = await storage.createScout(scoutData);
@@ -688,7 +1086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/scouts/me', async (req: any, res) => {
     try {
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       
       const scout = await storage.getScoutByUserId(userId);
       
@@ -706,7 +1104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Test routes
   app.post('/api/tests', async (req: any, res) => {
     try {
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       const athlete = await storage.getAthleteByUserId(userId);
       
       if (!athlete) {
@@ -770,11 +1168,136 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch statistics" });
     }
   });
+  
+  // Performance history endpoint
+  app.get('/api/athletes/:id/performance-history', async (req, res) => {
+    try {
+      const athleteId = parseInt(req.params.id);
+      const tests = await storage.getTestsByAthlete(athleteId);
+      
+      // Group tests by date and calculate average performance
+      const history = tests.reduce((acc: any[], test) => {
+        const date = new Date(test.createdAt || new Date());
+        const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
+        
+        let monthData = acc.find(item => item.month === monthKey);
+        if (!monthData) {
+          monthData = { month: monthKey, speed: 0, technique: 0, testCount: 0 };
+          acc.push(monthData);
+        }
+        
+        // Simple scoring based on test type
+        if (test.testType.includes('speed')) {
+          monthData.speed += 85 - ((test.result as unknown as number) * 10); // Lower time = higher score
+        } else if (test.testType.includes('technical')) {
+          monthData.technique += (test.result as unknown as number); // Higher count = higher score
+        }
+        monthData.testCount++;
+        
+        return acc;
+      }, []);
+      
+      // Average the scores
+      history.forEach(item => {
+        if (item.testCount > 0) {
+          item.speed = Math.round(item.speed / item.testCount);
+          item.technique = Math.round(item.technique / item.testCount);
+        }
+      });
+      
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching performance history:", error);
+      res.status(500).json({ message: "Failed to fetch performance history" });
+    }
+  });
+  
+  // Performance metrics endpoint
+  app.get('/api/athletes/:id/performance-metrics', async (req, res) => {
+    try {
+      const athleteId = parseInt(req.params.id);
+      const tests = await storage.getTestsByAthlete(athleteId);
+      
+      // Calculate strength and mental metrics based on available data
+      const metrics = {
+        strength: 0,
+        mental: 0
+      };
+      
+      // Simple calculation based on test count and completion
+      metrics.strength = Math.min(100, tests.length * 15);
+      metrics.mental = Math.min(100, tests.filter(t => t.verified).length * 20);
+      
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching performance metrics:", error);
+      res.status(500).json({ message: "Failed to fetch performance metrics" });
+    }
+  });
+  
+  // Scout stats endpoint
+  app.get('/api/scouts/:id/stats', async (req, res) => {
+    try {
+      const scoutId = parseInt(req.params.id);
+      
+      // Get scout's viewing history and other stats
+      const viewCount = await storage.getScoutViewCount(scoutId);
+      const recentViews = await storage.getScoutRecentViews(scoutId, 7);
+      
+      const stats = {
+        athletesDiscovered: viewCount,
+        profilesViewed: viewCount * 2, // Estimate multiple views per athlete
+        newTalentsThisWeek: recentViews.length,
+        contactsMade: Math.floor(viewCount * 0.3) // Estimate 30% contact rate
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching scout stats:", error);
+      res.status(500).json({ message: "Failed to fetch scout stats" });
+    }
+  });
+  
+  // Social proof notifications endpoint
+  app.get('/api/notifications/social-proof', async (req, res) => {
+    try {
+      // Get recent activities across all athletes for social proof
+      const recentActivities = await storage.getRecentActivities(10);
+      
+      // Format as notifications
+      const notifications = recentActivities.map(activity => ({
+        id: activity.id.toString(),
+        type: activity.type,
+        athleteName: activity.athleteName || 'Um atleta',
+        location: activity.athleteLocation || 'Brasil',
+        action: getNotificationAction(activity.type),
+        time: formatTimeAgo(activity.createdAt),
+        metadata: activity.metadata
+      }));
+      
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching social proof notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+  
+  // Helper function for notification actions
+  function getNotificationAction(type: string): string {
+    const actionMap: Record<string, string> = {
+      test: 'completou um teste',
+      achievement: 'desbloqueou uma conquista',
+      checkin: 'fez check-in diário',
+      skill_update: 'atualizou suas habilidades',
+      rank_change: 'subiu no ranking'
+    };
+    return actionMap[type] || 'teve uma atualização';
+  }
 
   app.post('/api/athletes/:id/view', async (req: any, res) => {
     try {
       const athleteId = parseInt(req.params.id);
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       
       const scout = await storage.getScoutByUserId(userId);
       
@@ -796,6 +1319,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
       
+      // Send notification to athlete
+      await notificationService.notifyScoutView(athleteId, scout.id);
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Error recording view:", error);
@@ -806,7 +1332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard aggregation endpoint
   app.get('/api/dashboard/athlete', async (req: any, res) => {
     try {
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       
       // Get athlete profile
       const athlete = await storage.getAthleteByUserId(userId);
@@ -848,7 +1374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const profileCompletion = Math.round((filledFields / profileFields.length) * 100);
       
       // Generate activity feed from real data
-      const activities = [];
+      const activities: any[] = [];
       
       // Add recent views to activities
       recentViews.slice(0, 3).forEach(view => {
@@ -878,7 +1404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         activities.push({
           type: "test",
           message: `Teste concluído: ${testNames[test.testType] || test.testType}`,
-          time: formatTimeAgo(test.createdAt)
+          time: formatTimeAgo(test.createdAt || new Date())
         });
       });
       
@@ -1016,7 +1542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Daily check-in endpoints
   app.post('/api/checkin/submit', async (req: any, res) => {
     try {
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       const athlete = await storage.getAthleteByUserId(userId);
       
       if (!athlete) {
@@ -1069,7 +1595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get('/api/checkin/today', async (req: any, res) => {
     try {
-      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const userId = await getAuthenticatedUserId(req);
       const athlete = await storage.getAthleteByUserId(userId);
       
       if (!athlete) {
@@ -1114,8 +1640,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: activity.type,
         title: activity.title,
         message: activity.message,
-        time: formatTimeAgo(activity.createdAt),
-        date: getActivityDate(activity.createdAt),
+        time: formatTimeAgo(activity.createdAt || new Date()),
+        date: getActivityDate(activity.createdAt || new Date()),
         metadata: activity.metadata,
         isNew: !activity.isRead,
         icon: getActivityIcon(activity.type)
@@ -1172,6 +1698,206 @@ export async function registerRoutes(app: Express): Promise<Server> {
       system: "bell"
     };
     return iconMap[type] || "bell";
+  }
+
+  // Payment and Subscription Routes
+  
+  // Get available subscription plans
+  app.get('/api/subscription/plans', async (req, res) => {
+    try {
+      const plans = await storage.getSubscriptionPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching subscription plans:", error);
+      res.status(500).json({ message: "Failed to fetch subscription plans" });
+    }
+  });
+  
+  // Get user's current subscription
+  app.get('/api/subscription/current', async (req: any, res) => {
+    try {
+      const userId = await getAuthenticatedUserId(req);
+      const subscription = await storage.getUserSubscription(userId);
+      
+      if (!subscription) {
+        return res.json({ subscription: null });
+      }
+      
+      // Include plan details
+      const plan = await storage.getSubscriptionPlan(subscription.planId);
+      
+      res.json({
+        subscription,
+        plan
+      });
+    } catch (error) {
+      console.error("Error fetching user subscription:", error);
+      res.status(500).json({ message: "Failed to fetch subscription" });
+    }
+  });
+  
+  // Create Stripe checkout session
+  app.post('/api/subscription/create-checkout', async (req: any, res) => {
+    try {
+      const userId = await getAuthenticatedUserId(req);
+      const { planId } = req.body;
+      
+      if (!planId) {
+        return res.status(400).json({ message: "Plan ID is required" });
+      }
+      
+      // Import stripe service
+      const { stripeService } = await import('./services/stripe.service');
+      
+      if (!stripeService.isConfigured()) {
+        return res.status(503).json({ 
+          message: "Payment system is not configured. Please set STRIPE_SECRET_KEY." 
+        });
+      }
+      
+      const successUrl = `${req.protocol}://${req.get('host')}/athlete/dashboard?subscription=success`;
+      const cancelUrl = `${req.protocol}://${req.get('host')}/athlete/dashboard?subscription=cancelled`;
+      
+      const checkoutUrl = await stripeService.createCheckoutSession(
+        userId,
+        planId,
+        successUrl,
+        cancelUrl
+      );
+      
+      res.json({ url: checkoutUrl });
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      res.status(500).json({ message: "Failed to create checkout session" });
+    }
+  });
+  
+  // Create Stripe portal session for managing subscription
+  app.post('/api/subscription/create-portal', async (req: any, res) => {
+    try {
+      const userId = await getAuthenticatedUserId(req);
+      
+      const { stripeService } = await import('./services/stripe.service');
+      
+      if (!stripeService.isConfigured()) {
+        return res.status(503).json({ 
+          message: "Payment system is not configured" 
+        });
+      }
+      
+      const returnUrl = `${req.protocol}://${req.get('host')}/athlete/dashboard`;
+      const portalUrl = await stripeService.createPortalSession(userId, returnUrl);
+      
+      res.json({ url: portalUrl });
+    } catch (error) {
+      console.error("Error creating portal session:", error);
+      res.status(500).json({ message: error instanceof Error ? error.message : "Failed to create portal session" });
+    }
+  });
+  
+  // Cancel subscription
+  app.post('/api/subscription/cancel', async (req: any, res) => {
+    try {
+      const userId = await getAuthenticatedUserId(req);
+      
+      const { stripeService } = await import('./services/stripe.service');
+      
+      if (!stripeService.isConfigured()) {
+        // If Stripe not configured, just update local status
+        const subscription = await storage.getUserSubscription(userId);
+        if (subscription) {
+          await storage.updateUserSubscription(subscription.id, {
+            status: 'canceled',
+            cancelAtPeriodEnd: true
+          });
+        }
+        return res.json({ message: "Subscription cancelled" });
+      }
+      
+      await stripeService.cancelSubscription(userId);
+      res.json({ message: "Subscription will be cancelled at the end of the billing period" });
+    } catch (error) {
+      console.error("Error cancelling subscription:", error);
+      res.status(500).json({ message: error instanceof Error ? error.message : "Failed to cancel subscription" });
+    }
+  });
+  
+  // Resume cancelled subscription
+  app.post('/api/subscription/resume', async (req: any, res) => {
+    try {
+      const userId = await getAuthenticatedUserId(req);
+      
+      const { stripeService } = await import('./services/stripe.service');
+      
+      if (!stripeService.isConfigured()) {
+        return res.status(503).json({ 
+          message: "Payment system is not configured" 
+        });
+      }
+      
+      await stripeService.resumeSubscription(userId);
+      res.json({ message: "Subscription resumed successfully" });
+    } catch (error) {
+      console.error("Error resuming subscription:", error);
+      res.status(500).json({ message: error instanceof Error ? error.message : "Failed to resume subscription" });
+    }
+  });
+  
+  // Stripe webhook endpoint
+  app.post('/api/stripe/webhook', async (req, res) => {
+    try {
+      const { stripeService } = await import('./services/stripe.service');
+      
+      if (!stripeService.isConfigured()) {
+        return res.status(503).json({ 
+          message: "Stripe is not configured" 
+        });
+      }
+      
+      const signature = req.headers['stripe-signature'] as string;
+      await stripeService.handleWebhook(req.body, signature);
+      
+      res.json({ received: true });
+    } catch (error) {
+      console.error("Error handling Stripe webhook:", error);
+      res.status(400).json({ message: error instanceof Error ? error.message : "Webhook error" });
+    }
+  });
+  
+  // Get user's payment methods
+  app.get('/api/payment-methods', async (req: any, res) => {
+    try {
+      const userId = await getAuthenticatedUserId(req);
+      const methods = await storage.getUserPaymentMethods(userId);
+      res.json(methods);
+    } catch (error) {
+      console.error("Error fetching payment methods:", error);
+      res.status(500).json({ message: "Failed to fetch payment methods" });
+    }
+  });
+  
+  // Get user's transaction history
+  app.get('/api/transactions', async (req: any, res) => {
+    try {
+      const userId = await getAuthenticatedUserId(req);
+      const limit = parseInt(req.query.limit as string) || 50;
+      const transactions = await storage.getUserTransactions(userId, limit);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      res.status(500).json({ message: "Failed to fetch transactions" });
+    }
+  });
+
+  // Setup media routes
+  setupMediaRoutes(app);
+
+  // Setup notification routes
+  setupNotificationRoutes(app);
+
+  // Setup development routes (only in development)
+  if (process.env.NODE_ENV !== 'production') {
+    setupDevRoutes(app);
   }
 
   const httpServer = createServer(app);

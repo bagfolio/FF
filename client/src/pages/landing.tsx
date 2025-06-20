@@ -6,12 +6,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import StatCounter from "@/components/features/StatCounter";
 import UserTypeModal from "@/components/features/UserTypeModal";
+import { AuthModal } from "@/components/auth/AuthModal";
 import { Play, Search, Terminal, Video, Bot, Handshake, Check, Medal, Star, Crown, Trophy } from "lucide-react";
+import { LandingPricingPlans } from "@/components/features/subscription/LandingPricingPlans";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
   const [selectedUserType, setSelectedUserType] = useState<"athlete" | "scout" | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<"login" | "signup">("login");
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'pro' | 'elite' | null>(null);
 
   useEffect(() => {
     // Intersection Observer for fade-in animations
@@ -32,34 +37,86 @@ export default function Landing() {
       observer.observe(el);
     });
 
+    // Add smooth scrolling to all anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (this: HTMLAnchorElement, e: Event) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        if (targetId) {
+          const target = document.querySelector(targetId);
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            });
+          }
+        }
+      });
+    });
+
     return () => observer.disconnect();
   }, []);
 
   const handleCTAClick = (userType: "athlete" | "scout") => {
     setSelectedUserType(userType);
-    setShowUserTypeModal(true);
+    setAuthModalTab("signup");
+    setShowAuthModal(true);
   };
 
   const handleLogin = () => {
-    // In development mode, go directly to home page
-    setLocation("/home");
+    setAuthModalTab("login");
+    setShowAuthModal(true);
+  };
+
+  const handleStartJourney = () => {
+    setSelectedUserType("athlete");
+    setAuthModalTab("signup");
+    setShowAuthModal(true);
+  };
+
+  const handlePlanSelection = (planName: 'basic' | 'pro' | 'elite') => {
+    setSelectedPlan(planName);
+    setSelectedUserType("athlete");
+    setAuthModalTab("signup");
+    setShowAuthModal(true);
   };
 
   return (
     <div className="min-h-screen bg-black">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full glass-morph-dark backdrop-blur-xl border-b border-white/10 shadow-2xl z-50">
+      <motion.nav 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="fixed top-0 w-full glass-morph-dark backdrop-blur-xl border-b border-white/10 shadow-2xl z-50"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="font-bebas text-4xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              <motion.h1 
+                whileHover={{ scale: 1.05 }}
+                className="font-bebas text-4xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] cursor-pointer"
+              >
                 REVELA
-                <span className="ml-2 inline-block w-2 h-2 bg-verde-brasil rounded-full shadow-[0_0_10px_rgba(0,156,59,0.8)]"></span>
-              </h1>
+                <motion.span 
+                  animate={{ 
+                    boxShadow: [
+                      "0 0 10px rgba(0,156,59,0.8)",
+                      "0 0 20px rgba(0,156,59,1)",
+                      "0 0 10px rgba(0,156,59,0.8)"
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="ml-2 inline-block w-2 h-2 bg-verde-brasil rounded-full"
+                />
+              </motion.h1>
             </div>
             <div className="hidden md:flex items-center space-x-4">
               <a href="#como-funciona" className="text-gray-300 hover:text-verde-brasil px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-white/5">
                 Como Funciona
+              </a>
+              <a href="#precos" className="text-gray-300 hover:text-verde-brasil px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-white/5">
+                Preços
               </a>
               <a href="#depoimentos" className="text-gray-300 hover:text-verde-brasil px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-white/5">
                 Histórias de Sucesso
@@ -68,13 +125,23 @@ export default function Landing() {
                 Parceiros
               </a>
               <ThemeToggle variant="glass" />
-              <Button onClick={handleLogin} className="glass-morph-blue text-white hover:shadow-azul-celeste/30 transition-all duration-300">
-                Entrar
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button 
+                  onClick={handleLogin} 
+                  className="glass-morph-blue text-white hover:shadow-azul-celeste/30 transition-all duration-300 relative overflow-hidden group"
+                >
+                  <span className="relative z-10">Entrar</span>
+                  <motion.div 
+                    className="absolute inset-0 bg-gradient-to-r from-azul-celeste/0 via-azul-celeste/20 to-azul-celeste/0"
+                    animate={{ x: ["-100%", "200%"] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                  />
+                </Button>
+              </motion.div>
             </div>
           </div>
         </div>
-      </nav>
+      </motion.nav>
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 w-full h-full">
@@ -87,52 +154,139 @@ export default function Landing() {
         </div>
         
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
-          <h1 className="font-bebas text-6xl md:text-8xl lg:text-9xl leading-none mb-8 tracking-wider">
-            SEU TALENTO<br />
-            <span className="amarelo-ouro drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] text-shadow-strong font-light">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="font-bebas text-6xl md:text-8xl lg:text-9xl leading-none mb-8 tracking-wider"
+          >
+            <motion.span
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="inline-block"
+            >
+              SEU TALENTO
+            </motion.span>
+            <br />
+            <motion.span 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="amarelo-ouro drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] text-shadow-strong font-light inline-block"
+            >
               MERECE SER VISTO
-            </span>
-          </h1>
+            </motion.span>
+          </motion.h1>
           
-          <p className="text-lg md:text-xl lg:text-2xl mb-10 font-light max-w-4xl mx-auto leading-relaxed drop-shadow-md">
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="text-lg md:text-xl lg:text-2xl mb-10 font-light max-w-4xl mx-auto leading-relaxed drop-shadow-md"
+          >
             A primeira plataforma brasileira que usa IA para verificar talentos do futebol.<br />
             <span className="font-medium">Democratizando oportunidades do Amazonas a São Paulo.</span>
-          </p>
+          </motion.p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-            <Button 
-              onClick={() => setLocation("/auth/welcome")}
-              className="glass-morph-green text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105 relative overflow-hidden group"
-            >
-              <Trophy className="w-6 h-6 relative z-10" />
-              <span className="relative z-10">COMEÇAR MINHA JORNADA</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-verde-brasil to-verde-brasil/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Button>
-            <Button 
-              onClick={() => handleCTAClick("scout")}
-              className="glass-morph-blue text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105 relative overflow-hidden group"
-            >
-              <Search className="w-6 h-6 relative z-10" />
-              <span className="relative z-10">SOU SCOUT</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-azul-celeste to-azul-celeste/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </Button>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1 }}
+            className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16"
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                onClick={handleStartJourney}
+                className="glass-morph-green text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 relative overflow-hidden group"
+              >
+                <Trophy className="w-6 h-6 relative z-10" />
+                <span className="relative z-10">COMEÇAR MINHA JORNADA</span>
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-verde-brasil to-verde-brasil/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+                  animate={{ 
+                    background: [
+                      "linear-gradient(to right, #009C3B, rgba(0, 156, 59, 0.8))",
+                      "linear-gradient(to right, rgba(0, 156, 59, 0.8), #009C3B)",
+                      "linear-gradient(to right, #009C3B, rgba(0, 156, 59, 0.8))"
+                    ]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button 
+                onClick={() => handleCTAClick("scout")}
+                className="glass-morph-blue text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 relative overflow-hidden group"
+              >
+                <Search className="w-6 h-6 relative z-10" />
+                <span className="relative z-10">SOU SCOUT</span>
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-azul-celeste to-azul-celeste/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+                  animate={{ 
+                    background: [
+                      "linear-gradient(to right, #002776, rgba(0, 39, 118, 0.8))",
+                      "linear-gradient(to right, rgba(0, 39, 118, 0.8), #002776)",
+                      "linear-gradient(to right, #002776, rgba(0, 39, 118, 0.8))"
+                    ]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, delay: 1.5 }}
+                />
+              </Button>
+            </motion.div>
+          </motion.div>
           
           {/* Stats row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-4xl mx-auto">
-            <div className="text-center fade-in">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-4xl mx-auto"
+          >
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="text-center"
+            >
               <StatCounter target={1247} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
-              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Atletas Cadastrados</div>
-            </div>
-            <div className="text-center fade-in">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.5 }}
+                className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm"
+              >
+                Atletas Cadastrados
+              </motion.div>
+            </motion.div>
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="text-center"
+            >
               <StatCounter target={3856} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
-              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Testes Realizados</div>
-            </div>
-            <div className="text-center fade-in">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.7 }}
+                className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm"
+              >
+                Testes Realizados
+              </motion.div>
+            </motion.div>
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="text-center"
+            >
               <StatCounter target={127} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
-              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Scouts Ativos</div>
-            </div>
-          </div>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.9 }}
+                className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm"
+              >
+                Scouts Ativos
+              </motion.div>
+            </motion.div>
+          </motion.div>
         </div>
         
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
@@ -172,16 +326,28 @@ export default function Landing() {
           className="absolute bottom-20 left-1/4 w-96 h-96 bg-azul-celeste rounded-full blur-3xl"
         />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
             <h2 className="font-bebas text-5xl md:text-7xl text-white mb-6 drop-shadow-2xl">COMO FUNCIONA</h2>
             <p className="text-2xl text-gray-300 max-w-3xl mx-auto font-medium">
               Três passos simples para transformar seu talento em oportunidades reais
             </p>
-          </div>
+          </motion.div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            <div className="text-center fade-in card-hover relative">
-              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden">
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              viewport={{ once: true }}
+              className="text-center relative"
+            >
+              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden h-full">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-verde-brasil to-verde-brasil/50"></div>
                 <CardContent className="p-0">
                   <motion.div 
@@ -200,31 +366,52 @@ export default function Landing() {
                     className="w-20 h-20 glass-morph-green rounded-full flex items-center justify-center mx-auto mb-6 relative"
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-verde-brasil to-verde-brasil/50 rounded-full"></div>
-                    <Video className="text-white w-8 h-8 relative z-10" />
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Video className="text-white w-8 h-8 relative z-10" />
+                    </motion.div>
                   </motion.div>
                   <h3 className="font-bebas text-3xl text-white mb-4 tracking-wider">1. GRAVE SEU TESTE</h3>
                   <p className="text-white/80 mb-6 text-base leading-relaxed">
                     Use nosso Combine Digital para realizar testes físicos verificados por IA. 
                     Velocidade, agilidade e habilidades técnicas.
                   </p>
-                  <div className="relative overflow-hidden rounded-xl group">
+                  <motion.div 
+                    className="relative overflow-hidden rounded-xl group"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     <img 
                       src="https://images.unsplash.com/photo-1606925797300-0b35e9d1794e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
                       alt="Young Brazilian player training with cones" 
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500 brightness-75"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                    <div className="absolute bottom-3 left-3 text-white">
+                    <motion.div 
+                      className="absolute bottom-3 left-3 text-white"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 }}
+                      viewport={{ once: true }}
+                    >
                       <p className="text-xs font-semibold tracking-wider">PASSO 1</p>
-                    </div>
-                  </div>
+                    </motion.div>
+                  </motion.div>
                 </CardContent>
               </Card>
               <div className="hidden md:block progress-arrow"></div>
-            </div>
+            </motion.div>
             
-            <div className="text-center fade-in card-hover relative">
-              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden">
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+              className="text-center relative"
+            >
+              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden h-full">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amarelo-ouro to-amarelo-ouro/50"></div>
                 <CardContent className="p-0">
                   <motion.div 
@@ -244,34 +431,62 @@ export default function Landing() {
                     className="w-20 h-20 glass-morph-yellow rounded-full flex items-center justify-center mx-auto mb-6 relative"
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-amarelo-ouro to-amarelo-ouro/50 rounded-full"></div>
-                    <Bot className="text-white w-8 h-8 relative z-10" />
+                    <motion.div
+                      animate={{ 
+                        y: [0, -5, 0],
+                        rotate: [0, 5, -5, 0]
+                      }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <Bot className="text-white w-8 h-8 relative z-10" />
+                    </motion.div>
                   </motion.div>
                   <h3 className="font-bebas text-3xl text-white mb-4 tracking-wider">2. IA VERIFICA</h3>
                   <p className="text-white/80 mb-6 text-base leading-relaxed">
                     Nosso "Árbitro Digital" analisa cada movimento com precisão científica. 
                     100% objetivo, sem favorecimento.
                   </p>
-                  <div className="relative overflow-hidden rounded-xl group">
+                  <motion.div 
+                    className="relative overflow-hidden rounded-xl group"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     <img 
                       src="https://images.unsplash.com/photo-1551958219-acbc608c6377?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
                       alt="Digital analysis of soccer player movements" 
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500 brightness-75"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-32 h-32 border-2 border-verde-brasil rounded-full animate-pulse opacity-60"></div>
-                    </div>
-                    <div className="absolute bottom-3 left-3 text-white">
+                    <motion.div 
+                      className="absolute inset-0 flex items-center justify-center"
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <div className="w-32 h-32 border-2 border-verde-brasil rounded-full opacity-60"></div>
+                    </motion.div>
+                    <motion.div 
+                      className="absolute bottom-3 left-3 text-white"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 }}
+                      viewport={{ once: true }}
+                    >
                       <p className="text-xs font-semibold tracking-wider">PASSO 2</p>
-                    </div>
-                  </div>
+                    </motion.div>
+                  </motion.div>
                 </CardContent>
               </Card>
               <div className="hidden md:block progress-arrow"></div>
-            </div>
+            </motion.div>
             
-            <div className="text-center fade-in card-hover relative">
-              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden">
+            <motion.div 
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              viewport={{ once: true }}
+              className="text-center relative"
+            >
+              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden h-full">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-azul-celeste to-azul-celeste/50"></div>
                 <CardContent className="p-0">
                   <motion.div 
@@ -291,27 +506,45 @@ export default function Landing() {
                     className="w-20 h-20 glass-morph-blue rounded-full flex items-center justify-center mx-auto mb-6 relative"
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-azul-celeste to-azul-celeste/50 rounded-full"></div>
-                    <Handshake className="text-white w-8 h-8 relative z-10" />
+                    <motion.div
+                      animate={{ 
+                        scale: [1, 1.1, 1],
+                        rotate: [0, -10, 10, 0]
+                      }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <Handshake className="text-white w-8 h-8 relative z-10" />
+                    </motion.div>
                   </motion.div>
                   <h3 className="font-bebas text-3xl text-white mb-4 tracking-wider">3. SCOUTS ENCONTRAM</h3>
                   <p className="text-white/80 mb-6 text-base leading-relaxed">
                     Clubes e agentes descobrem seu talento através de dados verificados. 
                     Sua performance fala por você.
                   </p>
-                  <div className="relative overflow-hidden rounded-xl group">
+                  <motion.div 
+                    className="relative overflow-hidden rounded-xl group"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                  >
                     <img 
                       src="https://images.unsplash.com/photo-1577223625816-7546f13df25d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
                       alt="Professional scout analyzing player performance" 
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500 brightness-75"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                    <div className="absolute bottom-3 left-3 text-white">
+                    <motion.div 
+                      className="absolute bottom-3 left-3 text-white"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 }}
+                      viewport={{ once: true }}
+                    >
                       <p className="text-xs font-semibold tracking-wider">PASSO 3</p>
-                    </div>
-                  </div>
+                    </motion.div>
+                  </motion.div>
                 </CardContent>
               </Card>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -406,6 +639,78 @@ export default function Landing() {
               </div>
               <div className="absolute -bottom-6 -right-6 w-40 h-40 bg-verde-brasil rounded-full opacity-20 blur-3xl"></div>
               <div className="absolute -top-6 -left-6 w-40 h-40 bg-amarelo-ouro rounded-full opacity-20 blur-3xl"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* Pricing Section */}
+      <section id="precos" className="py-24 relative overflow-hidden bg-black">
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900/50 to-black"></div>
+        <div className="absolute inset-0 bg-pattern-diagonal opacity-5"></div>
+        
+        {/* Animated gradient orbs */}
+        <motion.div 
+          animate={{
+            x: [0, 50, 0],
+            y: [0, -30, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-verde-brasil/10 rounded-full blur-3xl"
+        />
+        <motion.div 
+          animate={{
+            x: [0, -30, 0],
+            y: [0, 50, 0],
+            scale: [1.1, 1, 1.1],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 10
+          }}
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amarelo-ouro/10 rounded-full blur-3xl"
+        />
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 fade-in">
+            <h2 className="font-bebas text-5xl md:text-7xl text-white mb-6 drop-shadow-2xl">
+              PLANOS QUE CRESCEM
+              <span className="text-verde-brasil block drop-shadow-[0_0_20px_rgba(0,156,59,0.5)]">COM SEU TALENTO</span>
+            </h2>
+            <p className="text-2xl text-gray-300 max-w-3xl mx-auto font-light leading-relaxed">
+              Escolha o plano ideal para sua jornada. Comece grátis e evolua conforme sua carreira decola.
+            </p>
+          </div>
+          
+          <div className="fade-in">
+            <LandingPricingPlans onSelectPlan={handlePlanSelection} />
+          </div>
+          
+          <div className="mt-16 text-center fade-in">
+            <p className="text-lg text-gray-400 mb-8">
+              <span className="text-verde-brasil font-semibold">Mais de 1.200 atletas</span> já transformaram suas carreiras com a Revela
+            </p>
+            
+            {/* Trust badges */}
+            <div className="flex flex-wrap justify-center items-center gap-8 mt-12">
+              <div className="flex items-center gap-2 text-white/60">
+                <Check className="w-5 h-5 text-verde-brasil" />
+                <span className="text-sm">Pagamento 100% Seguro</span>
+              </div>
+              <div className="flex items-center gap-2 text-white/60">
+                <Check className="w-5 h-5 text-verde-brasil" />
+                <span className="text-sm">Cancele a Qualquer Momento</span>
+              </div>
+              <div className="flex items-center gap-2 text-white/60">
+                <Check className="w-5 h-5 text-verde-brasil" />
+                <span className="text-sm">7 Dias de Teste Grátis</span>
+              </div>
             </div>
           </div>
         </div>
@@ -584,6 +889,13 @@ export default function Landing() {
         isOpen={showUserTypeModal}
         onClose={() => setShowUserTypeModal(false)}
         selectedType={selectedUserType}
+      />
+      <AuthModal
+        open={showAuthModal}
+        onOpenChange={setShowAuthModal}
+        defaultTab={authModalTab}
+        userType={selectedUserType || undefined}
+        selectedPlan={selectedPlan}
       />
     </div>
   );

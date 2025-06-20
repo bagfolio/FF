@@ -40,7 +40,7 @@ export default function ActivityPage() {
   
   // Fetch real activities from API
   const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
-  const { data: athlete } = useQuery({ 
+  const { data: athlete } = useQuery<{ id: number; [key: string]: any }>({ 
     queryKey: ["/api/athletes/me"],
     enabled: !!user 
   });
@@ -57,11 +57,11 @@ export default function ActivityPage() {
   
   const activityTypes = [
     { id: "all", name: "Todas", count: activities.length },
-    { id: "view", name: "Visualizações", count: activities.filter(a => a.type === "view").length, icon: Eye },
-    { id: "achievement", name: "Conquistas", count: activities.filter(a => a.type === "achievement").length, icon: Trophy },
-    { id: "test", name: "Testes", count: activities.filter(a => a.type === "test").length, icon: Play },
-    { id: "rank", name: "Rankings", count: activities.filter(a => a.type === "rank").length, icon: TrendingUp },
-    { id: "social", name: "Social", count: activities.filter(a => a.type === "social").length, icon: User }
+    { id: "view", name: "Visualizações", count: activities.filter((a: any) => a.type === "view").length, icon: Eye },
+    { id: "achievement", name: "Conquistas", count: activities.filter((a: any) => a.type === "achievement").length, icon: Trophy },
+    { id: "test", name: "Testes", count: activities.filter((a: any) => a.type === "test").length, icon: Play },
+    { id: "rank", name: "Rankings", count: activities.filter((a: any) => a.type === "rank").length, icon: TrendingUp },
+    { id: "social", name: "Social", count: activities.filter((a: any) => a.type === "social").length, icon: User }
   ];
   
   const dateFilters = [
@@ -72,7 +72,7 @@ export default function ActivityPage() {
     { id: "month", name: "Este Mês" }
   ];
   
-  const filteredActivities = activities.filter(activity => {
+  const filteredActivities = activities.filter((activity: any) => {
     const typeMatch = selectedType === "all" || activity.type === selectedType;
     const dateMatch = selectedDate === "all" || 
                      (selectedDate === "today" && activity.date === "Hoje") ||
@@ -222,7 +222,7 @@ export default function ActivityPage() {
               
               {/* Group activities by date */}
               {["Hoje", "Ontem", "2 dias atrás", "3 dias atrás", "5 dias atrás", "1 semana atrás", "2 semanas atrás"].map(date => {
-                const dateActivities = filteredActivities.filter(a => a.date === date);
+                const dateActivities = filteredActivities.filter((a: any) => a.date === date);
                 if (dateActivities.length === 0) return null;
                 
                 return (
@@ -241,8 +241,8 @@ export default function ActivityPage() {
                     </div>
                     
                     {/* Activities for this date */}
-                    {dateActivities.map((activity, index) => {
-                      const config = iconConfig[activity.type] || iconConfig.system;
+                    {dateActivities.map((activity: any, index: any) => {
+                      const config = iconConfig[activity.type as keyof typeof iconConfig] || iconConfig.system;
                       const Icon = activity.icon || Bell;
                       const isLeft = index % 2 === 0;
                       const getDotColor = () => {
@@ -255,7 +255,7 @@ export default function ActivityPage() {
                           update: "border-purple-500",
                           system: "border-gray-500"
                         };
-                        return colors[activity.type] || colors.system;
+                        return colors[activity.type as keyof typeof colors] || colors.system;
                       };
                       
                       return (

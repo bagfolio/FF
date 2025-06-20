@@ -22,6 +22,18 @@ import {
   type InsertCheckin,
   type Activity,
   type InsertActivity,
+  subscriptionPlans,
+  userSubscriptions,
+  paymentMethods,
+  paymentTransactions,
+  type SubscriptionPlan,
+  type InsertSubscriptionPlan,
+  type UserSubscription,
+  type InsertUserSubscription,
+  type PaymentMethod,
+  type InsertPaymentMethod,
+  type PaymentTransaction,
+  type InsertPaymentTransaction,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
@@ -29,9 +41,11 @@ import { eq, and, desc, sql, inArray } from "drizzle-orm";
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   createUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<UpsertUser>): Promise<User>;
+  deleteUser(id: string): Promise<void>;
   getAllUsers(): Promise<User[]>;
   
   // Athlete operations
@@ -95,12 +109,35 @@ export interface IStorage {
   createActivity(activity: InsertActivity): Promise<Activity>;
   getAthleteActivities(athleteId: number, filters?: { type?: string; limit?: number }): Promise<Activity[]>;
   markActivitiesAsRead(athleteId: number, activityIds: number[]): Promise<void>;
+  getRecentActivities(limit?: number): Promise<any[]>;
+  
+  // Scout operations extended
+  getScoutViewCount(scoutId: number): Promise<number>;
+  getScoutRecentViews(scoutId: number, days?: number): Promise<any[]>;
+  
+  // Payment operations
+  getSubscriptionPlans(): Promise<SubscriptionPlan[]>;
+  getSubscriptionPlan(id: number): Promise<SubscriptionPlan | undefined>;
+  getUserSubscription(userId: string): Promise<UserSubscription | undefined>;
+  createUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription>;
+  updateUserSubscription(id: number, updates: Partial<InsertUserSubscription>): Promise<UserSubscription>;
+  getUserPaymentMethods(userId: string): Promise<PaymentMethod[]>;
+  createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod>;
+  updatePaymentMethod(id: number, updates: Partial<InsertPaymentMethod>): Promise<PaymentMethod>;
+  deletePaymentMethod(id: number): Promise<void>;
+  createPaymentTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction>;
+  getUserTransactions(userId: string, limit?: number): Promise<PaymentTransaction[]>;
 }
 
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase()));
     return user;
   }
 
@@ -134,6 +171,10 @@ export class DatabaseStorage implements IStorage {
   
   async getAllUsers(): Promise<User[]> {
     return db.select().from(users);
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 
   // Athlete operations
@@ -430,7 +471,7 @@ export class DatabaseStorage implements IStorage {
           eq(skillVerifications.athleteId, athleteId)
         )
       );
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async updateAthleteVerificationLevel(athleteId: number, level: string): Promise<void> {
@@ -507,7 +548,7 @@ export class DatabaseStorage implements IStorage {
     
     // Check if there's a checkin today
     const todayCheckin = checkinHistory.find(c => {
-      const checkinDate = new Date(c.createdAt);
+      const checkinDate = new Date(c.createdAt!);
       checkinDate.setHours(0, 0, 0, 0);
       return checkinDate.getTime() === currentDate.getTime();
     });
@@ -516,7 +557,7 @@ export class DatabaseStorage implements IStorage {
     if (!todayCheckin) {
       currentDate.setDate(currentDate.getDate() - 1);
       const yesterdayCheckin = checkinHistory.find(c => {
-        const checkinDate = new Date(c.createdAt);
+        const checkinDate = new Date(c.createdAt!);
         checkinDate.setHours(0, 0, 0, 0);
         return checkinDate.getTime() === currentDate.getTime();
       });
@@ -526,7 +567,7 @@ export class DatabaseStorage implements IStorage {
     
     // Count consecutive days
     for (const checkin of checkinHistory) {
-      const checkinDate = new Date(checkin.createdAt);
+      const checkinDate = new Date(checkin.createdAt!);
       checkinDate.setHours(0, 0, 0, 0);
       
       if (checkinDate.getTime() === currentDate.getTime()) {
@@ -553,16 +594,16 @@ export class DatabaseStorage implements IStorage {
     athleteId: number, 
     filters?: { type?: string; limit?: number }
   ): Promise<Activity[]> {
-    let query = db
-      .select()
-      .from(activities)
-      .where(eq(activities.athleteId, athleteId));
+    let conditions = [eq(activities.athleteId, athleteId)];
     
     if (filters?.type && filters.type !== 'all') {
-      query = query.where(eq(activities.type, filters.type as any));
+      conditions.push(eq(activities.type, filters.type as any));
     }
     
-    return await query
+    return await db
+      .select()
+      .from(activities)
+      .where(and(...conditions))
       .orderBy(desc(activities.createdAt))
       .limit(filters?.limit || 50);
   }
@@ -579,6 +620,152 @@ export class DatabaseStorage implements IStorage {
           inArray(activities.id, activityIds)
         )
       );
+  }
+  
+  async getRecentActivities(limit: number = 10): Promise<any[]> {
+    const recentActivities = await db
+      .select({
+        id: activities.id,
+        type: activities.type,
+        title: activities.title,
+        message: activities.message,
+        metadata: activities.metadata,
+        createdAt: activities.createdAt,
+        athleteId: activities.athleteId,
+        athleteName: athletes.fullName,
+        athleteLocation: sql`${athletes.city} || ', ' || ${athletes.state}`
+      })
+      .from(activities)
+      .leftJoin(athletes, eq(activities.athleteId, athletes.id))
+      .orderBy(desc(activities.createdAt))
+      .limit(limit);
+      
+    return recentActivities;
+  }
+  
+  async getScoutViewCount(scoutId: number): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(distinct ${athleteViews.athleteId})` })
+      .from(athleteViews)
+      .where(eq(athleteViews.scoutId, scoutId));
+      
+    return result[0]?.count || 0;
+  }
+  
+  async getScoutRecentViews(scoutId: number, days: number = 7): Promise<any[]> {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+    
+    return await db
+      .select({
+        athleteId: athleteViews.athleteId,
+        viewedAt: athleteViews.viewedAt,
+        athleteName: athletes.fullName,
+        athletePosition: athletes.position,
+        athleteCity: athletes.city,
+        athleteState: athletes.state
+      })
+      .from(athleteViews)
+      .innerJoin(athletes, eq(athleteViews.athleteId, athletes.id))
+      .where(
+        and(
+          eq(athleteViews.scoutId, scoutId),
+          sql`${athleteViews.viewedAt} >= ${since}`
+        )
+      )
+      .orderBy(desc(athleteViews.viewedAt));
+  }
+  
+  // Payment operations
+  async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+    return await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.active, true))
+      .orderBy(subscriptionPlans.price);
+  }
+  
+  async getSubscriptionPlan(id: number): Promise<SubscriptionPlan | undefined> {
+    const [plan] = await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.id, id));
+    return plan;
+  }
+  
+  async getUserSubscription(userId: string): Promise<UserSubscription | undefined> {
+    const [subscription] = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.userId, userId))
+      .orderBy(desc(userSubscriptions.createdAt))
+      .limit(1);
+    return subscription;
+  }
+  
+  async createUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription> {
+    const [created] = await db
+      .insert(userSubscriptions)
+      .values(subscription)
+      .returning();
+    return created;
+  }
+  
+  async updateUserSubscription(id: number, updates: Partial<InsertUserSubscription>): Promise<UserSubscription> {
+    const [updated] = await db
+      .update(userSubscriptions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userSubscriptions.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async getUserPaymentMethods(userId: string): Promise<PaymentMethod[]> {
+    return await db
+      .select()
+      .from(paymentMethods)
+      .where(eq(paymentMethods.userId, userId))
+      .orderBy(desc(paymentMethods.isDefault), desc(paymentMethods.createdAt));
+  }
+  
+  async createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod> {
+    const [created] = await db
+      .insert(paymentMethods)
+      .values(method)
+      .returning();
+    return created;
+  }
+  
+  async updatePaymentMethod(id: number, updates: Partial<InsertPaymentMethod>): Promise<PaymentMethod> {
+    const [updated] = await db
+      .update(paymentMethods)
+      .set(updates)
+      .where(eq(paymentMethods.id, id))
+      .returning();
+    return updated;
+  }
+  
+  async deletePaymentMethod(id: number): Promise<void> {
+    await db
+      .delete(paymentMethods)
+      .where(eq(paymentMethods.id, id));
+  }
+  
+  async createPaymentTransaction(transaction: InsertPaymentTransaction): Promise<PaymentTransaction> {
+    const [created] = await db
+      .insert(paymentTransactions)
+      .values(transaction)
+      .returning();
+    return created;
+  }
+  
+  async getUserTransactions(userId: string, limit: number = 50): Promise<PaymentTransaction[]> {
+    return await db
+      .select()
+      .from(paymentTransactions)
+      .where(eq(paymentTransactions.userId, userId))
+      .orderBy(desc(paymentTransactions.createdAt))
+      .limit(limit);
   }
 }
 

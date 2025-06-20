@@ -128,14 +128,39 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  // DEVELOPMENT MODE - ALWAYS BYPASS AUTH
-  return next();
+  // Check if we're in development mode and should bypass auth
+  if (process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true') {
+    // In development, simulate a user session
+    if (!req.user) {
+      req.user = {
+        claims: {
+          sub: "dev-user-" + Date.now(),
+          email: "dev@futebol-futuro.com",
+          first_name: "Dev",
+          last_name: "User",
+          profile_image_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+          exp: Math.floor(Date.now() / 1000) + 3600 // 1 hour from now
+        }
+      } as any;
+    }
+    return next();
+  }
 
-  // Production auth code (disabled for development)
-  /*
+  // Check for email/password session authentication
+  if (req.session?.userId) {
+    // User is authenticated via email/password
+    req.user = {
+      claims: {
+        sub: req.session.userId
+      }
+    } as any;
+    return next();
+  }
+
+  // Production OAuth auth checking
   const user = req.user as any;
 
-  if (!req.isAuthenticated() || !user.expires_at) {
+  if (!req.isAuthenticated() || !user?.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
@@ -159,5 +184,4 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
-  */
 };

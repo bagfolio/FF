@@ -203,7 +203,9 @@ export const achievements = [
   }
 ];
 
-// Utility functions
+// Utility functions - DEPRECATED: Use real data from API
+// TODO: Remove these functions after all references are cleaned up
+/*
 export function generateRealisticAthlete() {
   const firstName = brazilianNames.first[Math.floor(Math.random() * brazilianNames.first.length)];
   const lastName = brazilianNames.last[Math.floor(Math.random() * brazilianNames.last.length)];
@@ -283,3 +285,4 @@ export function generateActivity() {
     type: activityType.type
   };
 }
+*/

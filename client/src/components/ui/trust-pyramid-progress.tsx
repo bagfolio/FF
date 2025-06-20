@@ -5,7 +5,7 @@ import { Progress } from "./progress";
 import { Button } from "./button";
 import { useState, useEffect } from "react";
 
-import type { TrustPyramidProgress as PyramidData } from "@/lib/trustPyramidCalculator";
+import type { TrustPyramidResult as PyramidData } from "@/lib/trustPyramidCalculator";
 
 interface TrustPyramidProgressProps {
   currentLevel: "bronze" | "silver" | "gold" | "platinum";
@@ -62,11 +62,13 @@ const levelRequirements = {
 export default function TrustPyramidProgress({ currentLevel, className, pyramidProgress }: TrustPyramidProgressProps) {
   // Use real data if provided, otherwise fall back to hardcoded values
   const fallbackData = levelRequirements[currentLevel];
-  const currentLevelData = pyramidProgress ? pyramidProgress[currentLevel] : fallbackData;
+  const currentLevelData = pyramidProgress ? pyramidProgress.progress[currentLevel] : fallbackData;
   
   // Determine next level
-  const nextLevelKey = pyramidProgress?.nextLevel || fallbackData.nextLevel as keyof typeof levelRequirements | null;
-  const nextLevelData = nextLevelKey ? (pyramidProgress ? pyramidProgress[nextLevelKey] : levelRequirements[nextLevelKey]) : null;
+  const levelOrder = ['bronze', 'silver', 'gold', 'platinum'] as const;
+  const currentIndex = levelOrder.indexOf(currentLevel);
+  const nextLevelKey = currentIndex < levelOrder.length - 1 ? levelOrder[currentIndex + 1] : null;
+  const nextLevelData = nextLevelKey ? (pyramidProgress ? pyramidProgress.progress[nextLevelKey] : levelRequirements[nextLevelKey]) : null;
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [animateProgress, setAnimateProgress] = useState(false);
 
@@ -107,17 +109,17 @@ export default function TrustPyramidProgress({ currentLevel, className, pyramidP
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-bebas text-2xl text-purple-900 flex items-center gap-2">
-                    PRÓXIMO NÍVEL: {nextLevelData.name.toUpperCase()}
+                    PRÓXIMO NÍVEL: {((nextLevelData as any).name || (nextLevelData as any).level || '').toUpperCase()}
                     <ArrowUp className="w-5 h-5 text-green-500 animate-bounce" />
                   </h4>
-                  <span className="text-lg font-bold text-verde-brasil">{nextLevelData.progress || 0}%</span>
+                  <span className="text-lg font-bold text-verde-brasil">{(nextLevelData as any).progress || (nextLevelData as any).percentage || 0}%</span>
                 </div>
                 <div className="relative">
                   <Progress 
-                    value={animateProgress ? (nextLevelData.progress || 0) : 0} 
+                    value={animateProgress ? ((nextLevelData as any).progress || (nextLevelData as any).percentage || 0) : 0} 
                     className="h-3 transition-all duration-1000"
                   />
-                  {animateProgress && (nextLevelData.progress || 0) > 0 && (
+                  {animateProgress && ((nextLevelData as any).progress || (nextLevelData as any).percentage || 0) > 0 && (
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
                   )}
                 </div>
@@ -126,7 +128,7 @@ export default function TrustPyramidProgress({ currentLevel, className, pyramidP
               {/* Requirements Checklist */}
               <div className="space-y-2">
                 <p className="text-sm font-medium text-gray-700">Requisitos:</p>
-                {nextLevelData.requirements.map((req) => (
+                {nextLevelData.requirements.map((req: any) => (
                   <div key={req.id} className="flex items-start gap-2">
                     {req.completed ? (
                       <div className="relative">

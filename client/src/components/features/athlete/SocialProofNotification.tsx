@@ -66,7 +66,7 @@ export function SocialProofNotification({ className = "" }: SocialProofNotificat
   if (notifications.length === 0) return null;
 
   const notification = notifications[currentIndex];
-  const config = notificationConfig[notification.type] || notificationConfig.scout_view;
+  const config = notificationConfig[notification.type as keyof typeof notificationConfig] || notificationConfig.scout_view;
   const Icon = config.icon;
 
   return (

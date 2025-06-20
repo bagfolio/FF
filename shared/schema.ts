@@ -29,14 +29,44 @@ export const sessions = pgTable(
 // User storage table (mandatory for Replit Auth)
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
+  email: varchar("email").unique().notNull(),
+  passwordHash: varchar("password_hash"),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   userType: varchar("user_type", { enum: ["athlete", "scout", "admin"] }),
+  emailVerified: boolean("email_verified").default(false),
+  emailVerificationToken: varchar("email_verification_token"),
+  emailVerificationExpires: timestamp("email_verification_expires"),
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// Password reset tokens table
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token").notNull().unique(),
+  expires: timestamp("expires").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("IDX_password_reset_tokens_token").on(table.token),
+  index("IDX_password_reset_tokens_expires").on(table.expires),
+]);
+
+// Remember me tokens table
+export const rememberMeTokens = pgTable("remember_me_tokens", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token").notNull().unique(),
+  expires: timestamp("expires").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("IDX_remember_me_tokens_token").on(table.token),
+  index("IDX_remember_me_tokens_expires").on(table.expires),
+]);
 
 // Athletes table
 export const athletes = pgTable("athletes", {
@@ -173,10 +203,118 @@ export const activities = pgTable("activities", {
   index("IDX_activities_type").on(table.type),
 ]);
 
+// Subscription plans table
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(), // "basic", "pro", "elite"
+  displayName: varchar("display_name").notNull(), // "Revela Basic", "Revela Pro", "Revela Elite"
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(), // Monthly price in BRL
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  features: jsonb("features").notNull(), // Array of feature strings
+  maxProfiles: integer("max_profiles").default(1), // Number of athlete profiles allowed
+  verificationTests: integer("verification_tests").default(0), // Monthly AI verification tests
+  scoutVisibility: boolean("scout_visibility").default(false), // Whether visible to scouts
+  prioritySupport: boolean("priority_support").default(false),
+  stripeProductId: varchar("stripe_product_id"), // Stripe product ID
+  stripePriceId: varchar("stripe_price_id"), // Stripe price ID
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User subscriptions table
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  planId: integer("plan_id").notNull().references(() => subscriptionPlans.id),
+  stripeSubscriptionId: varchar("stripe_subscription_id").unique(),
+  stripeCustomerId: varchar("stripe_customer_id"),
+  status: varchar("status", { 
+    enum: ["active", "canceled", "past_due", "paused", "trialing"] 
+  }).notNull(),
+  currentPeriodStart: timestamp("current_period_start").notNull(),
+  currentPeriodEnd: timestamp("current_period_end").notNull(),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  trialEnd: timestamp("trial_end"),
+  metadata: jsonb("metadata"), // Additional subscription data
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("IDX_user_subscriptions_user").on(table.userId),
+  index("IDX_user_subscriptions_status").on(table.status),
+]);
+
+// Payment methods table
+export const paymentMethods = pgTable("payment_methods", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  stripePaymentMethodId: varchar("stripe_payment_method_id").notNull(),
+  type: varchar("type").notNull(), // "card", "boleto", "pix"
+  last4: varchar("last4", { length: 4 }), // Last 4 digits of card
+  brand: varchar("brand"), // Card brand (visa, mastercard, etc.)
+  expiryMonth: integer("expiry_month"),
+  expiryYear: integer("expiry_year"),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("IDX_payment_methods_user").on(table.userId),
+]);
+
+// Payment transactions table
+export const paymentTransactions = pgTable("payment_transactions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  subscriptionId: integer("subscription_id").references(() => userSubscriptions.id),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id").unique(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  status: varchar("status", { 
+    enum: ["succeeded", "processing", "failed", "refunded", "pending"] 
+  }).notNull(),
+  type: varchar("type", { 
+    enum: ["subscription", "one_time", "refund"] 
+  }).notNull(),
+  description: text("description"),
+  failureReason: text("failure_reason"),
+  metadata: jsonb("metadata"), // Additional transaction data
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("IDX_payment_transactions_user").on(table.userId),
+  index("IDX_payment_transactions_status").on(table.status),
+]);
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type", { 
+    enum: ["scout_view", "achievement", "test_result", "subscription", "system", "parental_consent"] 
+  }).notNull(),
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  actionUrl: varchar("action_url"), // Optional link to relevant page
+  imageUrl: varchar("image_url"), // Optional image/icon URL
+  metadata: jsonb("metadata"), // Type-specific data
+  read: boolean("read").default(false),
+  readAt: timestamp("read_at"),
+  emailSent: boolean("email_sent").default(false),
+  pushSent: boolean("push_sent").default(false),
+  expiresAt: timestamp("expires_at"), // Optional expiration
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("IDX_notifications_user_read").on(table.userId, table.read),
+  index("IDX_notifications_created").on(table.createdAt),
+  index("IDX_notifications_type").on(table.type),
+]);
+
 // Relations
-export const usersRelations = relations(users, ({ one }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   athlete: one(athletes, { fields: [users.id], references: [athletes.userId] }),
   scout: one(scouts, { fields: [users.id], references: [scouts.userId] }),
+  subscriptions: many(userSubscriptions),
+  paymentMethods: many(paymentMethods),
+  transactions: many(paymentTransactions),
+  notifications: many(notifications),
 }));
 
 export const athletesRelations = relations(athletes, ({ one, many }) => ({
@@ -207,14 +345,41 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
   athlete: one(athletes, { fields: [activities.athleteId], references: [athletes.id] }),
 }));
 
+export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({
+  subscriptions: many(userSubscriptions),
+}));
+
+export const userSubscriptionsRelations = relations(userSubscriptions, ({ one, many }) => ({
+  user: one(users, { fields: [userSubscriptions.userId], references: [users.id] }),
+  plan: one(subscriptionPlans, { fields: [userSubscriptions.planId], references: [subscriptionPlans.id] }),
+  transactions: many(paymentTransactions),
+}));
+
+export const paymentMethodsRelations = relations(paymentMethods, ({ one }) => ({
+  user: one(users, { fields: [paymentMethods.userId], references: [users.id] }),
+}));
+
+export const paymentTransactionsRelations = relations(paymentTransactions, ({ one }) => ({
+  user: one(users, { fields: [paymentTransactions.userId], references: [users.id] }),
+  subscription: one(userSubscriptions, { fields: [paymentTransactions.subscriptionId], references: [userSubscriptions.id] }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, { fields: [notifications.userId], references: [users.id] }),
+}));
+
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   id: true,
   email: true,
+  passwordHash: true,
   firstName: true,
   lastName: true,
   profileImageUrl: true,
   userType: true,
+  emailVerified: true,
+  emailVerificationToken: true,
+  emailVerificationExpires: true,
 });
 
 export const insertAthleteSchema = createInsertSchema(athletes).omit({
@@ -270,6 +435,48 @@ export const insertActivitySchema = createInsertSchema(activities).omit({
   createdAt: true,
 });
 
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+  used: true,
+});
+
+export const insertRememberMeTokenSchema = createInsertSchema(rememberMeTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPaymentTransactionSchema = createInsertSchema(paymentTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  read: true,
+  readAt: true,
+  emailSent: true,
+  pushSent: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -286,3 +493,17 @@ export type Checkin = typeof checkins.$inferSelect;
 export type InsertCheckin = z.infer<typeof insertCheckinSchema>;
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type RememberMeToken = typeof rememberMeTokens.$inferSelect;
+export type InsertRememberMeToken = z.infer<typeof insertRememberMeTokenSchema>;
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+export type PaymentTransaction = typeof paymentTransactions.$inferSelect;
+export type InsertPaymentTransaction = z.infer<typeof insertPaymentTransactionSchema>;
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;

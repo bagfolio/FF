@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const athleteSchema = z.object({
   fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -58,6 +59,7 @@ export default function AthleteOnboarding() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { plans, createCheckout } = useSubscription();
 
   const form = useForm<z.infer<typeof athleteSchema>>({
     resolver: zodResolver(athleteSchema),
@@ -80,19 +82,34 @@ export default function AthleteOnboarding() {
 
   const createAthlete = useMutation({
     mutationFn: async (data: z.infer<typeof athleteSchema>) => {
-      const response = await apiRequest("POST", "/api/athletes", {
+      const response = await apiRequest("POST", "/api/auth/register/athlete", {
         ...data,
         height: data.height ? Number(data.height) : undefined,
         weight: data.weight ? Number(data.weight) : undefined,
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Perfil criado com sucesso!",
         description: "Bem-vindo ao Revela!",
       });
+      
+      // Check if user selected a paid plan before signing up
+      const selectedPlan = sessionStorage.getItem('selectedPlan');
+      if (selectedPlan && selectedPlan !== 'basic' && plans) {
+        // Find the plan ID based on the name
+        const plan = plans.find(p => p.name === selectedPlan);
+        if (plan) {
+          // Clear the stored plan
+          sessionStorage.removeItem('selectedPlan');
+          // Create checkout session
+          createCheckout(plan.id);
+          return; // Don't redirect to dashboard, Stripe will handle redirect
+        }
+      }
+      
       setLocation("/athlete/dashboard");
     },
     onError: (error) => {

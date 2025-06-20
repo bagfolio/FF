@@ -22,6 +22,7 @@ import { AchievementUnlockNotification } from "@/components/features/athlete/Ach
 import { SocialProofNotification } from "@/components/features/athlete/SocialProofNotification";
 import { SkillsTrustDisplay } from "@/components/features/athlete/SkillsTrustDisplay";
 import { TrustScoreWidget } from "@/components/features/athlete/TrustScoreWidget";
+import { SubscriptionBanner } from "@/components/features/subscription/SubscriptionBanner";
 
 // Function to calculate verification level based on profile and skills
 function calculateVerificationLevel(skills: any[], profileCompletion: number): "bronze" | "silver" | "gold" | "platinum" {
@@ -326,6 +327,9 @@ export default function AthleteDashboard() {
           </div>
 
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            {/* Subscription Banner */}
+            <SubscriptionBanner />
+            
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
               
               <div className="lg:col-span-8 space-y-8">

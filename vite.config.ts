@@ -33,5 +33,13 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    hmr: {
+      clientPort: 443,
+    },
+    host: true,
+    // Allow all hosts in development (Replit uses dynamic hostnames)
+    allowedHosts: process.env.NODE_ENV === 'production' 
+      ? [".replit.dev", ".repl.co", ".repl.run", ".replit.app"]
+      : "all",
   },
 });

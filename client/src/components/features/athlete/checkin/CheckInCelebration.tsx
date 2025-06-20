@@ -8,10 +8,12 @@ import type { CheckInData } from "@/pages/athlete/daily-checkin";
 
 interface CheckInCelebrationProps {
   checkInData: CheckInData;
+  streak?: number;
+  xpEarned?: number;
   onComplete: () => void;
 }
 
-export function CheckInCelebration({ checkInData, onComplete }: CheckInCelebrationProps) {
+export function CheckInCelebration({ checkInData, streak = 1, xpEarned: apiXpEarned, onComplete }: CheckInCelebrationProps) {
   const [showElements, setShowElements] = useState({
     xp: false,
     streak: false,
@@ -19,21 +21,22 @@ export function CheckInCelebration({ checkInData, onComplete }: CheckInCelebrati
     actions: false
   });
 
-  // Calculate bonus XP
+  // Calculate XP breakdown
   const baseXP = checkInData.mood?.xp || 50;
   const intensityBonus = Math.floor(checkInData.intensity / 30) * 10; // +10 XP per 30 min
   const reflectionBonus = checkInData.reflection.length > 30 ? 15 : 0;
   const varietyBonus = (checkInData.trainingFocus?.focusAreas.length || 0) * 5; // +5 XP per focus area
   const drillsBonus = (checkInData.trainingFocus?.focusAreas.reduce((sum, area) => sum + area.drills.length, 0) || 0) * 3; // +3 XP per drill
   const customDrillBonus = (checkInData.trainingFocus?.customDrills.length || 0) * 10; // +10 XP per custom drill
-  const totalXP = baseXP + intensityBonus + reflectionBonus + varietyBonus + drillsBonus + customDrillBonus;
+  
+  // Use XP from API response or calculate if not provided
+  const totalXP = apiXpEarned || (baseXP + intensityBonus + reflectionBonus + varietyBonus + drillsBonus + customDrillBonus);
 
-  // Get current streak (would come from API/storage)
-  const currentStreak = parseInt(localStorage.getItem('currentStreak') || '0') + 1;
+  // Use streak from props (passed from API response)
+  const currentStreak = streak;
   
   useEffect(() => {
-    // Update streak in storage
-    localStorage.setItem('currentStreak', currentStreak.toString());
+    // Streak is now managed by the backend
     
     // Trigger confetti
     const shootConfetti = () => {

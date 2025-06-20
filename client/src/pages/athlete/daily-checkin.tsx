@@ -39,6 +39,7 @@ export default function DailyCheckIn() {
     reflection: '',
     timestamp: new Date()
   });
+  const [checkInResponse, setCheckInResponse] = useState<any>(null);
 
   // Check if user already checked in today
   const { data: todayCheckIn } = useQuery({
@@ -68,7 +69,8 @@ export default function DailyCheckIn() {
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setCheckInResponse(data);
       queryClient.invalidateQueries({ queryKey: ['/api/checkin/today'] });
       queryClient.invalidateQueries({ queryKey: ['/api/athletes/me'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/athlete'] });
@@ -202,6 +204,8 @@ export default function DailyCheckIn() {
             {currentStep === 4 && (
               <CheckInCelebration
                 checkInData={checkInData}
+                streak={checkInResponse?.streak || 1}
+                xpEarned={checkInResponse?.xpEarned || 0}
                 onComplete={() => setLocation('/athlete/dashboard')}
               />
             )}

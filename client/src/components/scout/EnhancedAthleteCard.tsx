@@ -131,7 +131,7 @@ export function EnhancedAthleteCard({ athlete, viewMode, onViewProfile }: Athlet
 
                 {/* Skills preview */}
                 <SkillsDisplay 
-                  skills={athlete.skillsAssessment} 
+                  skills={athlete.skillsAssessment || null} 
                   verified={athlete.skillsVerified || false}
                   trustLevel={athlete.verificationLevel}
                   compact={true}
@@ -324,7 +324,7 @@ export function EnhancedAthleteCard({ athlete, viewMode, onViewProfile }: Athlet
         {/* Skills Display */}
         <div className="border-t pt-4">
           <SkillsDisplay 
-            skills={athlete.skillsAssessment} 
+            skills={athlete.skillsAssessment || null} 
             verified={athlete.skillsVerified || false}
             trustLevel={athlete.verificationLevel}
             compact={true}

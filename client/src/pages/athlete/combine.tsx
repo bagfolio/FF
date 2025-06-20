@@ -13,6 +13,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useAthleteStats } from "@/hooks/useAthleteStats";
+import { useFeatureAccess } from "@/hooks/useSubscription";
+import { FeatureGate } from "@/components/features/subscription/FeatureGate";
 
 interface Test {
   id: string;
@@ -236,6 +238,7 @@ export default function CombinePage() {
   const [, setLocation] = useLocation();
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [sortBy, setSortBy] = useState("recommended");
+  const access = useFeatureAccess();
   
   // Fetch athlete data and stats
   const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
@@ -429,6 +432,18 @@ export default function CombinePage() {
           >
             Sua central de testes para performance de elite. Cada teste verificado aumenta sua visibilidade.
           </motion.p>
+          
+          {/* Feature access warning for basic users */}
+          {!access.canAccessCombineTests && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mt-4"
+            >
+              <FeatureGate feature="combine" />
+            </motion.div>
+          )}
           
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -675,9 +690,16 @@ export default function CombinePage() {
                     <Button 
                       className="w-full bg-gradient-to-r from-verde-brasil to-green-600 hover:from-green-600 hover:to-verde-brasil"
                       size="sm"
-                      onClick={() => setLocation(`/athlete/combine/${test.id}`)}
+                      onClick={() => {
+                        if (access.canAccessCombineTests) {
+                          setLocation(`/athlete/combine/${test.id}`);
+                        } else {
+                          setLocation('/athlete/subscription');
+                        }
+                      }}
+                      disabled={!access.canAccessCombineTests && access.monthlyTests === 0}
                     >
-                      Iniciar Teste
+                      {access.canAccessCombineTests ? 'Iniciar Teste' : 'Upgrade Necessário'}
                     </Button>
                   </div>
                 )}

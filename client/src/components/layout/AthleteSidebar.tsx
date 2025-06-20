@@ -31,7 +31,8 @@ import {
   Menu,
   X,
   Flame,
-  Calendar
+  Calendar,
+  CreditCard
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -417,6 +418,19 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
             >
               <User className={cn("h-4 w-4", !collapsed && "mr-3")} />
               {!collapsed && <span>Perfil</span>}
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "w-full justify-start text-white/60 hover:text-white hover:bg-white/10",
+                collapsed && "justify-center px-2"
+              )}
+              onClick={() => setLocation('/athlete/subscription')}
+            >
+              <CreditCard className={cn("h-4 w-4", !collapsed && "mr-3")} />
+              {!collapsed && <span>Assinatura</span>}
             </Button>
             
             <Button
