@@ -5,13 +5,84 @@ import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Star, Users, Target } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AuthComplete() {
   const [, setLocation] = useLocation();
   const [showDashboard, setShowDashboard] = useState(false);
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
 
   useEffect(() => {
+    // Ensure athlete profile is created before proceeding
+    const createAthleteIfNeeded = async () => {
+      if (!user?.roleData?.id) {
+        const authProfile = JSON.parse(localStorage.getItem("authProfile") || "{}");
+        const authPosition = JSON.parse(localStorage.getItem("authPosition") || "{}");
+        
+        if (authProfile.fullName) {
+          try {
+            // Create athlete profile
+            const response = await fetch('/api/athletes', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                fullName: authProfile.fullName,
+                birthDate: authProfile.birthDate,
+                city: authProfile.city,
+                state: authProfile.state,
+                phone: authProfile.phone || "",
+                position: authPosition.name || "Atacante",
+                dominantFoot: "right"
+              })
+            });
+            
+            if (response.ok) {
+              // Update user type
+              const userTypeResponse = await fetch('/api/auth/user-type', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userType: 'athlete' })
+              });
+              
+              if (userTypeResponse.ok) {
+                // Invalidate user query to get updated data
+                queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+                
+                // Try to sync skills if they exist in localStorage
+                const authSkills = localStorage.getItem('authSkills');
+                if (authSkills && authSkills !== '[]') {
+                  try {
+                    const athlete = await response.json();
+                    await fetch(`/api/athletes/${athlete.id}/skills`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: authSkills
+                    });
+                  } catch (error) {
+                    console.error('Error syncing skills:', error);
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error creating athlete profile:', error);
+          }
+        }
+      }
+    };
+    
+    createAthleteIfNeeded();
+    
     // Stadium entrance sequence
     const timer1 = setTimeout(() => {
       setShowDashboard(true);
@@ -32,7 +103,7 @@ export default function AuthComplete() {
       clearTimeout(timer2);
       clearTimeout(timer3);
     };
-  }, []);
+  }, [user, queryClient]);
 
   const triggerConfetti = () => {
     const count = 200;

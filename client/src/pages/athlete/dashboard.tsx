@@ -7,6 +7,7 @@ import EnhancedAthleteLayout from "@/components/layout/EnhancedAthleteLayout";
 import { Play, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAthleteSkills } from "@/hooks/useAthleteSkills";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 // Import new modular components
 import { HeroSection } from "@/components/features/athlete/HeroSection";
@@ -93,8 +94,9 @@ export default function AthleteDashboard() {
     refetchInterval: 30000 // Refresh every 30 seconds
   });
   
-  // Use centralized skills hook
-  const { skills, hasLocalData, isSyncing, syncLocalToDatabase } = useAthleteSkills(dashboardData?.athlete?.id);
+  // Use centralized skills hook - only pass ID if athlete exists in database
+  const athleteId = dashboardData?.athlete?.id;
+  const { skills, hasLocalData, isSyncing, syncLocalToDatabase } = useAthleteSkills(athleteId);
 
   // Get data from localStorage (from onboarding)
   const [onboardingData, setOnboardingData] = useState<{
@@ -238,8 +240,9 @@ export default function AthleteDashboard() {
   };
 
   return (
-    <EnhancedAthleteLayout>
-      <div className="min-h-screen">
+    <ErrorBoundary>
+      <EnhancedAthleteLayout>
+        <div className="min-h-screen">
         {/* Notifications */}
         <WelcomeNotification 
           athleteName={athleteData.fullName}
@@ -466,7 +469,8 @@ export default function AthleteDashboard() {
           </motion.div>
         </div>
       </div>
-    </EnhancedAthleteLayout>
+      </EnhancedAthleteLayout>
+    </ErrorBoundary>
   );
 }
 

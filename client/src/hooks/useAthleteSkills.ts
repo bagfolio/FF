@@ -77,6 +77,12 @@ export function useAthleteSkills(athleteId: number | undefined): UseAthleteSkill
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
+          
+          // Special handling for 404 - athlete doesn't exist
+          if (response.status === 404) {
+            throw new Error('athlete_not_found');
+          }
+          
           throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
         }
 
@@ -124,6 +130,14 @@ export function useAthleteSkills(athleteId: number | undefined): UseAthleteSkill
           description: "Não foi possível conectar ao servidor. Verifique sua conexão.",
           variant: "destructive",
         });
+      } else if (error.message === 'athlete_not_found') {
+        // Don't retry for 404 errors
+        toast({
+          title: "Perfil não encontrado",
+          description: "Seu perfil de atleta não foi encontrado. Por favor, complete o cadastro primeiro.",
+          variant: "destructive",
+        });
+        // Don't clear localStorage - keep the skills for when athlete is created
       } else {
         setRetryCount(prev => prev + 1);
         if (retryCount < 3) {
@@ -148,7 +162,12 @@ export function useAthleteSkills(athleteId: number | undefined): UseAthleteSkill
 
   // Function to sync localStorage data to database with error handling
   const syncLocalToDatabase = useCallback(async () => {
-    if (!athleteId || !hasLocalData || isSyncing) return;
+    if (!athleteId || !hasLocalData || isSyncing) {
+      if (!athleteId && hasLocalData) {
+        console.log('Skills in localStorage but no athlete ID yet - waiting for profile creation');
+      }
+      return;
+    }
 
     setIsSyncing(true);
     try {
@@ -179,9 +198,27 @@ export function useAthleteSkills(athleteId: number | undefined): UseAthleteSkill
   // Auto-sync on first load if there's local data but no database data
   useEffect(() => {
     if (athleteId && hasLocalData && !isLoading && (!skills || skills.length === 0) && isOnline) {
-      syncLocalToDatabase();
+      // First verify the athlete exists
+      fetch(`/api/athletes/${athleteId}`)
+        .then(response => {
+          if (response.ok) {
+            // Athlete exists, proceed with sync
+            syncLocalToDatabase();
+          } else if (response.status === 404) {
+            console.warn(`Athlete with ID ${athleteId} not found. Skipping skills sync.`);
+            // Clear the invalid athlete ID from localStorage if needed
+            toast({
+              title: "Perfil não encontrado",
+              description: "Por favor, complete seu perfil de atleta primeiro.",
+              variant: "default",
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error checking athlete existence:', error);
+        });
     }
-  }, [athleteId, hasLocalData, isLoading, skills, isOnline, syncLocalToDatabase]);
+  }, [athleteId, hasLocalData, isLoading, skills, isOnline, syncLocalToDatabase, toast]);
 
   // Monitor online/offline status
   useEffect(() => {

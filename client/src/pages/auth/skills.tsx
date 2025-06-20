@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Zap, Dumbbell, Target, Heart, ChevronRight, ChevronLeft, Medal, Info, AlertCircle, Shield } from "lucide-react";
+import { Zap, Dumbbell, Target, Heart, ChevronRight, ChevronLeft, Medal, Info, AlertCircle, Shield, WifiOff } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { useOfflineQueue } from "@/lib/offlineQueue";
 
 interface SkillAssessment {
   id: string;
@@ -515,6 +516,7 @@ export default function AuthSkills() {
   const queryClient = useQueryClient();
   const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
   const [currentAssessment, setCurrentAssessment] = useState(0);
+  const { isOnline, queueSize } = useOfflineQueue();
   const [assessments, setAssessments] = useState<SkillAssessment[]>([
     {
       id: "speed",
@@ -548,6 +550,28 @@ export default function AuthSkills() {
 
   const saveSkillsToDatabase = async (skillsData: any[]) => {
     try {
+      // Check if online
+      if (!navigator.onLine) {
+        // Queue for later sync
+        const { queueSkillsSync } = await import('@/lib/offlineQueue');
+        const authProfile = JSON.parse(localStorage.getItem("authProfile") || "{}");
+        
+        // Save to localStorage for immediate use
+        localStorage.setItem("authSkills", JSON.stringify(skillsData));
+        
+        // Queue for sync when online
+        if (user?.roleData?.id) {
+          queueSkillsSync(skillsData, user.roleData.id);
+        }
+        
+        toast({
+          title: "Salvo offline",
+          description: "Suas habilidades foram salvas e serão sincronizadas quando você estiver online.",
+          variant: "default"
+        });
+        return;
+      }
+      
       // Get athlete ID from user data or localStorage
       const authProfile = JSON.parse(localStorage.getItem("authProfile") || "{}");
       
@@ -576,11 +600,25 @@ export default function AuthSkills() {
           
           if (response.ok) {
             const athlete = await response.json();
+            
+            // Update user type to athlete
+            await fetch('/api/auth/user-type', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ userType: 'athlete' })
+            });
+            
             // Save skills to the newly created athlete
             await saveSkillsForAthlete(athlete.id, skillsData);
+            
+            // Invalidate user query to get updated roleData
+            queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
           }
         } catch (error) {
           console.error("Error creating athlete:", error);
+          throw error;
         }
       } else if (user?.roleData?.id) {
         // Athlete already exists, just save skills
@@ -588,16 +626,36 @@ export default function AuthSkills() {
       }
     } catch (error) {
       console.error("Error in saveSkillsToDatabase:", error);
-      toast({
-        title: "Aviso",
-        description: "Suas habilidades foram salvas localmente. Elas serão sincronizadas quando você acessar o painel.",
-        variant: "default"
-      });
+      
+      // Save to localStorage as fallback
+      localStorage.setItem("authSkills", JSON.stringify(skillsData));
+      
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        toast({
+          title: "Erro de conexão",
+          description: "Suas habilidades foram salvas localmente e serão sincronizadas automaticamente.",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Aviso",
+          description: "Suas habilidades foram salvas localmente. Elas serão sincronizadas quando você acessar o painel.",
+          variant: "default"
+        });
+      }
     }
   };
   
   const saveSkillsForAthlete = async (athleteId: number, skillsData: any[]) => {
     try {
+      // First check if athlete exists
+      const checkResponse = await fetch(`/api/athletes/${athleteId}`);
+      if (checkResponse.status === 404) {
+        console.warn(`Athlete ${athleteId} not found - skills will be saved locally only`);
+        throw new Error('Athlete not found');
+      }
+      
       const response = await fetch(`/api/athletes/${athleteId}/skills`, {
         method: 'POST',
         headers: {
@@ -661,8 +719,10 @@ export default function AuthSkills() {
       // Save to localStorage for immediate use
       localStorage.setItem("authSkills", JSON.stringify(dataToSave));
       
-      // Also save to database
-      saveSkillsToDatabase(dataToSave);
+      // Also save to database with error handling
+      saveSkillsToDatabase(dataToSave).catch(error => {
+        console.error('Failed to save skills to database:', error);
+      });
       
       // Navigate to complete page
       setLocation("/auth/complete");
@@ -693,6 +753,22 @@ export default function AuthSkills() {
   return (
     <TooltipProvider>
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
+      {/* Offline indicator */}
+      {!isOnline && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-4 right-4 z-50 bg-orange-500/90 backdrop-blur-md text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+        >
+          <WifiOff className="w-4 h-4" />
+          <span className="text-sm font-medium">Modo offline</span>
+          {queueSize > 0 && (
+            <Badge variant="secondary" className="bg-white/20 text-white border-0">
+              {queueSize} pendente{queueSize > 1 ? 's' : ''}
+            </Badge>
+          )}
+        </motion.div>
+      )}
       {/* Training Ground atmosphere */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/70" />

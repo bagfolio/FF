@@ -18,7 +18,9 @@
       "Bash(cp:*)",
       "Bash(rg:*)",
       "Bash(lsof:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(tsx:*)",
+      "Bash(npx drizzle-kit push:*)"
     ],
     "deny": []
   }
