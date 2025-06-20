@@ -213,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const profileComplete = !!(athlete.fullName && athlete.birthDate && athlete.position);
       
       let currentLevel = 'bronze';
-      if (tests.length >= 3 && athlete.scoutValidated) {
+      if (tests.length >= 3 && athlete.skillsVerified) {
         currentLevel = 'platinum';
       } else if (tests.length >= 3) {
         currentLevel = 'gold';
@@ -225,8 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update athlete verification level
       const updatedAthlete = await storage.updateAthlete(parseInt(id), { 
-        verificationLevel: currentLevel as any,
-        updatedAt: new Date()
+        verificationLevel: currentLevel as any
       });
       
       res.json({ 
@@ -463,8 +462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         trustLevel,
         verificationMethod,
         verifiedBy: verifiedBy || 'system',
-        metadata: metadata || {},
-        verifiedAt: new Date()
+        metadata: metadata || {}
       });
       
       // Update athlete's overall verification level based on skill verifications

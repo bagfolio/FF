@@ -356,8 +356,7 @@ export default function AthleteDashboard() {
                   <PerformanceEvolution athlete={{
                     speed: skills?.find(s => s.id === "speed")?.data?.sliderValue || 5,
                     agility: skills?.find(s => s.id === "strength")?.data?.sliderValue || 5,
-                    technique: skills?.find(s => s.id === "technique")?.data?.skills ? 
-                      Object.values(skills.find(s => s.id === "technique")!.data.skills).reduce((a: number, b: any) => a + (Number(b) || 0), 0) / 4 : 3,
+                    technique: skills?.find(s => s.id === "technique")?.data?.sliderValue || 5,
                     endurance: skills?.find(s => s.id === "stamina")?.data?.duration === "90+" ? 9 : 6
                   }} />
                 </motion.div>
