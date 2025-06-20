@@ -26,7 +26,13 @@
       "Bash(ls:*)",
       "Bash(npx drizzle-kit:*)",
       "Bash(node:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(env)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(NODE_ENV=development node -e \"console.log('NODE_ENV:', process.env.NODE_ENV); console.log('DANGEROUSLY_DISABLE_HOST_CHECK:', process.env.DANGEROUSLY_DISABLE_HOST_CHECK);\")",
+      "Bash(source:*)",
+      "Bash(echo:*)"
     ],
     "deny": []
   }

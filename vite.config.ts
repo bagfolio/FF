@@ -38,8 +38,14 @@ export default defineConfig({
     },
     host: true,
     // Allow all hosts in development (Replit uses dynamic hostnames)
-    allowedHosts: process.env.NODE_ENV === 'production' 
-      ? [".replit.dev", ".repl.co", ".repl.run", ".replit.app"]
-      : "all",
+    // Check for DANGEROUSLY_DISABLE_HOST_CHECK for complete bypass
+    ...(process.env.DANGEROUSLY_DISABLE_HOST_CHECK === 'true' 
+      ? {}
+      : {
+          allowedHosts: process.env.NODE_ENV === 'production' 
+            ? [".replit.dev", ".repl.co", ".repl.run", ".replit.app", ".kirk.replit.dev"]
+            : "all"
+        }
+    ),
   },
 });

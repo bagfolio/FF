@@ -20,11 +20,9 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server },
-  } as any; // We need 'as any' because allowedHosts isn't in the official types yet
-
+  log(`Setting up Vite in development mode`);
+  log(`Environment: NODE_ENV=${process.env.NODE_ENV}, DANGEROUSLY_DISABLE_HOST_CHECK=${process.env.DANGEROUSLY_DISABLE_HOST_CHECK}`);
+  
   const vite = await createViteServer({
     ...viteConfig,
     configFile: false,
@@ -37,7 +35,11 @@ export async function setupVite(app: Express, server: Server) {
     },
     server: {
       ...viteConfig.server,
-      ...serverOptions,
+      middlewareMode: true,
+      hmr: { 
+        ...viteConfig.server?.hmr,
+        server 
+      },
     },
     appType: "custom",
   });
