@@ -110,9 +110,9 @@ export default function DailyCheckIn() {
   return (
     <EnhancedAthleteLayout>
       {/* Full-screen container that overlays the layout padding */}
-      <div className="fixed inset-0 md:left-0 bg-gradient-to-br from-black via-gray-900 to-black overflow-hidden z-30">
-        {/* Animated background particles */}
-        <div className="absolute inset-0 pointer-events-none">
+      <div className="fixed inset-0 md:left-0 bg-gradient-to-br from-black via-gray-900 to-black overflow-y-auto z-content safe-area-top safe-area-bottom">
+        {/* Animated background particles - disabled on mobile for performance */}
+        <div className="absolute inset-0 pointer-events-none hidden md:block">
           {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
@@ -136,7 +136,7 @@ export default function DailyCheckIn() {
 
         {/* Progress indicator */}
         {currentStep < 4 && (
-          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
+          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-floating">
             <div className="flex items-center gap-2">
               {STEPS.slice(0, -1).map((_, index) => (
                 <motion.div
@@ -203,7 +203,7 @@ export default function DailyCheckIn() {
 
         {/* Navigation buttons */}
         {currentStep < 4 && (
-          <div className="absolute bottom-8 left-0 right-0 flex items-center justify-between px-8 z-20">
+          <div className="fixed bottom-0 left-0 right-0 flex items-center justify-between px-8 pb-safe z-floating bg-gradient-to-t from-black/80 to-transparent pt-4 pb-20 md:pb-8">
             <Button
               variant="ghost"
               size="lg"

@@ -1,0 +1,175 @@
+### **PROMPT 4: Fix Trust Pyramid Integration**
+
+```markdown
+# Connect Skills Assessment to Trust Pyramid
+
+## ISSUE
+Trust Pyramid shows 0% because it reads from localStorage and doesn't sync with the database verification level.
+
+## IMPLEMENTATION:
+
+### 1. Update Trust Pyramid Calculator
+Modify `/client/src/lib/trustPyramidCalculator.ts`:
+```typescript
+export const calculateTrustPyramidProgress = (
+  athlete: any,
+  tests: any[] = [],
+  activities: any[] = []
+) => {
+  // Get skills from database, not localStorage
+  const skills = athlete?.skillsAssessment || {};
+  const hasSkills = skills && Object.keys(skills).length > 0;
+  
+  const progress = {
+    bronze: {
+      level: 'Bronze',
+      requirements: [
+        {
+          id: 'basic_profile',
+          label: 'Perfil Básico Completo',
+          completed: !!(athlete?.fullName && athlete?.birthDate && athlete?.position),
+          weight: 10
+        },
+        {
+          id: 'physical_stats',
+          label: 'Dados Físicos',
+          completed: !!(athlete?.height && athlete?.weight),
+          weight: 5
+        },
+        {
+          id: 'skills_assessment',
+          label: 'Autoavaliação de Habilidades',
+          completed: hasSkills,
+          weight: 10
+        }
+      ]
+    },
+    silver: {
+      level: 'Prata',
+      requirements: [
+        {
+          id: 'skills_verified',
+          label: 'Habilidades Verificadas',
+          completed: athlete?.skillsVerified === true,
+          weight: 20
+        },
+        {
+          id: 'first_test',
+          label: 'Primeiro Teste Completo',
+          completed: tests.length > 0,
+          weight: 15
+        }
+      ]
+    },
+    // ... rest of levels
+  };
+  
+  // Calculate total progress
+  let totalProgress = 0;
+  let totalWeight = 0;
+  
+  Object.values(progress).forEach(level => {
+    level.requirements.forEach(req => {
+      totalWeight += req.weight;
+      if (req.completed) {
+        totalProgress += req.weight;
+      }
+    });
+  });
+  
+  const overallProgress = Math.round((totalProgress / totalWeight) * 100);
+  
+  return { progress, overallProgress, currentLevel: determineLevel(overallProgress) };
+};
+2. Create Backend Sync Endpoint
+Add to /server/routes.ts:
+typescript// Update athlete verification level based on requirements
+app.post("/api/athletes/:id/update-verification-level", authenticateRequest, async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    // Get athlete with all related data
+    const athlete = await db.query.athletes.findFirst({
+      where: eq(athletes.id, parseInt(id)),
+      with: {
+        tests: true,
+        // Add other relations as needed
+      }
+    });
+    
+    if (!athlete) {
+      return res.status(404).json({ error: "Athlete not found" });
+    }
+    
+    // Calculate new verification level
+    const { overallProgress, currentLevel } = calculateTrustPyramidProgress(
+      athlete,
+      athlete.tests || []
+    );
+    
+    // Update athlete
+    await db.update(athletes)
+      .set({ 
+        verificationLevel: currentLevel,
+        updatedAt: new Date()
+      })
+      .where(eq(athletes.id, parseInt(id)));
+    
+    res.json({ 
+      verificationLevel: currentLevel,
+      progress: overallProgress
+    });
+  } catch (error) {
+    console.error("Error updating verification level:", error);
+    res.status(500).json({ error: "Failed to update verification level" });
+  }
+});
+3. Update Dashboard to Use Database Data
+In /client/src/pages/athlete/dashboard.tsx:
+typescript// Remove localStorage dependencies
+// DELETE these lines:
+// const authSkills = JSON.parse(localStorage.getItem("authSkills") || "{}");
+
+// Use athlete data from API:
+const { data: athleteData } = useQuery({
+  queryKey: ["/api/athletes/me"],
+  enabled: !!user
+});
+
+// Pass database data to Trust Pyramid:
+<TrustPyramidProgressWidget
+  athlete={athleteData}
+  tests={testsData || []}
+/>
+4. Add Auto-sync After Skills Save
+Update skills completion to trigger verification update:
+typescript// In skills.tsx, after saving skills:
+const response = await fetch(`/api/athletes/${user.athleteId}/skills`, {
+  method: 'POST',
+  // ... rest of request
+});
+
+if (response.ok) {
+  // Trigger verification level update
+  await fetch(`/api/athletes/${user.athleteId}/update-verification-level`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
+  });
+}
+EXPECTED RESULT:
+
+Trust Pyramid shows real progress based on database data
+Verification level syncs automatically
+Skills assessment contributes to Bronze level (25%)
+Foundation for Silver/Gold progression with verification
+
+
+These prompts address the critical vulnerability by:
+1. **Persisting data** so it's not lost
+2. **Making it visible** to scouts
+3. **Clearly marking** unverified data
+4. **Integrating** with the trust system
+
+The key is that unverified data is clearly marked with red warnings, while providing a clear path to verification. This maintains platform integrity while still allowing athletes to showcase their abilities.

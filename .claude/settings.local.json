@@ -16,7 +16,9 @@
       "Bash(tree:*)",
       "Bash(find:*)",
       "Bash(cp:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(lsof:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": []
   }

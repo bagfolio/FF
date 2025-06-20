@@ -61,6 +61,12 @@ export const athletes = pgTable("athletes", {
   }).default("bronze"),
   profileComplete: boolean("profile_complete").default(false),
   parentalConsent: boolean("parental_consent").default(false),
+  // Skills assessment fields
+  skillsAssessment: jsonb("skills_assessment"),
+  skillsUpdatedAt: timestamp("skills_updated_at"),
+  skillsVerified: boolean("skills_verified").default(false),
+  skillsVerificationDate: timestamp("skills_verification_date"),
+  skillsVerifiedBy: varchar("skills_verified_by"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -110,6 +116,21 @@ export const athleteViews = pgTable("athlete_views", {
   viewedAt: timestamp("viewed_at").defaultNow(),
 });
 
+// Skill verifications table (for tracking individual skill verification)
+export const skillVerifications = pgTable("skill_verifications", {
+  id: serial("id").primaryKey(),
+  athleteId: integer("athlete_id").notNull().references(() => athletes.id, { onDelete: "cascade" }),
+  skillId: varchar("skill_id").notNull(), // speed, strength, technique, stamina
+  trustLevel: varchar("trust_level", { 
+    enum: ["bronze", "silver", "gold", "platinum"] 
+  }).notNull(),
+  verificationMethod: varchar("verification_method").notNull(), // self_assessment, coach_endorsement, league_stats, ai_verified
+  verifiedBy: varchar("verified_by"), // coach ID, league ID, or "ai"
+  verifiedAt: timestamp("verified_at").defaultNow(),
+  metadata: jsonb("metadata"), // Additional verification data
+  expiresAt: timestamp("expires_at"), // Some verifications might expire
+});
+
 // Achievements table
 export const achievements = pgTable("achievements", {
   id: serial("id").primaryKey(),
@@ -133,6 +154,7 @@ export const athletesRelations = relations(athletes, ({ one, many }) => ({
   tests: many(tests),
   views: many(athleteViews),
   achievements: many(achievements),
+  skillVerifications: many(skillVerifications),
 }));
 
 export const scoutsRelations = relations(scouts, ({ one, many }) => ({
@@ -186,3 +208,4 @@ export type Test = typeof tests.$inferSelect;
 export type InsertTest = z.infer<typeof insertTestSchema>;
 export type Achievement = typeof achievements.$inferSelect;
 export type AthleteView = typeof athleteViews.$inferSelect;
+export type SkillVerification = typeof skillVerifications.$inferSelect;

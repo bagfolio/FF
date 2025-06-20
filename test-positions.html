@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Position Test</title>
+    <style>
+        .field {
+            width: 600px;
+            height: 900px;
+            background: linear-gradient(to bottom, #22c55e, #16a34a);
+            position: relative;
+            margin: 20px auto;
+            border: 3px solid white;
+        }
+        .position {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #3b82f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .position:hover {
+            background: #fbbf24;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        .position.forward {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Football Position Layout Test</h1>
+    <div class="field">
+        <!-- Defenders -->
+        <div class="position" style="left: 50%; top: 85%;">1</div>
+        <div class="position" style="left: 20%; top: 65%;">6</div>
+        <div class="position" style="left: 35%; top: 75%;">4</div>
+        <div class="position" style="left: 65%; top: 75%;">3</div>
+        <div class="position" style="left: 80%; top: 65%;">2</div>
+        
+        <!-- Midfielders -->
+        <div class="position" style="left: 30%; top: 50%;">5</div>
+        <div class="position" style="left: 50%; top: 45%;">8</div>
+        <div class="position" style="left: 70%; top: 50%;">10</div>
+        
+        <!-- Forwards (updated positions) -->
+        <div class="position forward" style="left: 20%; top: 30%;">11</div>
+        <div class="position forward" style="left: 50%; top: 22%;">9</div>
+        <div class="position forward" style="left: 80%; top: 30%;">7</div>
+    </div>
+    <p style="text-align: center;">
+        Original Y positions: 9 (15%) → 22%, 7/11 (25%) → 30%<br>
+        This ensures forwards are properly positioned on the field.
+    </p>
+</body>
+</html>

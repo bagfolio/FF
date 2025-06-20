@@ -58,8 +58,8 @@ export default function MobileBottomNav() {
   const isActive = (url: string) => location === url;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/10 z-50 md:hidden">
-      <div className="grid grid-cols-5 h-16">
+    <nav className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/10 z-navigation md:hidden safe-area-bottom">
+      <div className="grid grid-cols-5 h-20">
         {navItems.map((item) => {
           const active = isActive(item.url);
           return (
@@ -67,7 +67,7 @@ export default function MobileBottomNav() {
               key={item.id}
               onClick={() => setLocation(item.url)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 relative",
+                "flex flex-col items-center justify-center gap-1 relative touch-target",
                 "transition-all duration-200",
                 active ? "text-verde-brasil" : "text-white/60 hover:text-white"
               )}

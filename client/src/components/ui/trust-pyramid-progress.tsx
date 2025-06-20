@@ -5,9 +5,12 @@ import { Progress } from "./progress";
 import { Button } from "./button";
 import { useState, useEffect } from "react";
 
+import type { TrustPyramidProgress as PyramidData } from "@/lib/trustPyramidCalculator";
+
 interface TrustPyramidProgressProps {
   currentLevel: "bronze" | "silver" | "gold" | "platinum";
   className?: string;
+  pyramidProgress?: PyramidData; // Optional for backward compatibility
 }
 
 const levelRequirements = {
@@ -56,10 +59,14 @@ const levelRequirements = {
   }
 };
 
-export default function TrustPyramidProgress({ currentLevel, className }: TrustPyramidProgressProps) {
-  const currentLevelData = levelRequirements[currentLevel];
-  const nextLevelKey = currentLevelData.nextLevel as keyof typeof levelRequirements | null;
-  const nextLevelData = nextLevelKey ? levelRequirements[nextLevelKey] : null;
+export default function TrustPyramidProgress({ currentLevel, className, pyramidProgress }: TrustPyramidProgressProps) {
+  // Use real data if provided, otherwise fall back to hardcoded values
+  const fallbackData = levelRequirements[currentLevel];
+  const currentLevelData = pyramidProgress ? pyramidProgress[currentLevel] : fallbackData;
+  
+  // Determine next level
+  const nextLevelKey = pyramidProgress?.nextLevel || fallbackData.nextLevel as keyof typeof levelRequirements | null;
+  const nextLevelData = nextLevelKey ? (pyramidProgress ? pyramidProgress[nextLevelKey] : levelRequirements[nextLevelKey]) : null;
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [animateProgress, setAnimateProgress] = useState(false);
 
@@ -103,14 +110,14 @@ export default function TrustPyramidProgress({ currentLevel, className }: TrustP
                     PRÓXIMO NÍVEL: {nextLevelData.name.toUpperCase()}
                     <ArrowUp className="w-5 h-5 text-green-500 animate-bounce" />
                   </h4>
-                  <span className="text-lg font-bold text-verde-brasil">{nextLevelData.progress}%</span>
+                  <span className="text-lg font-bold text-verde-brasil">{nextLevelData.progress || 0}%</span>
                 </div>
                 <div className="relative">
                   <Progress 
-                    value={animateProgress ? nextLevelData.progress : 0} 
+                    value={animateProgress ? (nextLevelData.progress || 0) : 0} 
                     className="h-3 transition-all duration-1000"
                   />
-                  {animateProgress && nextLevelData.progress > 0 && (
+                  {animateProgress && (nextLevelData.progress || 0) > 0 && (
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
                   )}
                 </div>
@@ -135,7 +142,7 @@ export default function TrustPyramidProgress({ currentLevel, className }: TrustP
                         req.completed ? "text-green-700 line-through" : "text-gray-700"
                       )}>
                         {req.label}
-                        {req.current !== undefined && (
+                        {'current' in req && 'total' in req && req.current !== undefined && req.total !== undefined && (
                           <span className="ml-1 text-xs">({req.current}/{req.total})</span>
                         )}
                       </p>
@@ -145,7 +152,7 @@ export default function TrustPyramidProgress({ currentLevel, className }: TrustP
               </div>
 
               {/* Benefits Preview */}
-              {nextLevelData.benefits && (
+              {'benefits' in nextLevelData && nextLevelData.benefits && (
                 <div className="bg-gradient-to-r from-gray-50 to-transparent rounded-lg p-4 relative overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-r from-yellow-100/0 to-yellow-100/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
                   <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2 relative z-10">
@@ -153,7 +160,7 @@ export default function TrustPyramidProgress({ currentLevel, className }: TrustP
                     Desbloqueie no {nextLevelData.name}:
                   </p>
                   <ul className="space-y-1 relative z-10">
-                    {nextLevelData.benefits.map((benefit, index) => (
+                    {nextLevelData.benefits.map((benefit: string, index: number) => (
                       <li key={index} className="text-sm text-gray-600 flex items-center gap-2 group-hover:text-gray-700 transition-colors">
                         <Lock className="w-3 h-3 group-hover:text-yellow-500 transition-colors" />
                         {benefit}

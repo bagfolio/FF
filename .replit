@@ -25,6 +25,21 @@ externalPort = 3000
 exposeLocalhost = true
 
 [[ports]]
+localPort = 11954
+externalPort = 3001
+exposeLocalhost = true
+
+[[ports]]
+localPort = 18754
+externalPort = 6000
+exposeLocalhost = true
+
+[[ports]]
+localPort = 24317
+externalPort = 6800
+exposeLocalhost = true
+
+[[ports]]
 localPort = 27928
 externalPort = 4200
 exposeLocalhost = true
@@ -33,10 +48,6 @@ exposeLocalhost = true
 localPort = 52874
 externalPort = 5000
 exposeLocalhost = true
-
-[[ports]]
-localPort = 54545
-externalPort = 3001
 
 [[ports]]
 localPort = 57657

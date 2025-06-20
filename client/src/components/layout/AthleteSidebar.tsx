@@ -470,7 +470,7 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
     <>
       {/* Desktop Sidebar */}
       <aside className={cn(
-        "hidden md:flex flex-col fixed left-0 top-0 h-screen transition-all duration-300 z-50",
+        "hidden md:flex flex-col fixed left-0 top-0 h-screen transition-all duration-300 z-navigation",
         "bg-black/40 backdrop-blur-xl border-r border-white/10",
         collapsed ? "w-20" : "w-72"
       )}>
@@ -495,7 +495,7 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full bg-gradient-to-r from-verde-brasil to-verde-brasil/80 text-white shadow-2xl shadow-verde-brasil/30 md:hidden flex items-center justify-center"
+          className="fixed bottom-20 right-4 z-floating h-14 w-14 rounded-full bg-gradient-to-r from-verde-brasil to-verde-brasil/80 text-white shadow-2xl shadow-verde-brasil/30 md:hidden flex items-center justify-center"
           onClick={toggleMobile}
         >
           <AnimatePresence mode="wait">
@@ -528,7 +528,7 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-navigation md:hidden"
               onClick={toggleMobile}
             />
           )}
@@ -539,7 +539,7 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
           initial={{ x: "-100%" }}
           animate={{ x: mobileOpen ? 0 : "-100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="fixed left-0 top-0 h-full w-72 bg-black/90 backdrop-blur-xl z-50 md:hidden border-r border-white/10"
+          className="fixed left-0 top-0 h-full w-72 bg-black/90 backdrop-blur-xl z-modal md:hidden border-r border-white/10 safe-area-top safe-area-bottom"
         >
           <SidebarContent />
         </motion.aside>

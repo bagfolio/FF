@@ -60,7 +60,7 @@ export default function EnhancedAthleteLayout({ children }: EnhancedAthleteLayou
         sidebarCollapsed && "md:pl-20"
       )}>
         {/* Enhanced Top Navigation */}
-        <header className="sticky top-0 z-40 bg-black/40 backdrop-blur-xl border-b border-white/10">
+        <header className="sticky top-0 z-header bg-black/40 backdrop-blur-xl border-b border-white/10 safe-area-top">
           <div className="flex items-center justify-between px-4 lg:px-8 h-16">
             {/* Logo for mobile */}
             <div className="md:hidden">
@@ -141,7 +141,7 @@ export default function EnhancedAthleteLayout({ children }: EnhancedAthleteLayou
         </header>
         
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <main className="flex-1 overflow-y-auto pb-24 md:pb-0">
           <div className="h-full">
             {children}
           </div>

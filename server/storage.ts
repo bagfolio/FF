@@ -6,6 +6,7 @@ import {
   scoutSearches,
   athleteViews,
   achievements,
+  skillVerifications,
   type User,
   type UpsertUser,
   type Athlete,
@@ -14,6 +15,7 @@ import {
   type InsertScout,
   type Test,
   type InsertTest,
+  type SkillVerification,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
@@ -28,6 +30,7 @@ export interface IStorage {
   getAthlete(id: number): Promise<Athlete | undefined>;
   getAthleteByUserId(userId: string): Promise<Athlete | undefined>;
   updateAthlete(id: number, updates: Partial<InsertAthlete>): Promise<Athlete>;
+  updateAthleteSkills(id: number, skills: any): Promise<Athlete>;
   searchAthletes(filters: any): Promise<Athlete[]>;
   
   // Scout operations
@@ -44,6 +47,34 @@ export interface IStorage {
   recordAthleteView(athleteId: number, scoutId: number): Promise<void>;
   getAthleteViewCount(athleteId: number): Promise<number>;
   getAthleteStats(): Promise<{ totalAthletes: number; totalVerifications: number; totalScouts: number }>;
+  
+  // Dashboard operations
+  getRecentAthleteViews(athleteId: number, days?: number): Promise<any[]>;
+  getAthleteAchievements(athleteId: number): Promise<any[]>;
+  createAchievement(achievement: {
+    athleteId: number;
+    achievementType: string;
+    title: string;
+    description?: string;
+    icon?: string;
+    points?: number;
+  }): Promise<any>;
+  getAthleteStreak(athleteId: number): Promise<number>;
+  getAthletePercentile(athleteId: number): Promise<number>;
+  
+  // Skill verification operations
+  getSkillVerifications(athleteId: number): Promise<SkillVerification[]>;
+  createSkillVerification(verification: {
+    athleteId: number;
+    skillId: string;
+    trustLevel: string;
+    verificationMethod: string;
+    verifiedBy?: string;
+    metadata?: any;
+  }): Promise<SkillVerification>;
+  deleteSkillVerification(verificationId: number, athleteId: number): Promise<boolean>;
+  updateAthleteVerificationLevel(athleteId: number, level: string): Promise<void>;
+  getTests(athleteId: number): Promise<Test[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -94,6 +125,19 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db
       .update(athletes)
       .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(athletes.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateAthleteSkills(id: number, skills: any): Promise<Athlete> {
+    const [updated] = await db
+      .update(athletes)
+      .set({ 
+        skillsAssessment: skills,
+        skillsUpdatedAt: new Date(),
+        updatedAt: new Date() 
+      })
       .where(eq(athletes.id, id))
       .returning();
     return updated;
@@ -191,6 +235,183 @@ export class DatabaseStorage implements IStorage {
       totalVerifications: testCount.count,
       totalScouts: scoutCount.count,
     };
+  }
+
+  // Dashboard specific operations
+  async getRecentAthleteViews(athleteId: number, days: number = 7): Promise<any[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return await db
+      .select({
+        id: athleteViews.id,
+        scoutId: athleteViews.scoutId,
+        viewedAt: athleteViews.viewedAt,
+        scoutName: scouts.fullName,
+        organization: scouts.organization
+      })
+      .from(athleteViews)
+      .innerJoin(scouts, eq(athleteViews.scoutId, scouts.id))
+      .where(
+        and(
+          eq(athleteViews.athleteId, athleteId),
+          sql`${athleteViews.viewedAt} >= ${cutoffDate}`
+        )
+      )
+      .orderBy(desc(athleteViews.viewedAt))
+      .limit(10);
+  }
+
+  async getAthleteAchievements(athleteId: number): Promise<any[]> {
+    return await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.athleteId, athleteId))
+      .orderBy(desc(achievements.unlockedAt));
+  }
+
+  async createAchievement(achievement: {
+    athleteId: number;
+    achievementType: string;
+    title: string;
+    description?: string;
+    icon?: string;
+    points?: number;
+  }): Promise<any> {
+    const [created] = await db.insert(achievements).values(achievement).returning();
+    return created;
+  }
+
+  async getAthleteStreak(athleteId: number): Promise<number> {
+    // Get all test dates for the athlete, ordered by date
+    const testDates = await db
+      .select({ date: sql<string>`DATE(${tests.createdAt})` })
+      .from(tests)
+      .where(eq(tests.athleteId, athleteId))
+      .orderBy(desc(tests.createdAt));
+
+    if (testDates.length === 0) return 0;
+
+    // Check if the most recent test was today or yesterday
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const mostRecentTest = new Date(testDates[0].date);
+    const daysDiff = Math.floor((today.getTime() - mostRecentTest.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff > 1) return 0; // Streak is broken
+
+    let streak = 1;
+    for (let i = 1; i < testDates.length; i++) {
+      const currentDate = new Date(testDates[i - 1].date);
+      const previousDate = new Date(testDates[i].date);
+      const diff = Math.floor((currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diff === 1) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  }
+
+  async getAthletePercentile(athleteId: number): Promise<number> {
+    const athlete = await this.getAthlete(athleteId);
+    if (!athlete) return 50;
+
+    // Get all athletes in the same age range and position
+    const birthYear = new Date(athlete.birthDate).getFullYear();
+    const ageRange = 2; // +/- 2 years
+
+    const peers = await db
+      .select({
+        id: athletes.id,
+        avgResult: sql<number>`AVG(CAST(${tests.result} AS FLOAT))`
+      })
+      .from(athletes)
+      .leftJoin(tests, eq(athletes.id, tests.athleteId))
+      .where(
+        and(
+          eq(athletes.position, athlete.position),
+          sql`EXTRACT(YEAR FROM ${athletes.birthDate}) BETWEEN ${birthYear - ageRange} AND ${birthYear + ageRange}`,
+          eq(tests.testType, 'speed_20m'),
+          eq(tests.verified, true)
+        )
+      )
+      .groupBy(athletes.id);
+
+    if (peers.length < 5) return 75; // Not enough data, return good percentile
+
+    // Get this athlete's average performance
+    const myPerformance = peers.find(p => p.id === athleteId);
+    if (!myPerformance || !myPerformance.avgResult) return 50;
+
+    // Calculate percentile (lower time is better for speed tests)
+    const betterThanCount = peers.filter(p => 
+      p.avgResult && p.avgResult > myPerformance.avgResult
+    ).length;
+
+    return Math.round((betterThanCount / peers.length) * 100);
+  }
+
+  // Skill verification operations
+  async getSkillVerifications(athleteId: number): Promise<SkillVerification[]> {
+    return await db
+      .select()
+      .from(skillVerifications)
+      .where(eq(skillVerifications.athleteId, athleteId))
+      .orderBy(desc(skillVerifications.verifiedAt));
+  }
+
+  async createSkillVerification(verification: {
+    athleteId: number;
+    skillId: string;
+    trustLevel: string;
+    verificationMethod: string;
+    verifiedBy?: string;
+    metadata?: any;
+  }): Promise<SkillVerification> {
+    const [created] = await db
+      .insert(skillVerifications)
+      .values({
+        ...verification,
+        trustLevel: verification.trustLevel as "bronze" | "silver" | "gold" | "platinum",
+      })
+      .returning();
+    return created;
+  }
+
+  async deleteSkillVerification(verificationId: number, athleteId: number): Promise<boolean> {
+    const result = await db
+      .delete(skillVerifications)
+      .where(
+        and(
+          eq(skillVerifications.id, verificationId),
+          eq(skillVerifications.athleteId, athleteId)
+        )
+      );
+    return result.rowCount > 0;
+  }
+
+  async updateAthleteVerificationLevel(athleteId: number, level: string): Promise<void> {
+    await db
+      .update(athletes)
+      .set({ 
+        verificationLevel: level as "bronze" | "silver" | "gold" | "platinum",
+        updatedAt: new Date()
+      })
+      .where(eq(athletes.id, athleteId));
+  }
+  
+  async getTests(athleteId: number): Promise<Test[]> {
+    return await db
+      .select()
+      .from(tests)
+      .where(eq(tests.athleteId, athleteId))
+      .orderBy(desc(tests.createdAt));
   }
 }
 

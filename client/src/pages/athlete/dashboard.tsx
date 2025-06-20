@@ -4,9 +4,9 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import EnhancedAthleteLayout from "@/components/layout/EnhancedAthleteLayout";
-import { generateActivity, achievements } from "@/lib/brazilianData";
 import { Play, User } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAthleteSkills } from "@/hooks/useAthleteSkills";
 
 // Import new modular components
 import { HeroSection } from "@/components/features/athlete/HeroSection";
@@ -19,6 +19,8 @@ import { ActivityFeed } from "@/components/features/athlete/ActivityFeed";
 import { WelcomeNotification } from "@/components/features/athlete/WelcomeNotification";
 import { AchievementUnlockNotification } from "@/components/features/athlete/AchievementUnlockNotification";
 import { SocialProofNotification } from "@/components/features/athlete/SocialProofNotification";
+import { SkillsTrustDisplay } from "@/components/features/athlete/SkillsTrustDisplay";
+import { TrustScoreWidget } from "@/components/features/athlete/TrustScoreWidget";
 
 // Function to calculate verification level based on profile and skills
 function calculateVerificationLevel(skills: any[], profileCompletion: number): "bronze" | "silver" | "gold" | "platinum" {
@@ -45,8 +47,9 @@ function calculateVerificationLevel(skills: any[], profileCompletion: number): "
     
     // Technique assessment
     if (skill.id === "technique") {
-      const skills = data.skills || {};
-      const avgSkill = Object.values(skills).reduce((a: any, b: any) => a + b, 0) / Object.values(skills).length || 0;
+      const skills: Record<string, number> = data.skills || {};
+      const skillValues = Object.values(skills);
+      const avgSkill = skillValues.length > 0 ? skillValues.reduce((a, b) => a + b, 0) / skillValues.length : 0;
       skillScore = avgSkill * 20; // Convert 1-5 to 0-100
     }
     
@@ -72,32 +75,42 @@ function calculateVerificationLevel(skills: any[], profileCompletion: number): "
 export default function AthleteDashboard() {
   const [, setLocation] = useLocation();
   const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
-  const { data: athlete, isLoading: athleteLoading } = useQuery({ queryKey: ["/api/athletes/me"] });
-  const { data: tests = [], isLoading: testsLoading } = useQuery({ 
-    queryKey: ["/api/tests/athlete", athlete?.id],
-    enabled: !!athlete?.id
+  const { data: dashboardData, isLoading } = useQuery<{
+    athlete: any;
+    stats: {
+      profileViews: number;
+      scoutViews: number;
+      testsCompleted: number;
+      streakDays: number;
+      percentile: number;
+      profileCompletion: number;
+    };
+    recentViews: any[];
+    achievements: any[];
+    activities: any[];
+  }>({ 
+    queryKey: ["/api/dashboard/athlete"],
+    refetchInterval: 30000 // Refresh every 30 seconds
   });
-
-  const isLoading = athleteLoading || testsLoading;
+  
+  // Use centralized skills hook
+  const { skills, hasLocalData, isSyncing, syncLocalToDatabase } = useAthleteSkills(dashboardData?.athlete?.id);
 
   // Get data from localStorage (from onboarding)
   const [onboardingData, setOnboardingData] = useState<{
     position: any;
     profile: any;
-    skills: any[];
   }>({
     position: {},
-    profile: {},
-    skills: []
+    profile: {}
   });
 
   useEffect(() => {
     // Retrieve onboarding data from localStorage
     const position = JSON.parse(localStorage.getItem("authPosition") || "{}");
     const profile = JSON.parse(localStorage.getItem("authProfile") || "{}");
-    const skills = JSON.parse(localStorage.getItem("authSkills") || "[]");
     
-    setOnboardingData({ position, profile, skills });
+    setOnboardingData({ position, profile });
   }, []);
 
   // Calculate profile completion based on actual data
@@ -110,7 +123,7 @@ export default function AthleteDashboard() {
       onboardingData.profile.state,
       onboardingData.profile.phone,
       onboardingData.position.name,
-      onboardingData.skills.length > 0
+      skills && skills.length > 0
     ];
     
     fields.forEach(field => {
@@ -120,39 +133,57 @@ export default function AthleteDashboard() {
     return Math.round(completion);
   };
 
-  const profileCompletion = calculateProfileCompletion();
-  const verificationLevel = calculateVerificationLevel(onboardingData.skills, profileCompletion);
-
-  // Dynamic data
-  const [activities] = useState(() => 
-    Array.from({ length: 5 }, () => generateActivity())
-  );
-  const [scoutViews, setScoutViews] = useState(12);
-  const [streakDays] = useState(7);
+  // Use data from API - remove localStorage fallback for Trust Pyramid integration
+  const profileCompletion = dashboardData?.stats?.profileCompletion || 0;
+  const verificationLevel = dashboardData?.athlete?.verificationLevel || 'bronze';
+  
+  // Get data from API response
+  const activities = dashboardData?.activities || [];
+  const scoutViews = dashboardData?.stats?.scoutViews || 0;
+  const streakDays = dashboardData?.stats?.streakDays || 0;
+  const achievements = dashboardData?.achievements || [];
+  const tests = dashboardData?.athlete ? [] : []; // Tests are counted in stats now
+  
+  // Check for new achievements
+  const [previousAchievementCount, setPreviousAchievementCount] = useState(0);
   const [showAchievementUnlock, setShowAchievementUnlock] = useState(false);
-
-  // Simulate scout views
+  const [newAchievement, setNewAchievement] = useState<any>(null);
+  
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.7) {
-        setScoutViews(prev => prev + 1);
-      }
-    }, 15000);
-    return () => clearInterval(interval);
-  }, []);
+    if (achievements.length > previousAchievementCount && previousAchievementCount > 0) {
+      // New achievement unlocked
+      const latestAchievement = achievements[0]; // Assuming sorted by date
+      setNewAchievement(latestAchievement);
+      setShowAchievementUnlock(true);
+    }
+    setPreviousAchievementCount(achievements.length);
+  }, [achievements.length]);
 
-  // Simulate achievement unlock
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (Math.random() > 0.5) {
-        setShowAchievementUnlock(true);
-      }
-    }, 8000);
-    return () => clearTimeout(timer);
-  }, []);
+  // Show loading skeleton while data is being fetched
+  if (isLoading) {
+    return (
+      <EnhancedAthleteLayout>
+        <div className="min-h-screen p-6">
+          <div className="animate-pulse">
+            <div className="h-64 bg-white/5 rounded-lg mb-8"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-8 space-y-6">
+                <div className="h-48 bg-white/5 rounded-lg"></div>
+                <div className="h-64 bg-white/5 rounded-lg"></div>
+              </div>
+              <div className="lg:col-span-4 space-y-6">
+                <div className="h-96 bg-white/5 rounded-lg"></div>
+                <div className="h-48 bg-white/5 rounded-lg"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </EnhancedAthleteLayout>
+    );
+  }
 
   // Check if profile is complete
-  if (!onboardingData.profile.fullName && !athlete) {
+  if (!onboardingData.profile.fullName && !dashboardData?.athlete) {
     return (
       <EnhancedAthleteLayout>
         <div className="min-h-screen flex items-center justify-center">
@@ -194,16 +225,16 @@ export default function AthleteDashboard() {
     );
   }
 
-  // Combine onboarding data with athlete data
+  // Combine API data with onboarding data as fallback
   const athleteData = {
-    fullName: athlete?.fullName || onboardingData.profile.fullName || "Atleta",
-    position: athlete?.position || onboardingData.position.name || "Atacante",
-    currentTeam: athlete?.currentTeam || onboardingData.profile.currentTeam || "Sem clube",
-    city: athlete?.city || onboardingData.profile.city || "São Paulo",
-    state: athlete?.state || onboardingData.profile.state || "SP",
+    fullName: dashboardData?.athlete?.fullName || onboardingData.profile.fullName || "Atleta",
+    position: dashboardData?.athlete?.position || onboardingData.position.name || "Atacante",
+    currentTeam: dashboardData?.athlete?.currentTeam || onboardingData.profile.currentTeam || "Sem clube",
+    city: dashboardData?.athlete?.city || onboardingData.profile.city || "São Paulo",
+    state: dashboardData?.athlete?.state || onboardingData.profile.state || "SP",
     verificationLevel: verificationLevel,
-    percentile: Math.round(50 + (profileCompletion / 2)), // Dynamic based on completion
-    profileViews: scoutViews * 3
+    percentile: dashboardData?.stats?.percentile || Math.round(50 + (profileCompletion / 2)),
+    profileViews: dashboardData?.stats?.profileViews || scoutViews * 3
   };
 
   return (
@@ -217,20 +248,42 @@ export default function AthleteDashboard() {
           percentileChange={2}
         />
         
-        {showAchievementUnlock && (
+        {showAchievementUnlock && newAchievement && (
           <AchievementUnlockNotification 
-            achievementName="Velocista Iniciante"
-            xpEarned={100}
-            description="Você completou seu primeiro teste de velocidade!"
+            achievementName={newAchievement.title}
+            xpEarned={newAchievement.points || 100}
+            description={newAchievement.description || "Nova conquista desbloqueada!"}
             onClose={() => setShowAchievementUnlock(false)}
           />
         )}
         
         <SocialProofNotification />
         
+        {/* Skills sync notification */}
+        {hasLocalSkills && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed top-4 right-4 z-50 bg-black/90 backdrop-blur-md text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3"
+          >
+            {isSyncing ? (
+              <>
+                <div className="w-4 h-4 border-2 border-verde-brasil border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm">Sincronizando suas habilidades...</span>
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 bg-amarelo-ouro rounded-full animate-pulse" />
+                <span className="text-sm">Habilidades pendentes de sincronização</span>
+              </>
+            )}
+          </motion.div>
+        )}
+        
         <div className="space-y-8">
-          {/* Animated background elements */}
-          <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          {/* Animated background elements - disabled on mobile for performance */}
+          <div className="fixed inset-0 pointer-events-none overflow-hidden hidden md:block">
             <motion.div 
               animate={{
                 scale: [1, 1.2, 1],
@@ -263,7 +316,7 @@ export default function AthleteDashboard() {
             <HeroSection 
               athlete={athleteData}
               profileCompletion={profileCompletion}
-              testsCompleted={tests.length || 0}
+              testsCompleted={dashboardData?.stats?.testsCompleted || 0}
               streakDays={streakDays}
               scoutsWatching={scoutViews}
             />
@@ -280,7 +333,7 @@ export default function AthleteDashboard() {
                   transition={{ delay: 0.1 }}
                   className="glass-morph rounded-2xl p-6"
                 >
-                  <NextStepWidget profileCompletion={profileCompletion} tests={tests} />
+                  <NextStepWidget profileCompletion={profileCompletion} tests={dashboardData?.athlete ? [] : []} />
                 </motion.div>
 
                 {/* Combine Digital Hub - Glassmorphic style */}
@@ -290,7 +343,7 @@ export default function AthleteDashboard() {
                   transition={{ delay: 0.2 }}
                   className="glass-morph rounded-2xl p-6"
                 >
-                  <CombineDigitalHub tests={tests} />
+                  <CombineDigitalHub tests={dashboardData?.athlete ? [] : []} />
                 </motion.div>
 
                 {/* Performance Evolution - Glassmorphic style */}
@@ -301,18 +354,46 @@ export default function AthleteDashboard() {
                   className="glass-morph rounded-2xl p-6"
                 >
                   <PerformanceEvolution athlete={{
-                    ...athleteData,
-                    stats: {
-                      speed: onboardingData.skills.find(s => s.id === "speed")?.data?.sliderValue || 5,
-                      strength: onboardingData.skills.find(s => s.id === "strength")?.data?.sliderValue || 5,
-                      technique: Object.values(onboardingData.skills.find(s => s.id === "technique")?.data?.skills || {}).reduce((a: any, b: any) => a + b, 0) / 4 || 3,
-                      stamina: onboardingData.skills.find(s => s.id === "stamina")?.data?.duration === "90+" ? 9 : 6
-                    }
+                    speed: skills.find(s => s.id === "speed")?.data?.sliderValue || 5,
+                    agility: skills.find(s => s.id === "strength")?.data?.sliderValue || 5,
+                    technique: Object.values(skills.find(s => s.id === "technique")?.data?.skills || {}).reduce((a: any, b: any) => a + b, 0) / 4 || 3,
+                    endurance: skills.find(s => s.id === "stamina")?.data?.duration === "90+" ? 9 : 6
                   }} />
+                </motion.div>
+
+                {/* Skills Trust Display - Glassmorphic style */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="glass-morph rounded-2xl p-6"
+                >
+                  <SkillsTrustDisplay 
+                    skills={skills}
+                    currentTrustLevel={verificationLevel}
+                    onVerifySkill={(skillId) => {
+                      // Navigate to appropriate verification page
+                      setLocation("/athlete/combine");
+                    }}
+                  />
                 </motion.div>
               </div>
               
               <div className="lg:col-span-4 space-y-8">
+                {/* Trust Score Widget - NEW PROMINENT DISPLAY */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="glass-morph rounded-2xl p-6"
+                >
+                  <TrustScoreWidget 
+                    currentLevel={verificationLevel}
+                    skills={skills}
+                    profileCompletion={profileCompletion}
+                  />
+                </motion.div>
+                
                 {/* Trust Pyramid - Glassmorphic style */}
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
@@ -320,7 +401,12 @@ export default function AthleteDashboard() {
                   transition={{ delay: 0.2 }}
                   className="glass-morph rounded-2xl p-6"
                 >
-                  <TrustPyramidProgressWidget currentLevel={verificationLevel} />
+                  <TrustPyramidProgressWidget 
+                    athlete={dashboardData?.athlete}
+                    skills={skills}
+                    tests={tests}
+                    currentLevel={verificationLevel}
+                  />
                 </motion.div>
 
                 {/* Achievements Gallery - Glassmorphic style */}
@@ -351,11 +437,11 @@ export default function AthleteDashboard() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50"
+            className="fixed bottom-24 right-6 md:bottom-8 md:right-8 z-floating"
           >
             <Button 
               size="lg"
-              className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-verde-brasil to-verde-brasil/80 hover:from-verde-brasil/90 hover:to-verde-brasil/70 text-white shadow-2xl shadow-verde-brasil/30 transform hover:scale-110 transition-all duration-300 group"
+              className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-verde-brasil to-verde-brasil/80 hover:from-verde-brasil/90 hover:to-verde-brasil/70 text-white shadow-2xl shadow-verde-brasil/30 transform hover:scale-110 transition-all duration-300 group touch-target"
               onClick={() => setLocation("/athlete/combine")}
             >
               <div className="flex flex-col items-center">

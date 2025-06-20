@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Updated Position Test - Proper Field Alignment</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .field-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1.5;
+            background: linear-gradient(to bottom, #22c55e, #16a34a);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .field-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .positions-container {
+            position: absolute;
+            inset: 0;
+        }
+        
+        .position {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #3b82f6;
+            border: 2px solid white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .position:hover {
+            background: #fbbf24;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        
+        .position.defense { background: #fbbf24; }
+        .position.midfield { background: #8b5cf6; }
+        .position.forward { background: #ef4444; }
+        
+        .comparison {
+            margin-top: 20px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        
+        .old { color: #ef4444; }
+        .new { color: #22c55e; }
+        
+        @media (max-width: 768px) {
+            .position {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Updated Position Alignment Test</h1>
+        <p>Field boundaries: x:10-90, y:10-90 (80x80 within 100x100 viewBox)</p>
+        
+        <div class="field-wrapper">
+            <!-- Field Lines SVG -->
+            <svg class="field-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <!-- Field boundary -->
+                <rect x="10" y="10" width="80" height="80" fill="none" stroke="white" stroke-width="0.5" opacity="0.8" />
+                
+                <!-- Center line -->
+                <line x1="10" y1="50" x2="90" y2="50" stroke="white" stroke-width="0.5" opacity="0.8" />
+                
+                <!-- Center circle -->
+                <circle cx="50" cy="50" r="10" fill="none" stroke="white" stroke-width="0.5" opacity="0.8" />
+                
+                <!-- Penalty areas -->
+                <rect x="10" y="10" width="80" height="18" fill="none" stroke="white" stroke-width="0.5" opacity="0.8" />
+                <rect x="10" y="72" width="80" height="18" fill="none" stroke="white" stroke-width="0.5" opacity="0.8" />
+                
+                <!-- Goal areas -->
+                <rect x="25" y="10" width="50" height="10" fill="none" stroke="white" stroke-width="0.5" opacity="0.8" />
+                <rect x="25" y="80" width="50" height="10" fill="none" stroke="white" stroke-width="0.5" opacity="0.8" />
+                
+                <!-- Visual guides for edge alignment -->
+                <line x1="20" y1="10" x2="20" y2="90" stroke="red" stroke-width="0.3" opacity="0.5" stroke-dasharray="2,2" />
+                <line x1="25" y1="10" x2="25" y2="90" stroke="green" stroke-width="0.3" opacity="0.5" stroke-dasharray="2,2" />
+                <line x1="75" y1="10" x2="75" y2="90" stroke="green" stroke-width="0.3" opacity="0.5" stroke-dasharray="2,2" />
+                <line x1="80" y1="10" x2="80" y2="90" stroke="red" stroke-width="0.3" opacity="0.5" stroke-dasharray="2,2" />
+            </svg>
+            
+            <!-- Positions Container -->
+            <div class="positions-container">
+                <!-- Defense -->
+                <div class="position defense" style="left: 50%; top: 82%;" title="GK">1</div>
+                <div class="position defense" style="left: 25%; top: 65%;" title="LB">6</div>
+                <div class="position defense" style="left: 37%; top: 73%;" title="CB">4</div>
+                <div class="position defense" style="left: 63%; top: 73%;" title="CB">3</div>
+                <div class="position defense" style="left: 75%; top: 65%;" title="RB">2</div>
+                
+                <!-- Midfield -->
+                <div class="position midfield" style="left: 32%; top: 50%;" title="DM">5</div>
+                <div class="position midfield" style="left: 50%; top: 45%;" title="CM">8</div>
+                <div class="position midfield" style="left: 68%; top: 50%;" title="AM">10</div>
+                
+                <!-- Attack -->
+                <div class="position forward" style="left: 25%; top: 28%;" title="LW">11</div>
+                <div class="position forward" style="left: 50%; top: 20%;" title="ST">9</div>
+                <div class="position forward" style="left: 75%; top: 28%;" title="RW">7</div>
+            </div>
+        </div>
+        
+        <div class="comparison">
+            <h2>Position Adjustments</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Old Coords</th>
+                        <th>New Coords</th>
+                        <th>Change</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GK (1)</td>
+                        <td class="old">x:50, y:85</td>
+                        <td class="new">x:50, y:82</td>
+                        <td>Moved forward 3 units</td>
+                    </tr>
+                    <tr>
+                        <td>LB (6)</td>
+                        <td class="old">x:20, y:65</td>
+                        <td class="new">x:25, y:65</td>
+                        <td>Moved inward 5 units</td>
+                    </tr>
+                    <tr>
+                        <td>RB (2)</td>
+                        <td class="old">x:80, y:65</td>
+                        <td class="new">x:75, y:65</td>
+                        <td>Moved inward 5 units</td>
+                    </tr>
+                    <tr>
+                        <td>LW (11)</td>
+                        <td class="old">x:20, y:25</td>
+                        <td class="new">x:25, y:28</td>
+                        <td>Moved inward 5 units, back 3 units</td>
+                    </tr>
+                    <tr>
+                        <td>ST (9)</td>
+                        <td class="old">x:50, y:15</td>
+                        <td class="new">x:50, y:20</td>
+                        <td>Moved back 5 units from edge</td>
+                    </tr>
+                    <tr>
+                        <td>RW (7)</td>
+                        <td class="old">x:80, y:25</td>
+                        <td class="new">x:75, y:28</td>
+                        <td>Moved inward 5 units, back 3 units</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Key Improvements:</h3>
+            <ul>
+                <li>Wing players (LW, RW, LB, RB) now have 5 units spacing from field edges</li>
+                <li>Striker moved back from y:15 to y:20 for better field positioning</li>
+                <li>All positions properly aligned within field boundaries (10-90 range)</li>
+                <li>Red lines show old edge positions (x:20, x:80)</li>
+                <li>Green lines show new edge positions (x:25, x:75)</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

@@ -3,7 +3,11 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Zap, Dumbbell, Target, Heart, ChevronRight, ChevronLeft } from "lucide-react";
+import { Zap, Dumbbell, Target, Heart, ChevronRight, ChevronLeft, Medal, Info, AlertCircle, Shield } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 interface SkillAssessment {
   id: string;
@@ -20,6 +24,50 @@ interface SkillAssessment {
     duration?: string;
     recovery?: string;
   };
+}
+
+// Trust Level Banner Component
+function TrustLevelBanner({ skillType }: { skillType: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mb-6 p-4 bg-orange-500/10 border border-orange-500/30 rounded-xl"
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+          <Medal className="w-5 h-5 text-orange-400" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h4 className="font-semibold text-orange-400">Nível Bronze - Auto-declarado</h4>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="text-orange-400/60 hover:text-orange-400 transition-colors">
+                    <Info className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p className="text-sm">
+                    Dados auto-declarados são o primeiro passo. Você poderá elevar para níveis superiores através de:
+                  </p>
+                  <ul className="mt-2 space-y-1 text-xs">
+                    <li>• <strong>Prata:</strong> Validação do seu treinador</li>
+                    <li>• <strong>Ouro:</strong> Estatísticas oficiais de liga</li>
+                    <li>• <strong>Platina:</strong> Testes do Combine Digital com IA</li>
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <p className="text-sm text-orange-300/80">
+            Seus dados de {skillType} serão marcados como auto-declarados até serem verificados.
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
 }
 
 // Speed Assessment Component
@@ -46,7 +94,7 @@ function SpeedAssessment({ onComplete }: { onComplete: (data: any) => void }) {
       className="w-full max-w-2xl mx-auto"
     >
       <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
             <Zap className="w-8 h-8 text-white" />
           </div>
@@ -55,6 +103,9 @@ function SpeedAssessment({ onComplete }: { onComplete: (data: any) => void }) {
             <p className="text-white/60">Seja honesto - isso ajuda a encontrar as melhores oportunidades</p>
           </div>
         </div>
+        
+        {/* Trust Level Banner */}
+        <TrustLevelBanner skillType="velocidade" />
         
         {/* Self Rating */}
         <div className="rating-section mb-8">
@@ -153,7 +204,7 @@ function StrengthAssessment({ onComplete }: { onComplete: (data: any) => void })
       className="w-full max-w-2xl mx-auto"
     >
       <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
             <Dumbbell className="w-8 h-8 text-white" />
           </div>
@@ -162,6 +213,9 @@ function StrengthAssessment({ onComplete }: { onComplete: (data: any) => void })
             <p className="text-white/60">Força é importante para proteger a bola e disputas</p>
           </div>
         </div>
+        
+        {/* Trust Level Banner */}
+        <TrustLevelBanner skillType="força" />
         
         {/* Multiple Choice Questions */}
         <div className="question mb-8">
@@ -259,7 +313,7 @@ function TechniqueAssessment({ onComplete }: { onComplete: (data: any) => void }
       className="w-full max-w-2xl mx-auto"
     >
       <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
             <Target className="w-8 h-8 text-white" />
           </div>
@@ -268,6 +322,9 @@ function TechniqueAssessment({ onComplete }: { onComplete: (data: any) => void }
             <p className="text-white/60">Clique nos números para avaliar cada habilidade de 1 a 5</p>
           </div>
         </div>
+        
+        {/* Trust Level Banner */}
+        <TrustLevelBanner skillType="técnica" />
         
         {/* Skill Matrix */}
         <div className="skill-grid mb-8 space-y-4">
@@ -369,7 +426,7 @@ function StaminaAssessment({ onComplete }: { onComplete: (data: any) => void }) 
       className="w-full max-w-2xl mx-auto"
     >
       <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
-        <div className="flex items-center gap-4 mb-8">
+        <div className="flex items-center gap-4 mb-6">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
             <Heart className="w-8 h-8 text-white" />
           </div>
@@ -378,6 +435,9 @@ function StaminaAssessment({ onComplete }: { onComplete: (data: any) => void }) 
             <p className="text-white/60">Quanto tempo você aguenta jogar intensamente?</p>
           </div>
         </div>
+        
+        {/* Trust Level Banner */}
+        <TrustLevelBanner skillType="resistência" />
         
         {/* Duration Selector */}
         <div className="stamina-scale mb-8">
@@ -451,6 +511,9 @@ function StaminaAssessment({ onComplete }: { onComplete: (data: any) => void }) 
 
 export default function AuthSkills() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
   const [currentAssessment, setCurrentAssessment] = useState(0);
   const [assessments, setAssessments] = useState<SkillAssessment[]>([
     {
@@ -483,6 +546,103 @@ export default function AuthSkills() {
     }
   ]);
 
+  const saveSkillsToDatabase = async (skillsData: any[]) => {
+    try {
+      // Get athlete ID from user data or localStorage
+      const authProfile = JSON.parse(localStorage.getItem("authProfile") || "{}");
+      
+      // First, try to create the athlete if not exists
+      if (authProfile.fullName && !user?.roleData?.id) {
+        const position = JSON.parse(localStorage.getItem("authPosition") || "{}");
+        
+        const athleteData = {
+          fullName: authProfile.fullName,
+          birthDate: authProfile.birthDate,
+          city: authProfile.city,
+          state: authProfile.state,
+          phone: authProfile.phone || "",
+          position: position.name || "Atacante",
+          dominantFoot: "right" // Default, will be updated from skills
+        };
+        
+        try {
+          const response = await fetch('/api/athletes', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(athleteData)
+          });
+          
+          if (response.ok) {
+            const athlete = await response.json();
+            // Save skills to the newly created athlete
+            await saveSkillsForAthlete(athlete.id, skillsData);
+          }
+        } catch (error) {
+          console.error("Error creating athlete:", error);
+        }
+      } else if (user?.roleData?.id) {
+        // Athlete already exists, just save skills
+        await saveSkillsForAthlete(user.roleData.id, skillsData);
+      }
+    } catch (error) {
+      console.error("Error in saveSkillsToDatabase:", error);
+      toast({
+        title: "Aviso",
+        description: "Suas habilidades foram salvas localmente. Elas serão sincronizadas quando você acessar o painel.",
+        variant: "default"
+      });
+    }
+  };
+  
+  const saveSkillsForAthlete = async (athleteId: number, skillsData: any[]) => {
+    try {
+      const response = await fetch(`/api/athletes/${athleteId}/skills`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(skillsData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save skills');
+      }
+      
+      // Update verification level based on new data
+      try {
+        await fetch(`/api/athletes/${athleteId}/update-verification-level`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+      } catch (error) {
+        console.error("Error updating verification level:", error);
+      }
+      
+      // Invalidate queries to trigger refetch
+      queryClient.invalidateQueries({ queryKey: [`/api/athletes/${athleteId}/skills`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/athlete"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/athletes/me"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/athletes/${athleteId}/trust-score`] });
+      
+      toast({
+        title: "Sucesso!",
+        description: "Suas habilidades foram salvas com sucesso.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error("Error saving skills to database:", error);
+      toast({
+        title: "Aviso",
+        description: "Suas habilidades foram salvas localmente e serão sincronizadas em breve.",
+        variant: "default"
+      });
+    }
+  };
+
   const handleAssessmentComplete = (data: any) => {
     const updatedAssessments = [...assessments];
     updatedAssessments[currentAssessment].data = data;
@@ -497,7 +657,14 @@ export default function AuthSkills() {
         name: assessment.name,
         data: assessment.data
       }));
+      
+      // Save to localStorage for immediate use
       localStorage.setItem("authSkills", JSON.stringify(dataToSave));
+      
+      // Also save to database
+      saveSkillsToDatabase(dataToSave);
+      
+      // Navigate to complete page
       setLocation("/auth/complete");
     }
   };
@@ -524,6 +691,7 @@ export default function AuthSkills() {
   };
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
       {/* Training Ground atmosphere */}
       <div className="absolute inset-0">
@@ -644,6 +812,7 @@ export default function AuthSkills() {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
 

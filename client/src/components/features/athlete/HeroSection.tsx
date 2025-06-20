@@ -80,12 +80,12 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
           {/* Left Side - Profile Info */}
           <div className="flex items-center gap-6">
             <div className="flex flex-col items-center relative">
-              <ProfileCompletionRing percentage={localProfileCompletion} size={180} strokeWidth={8}>
-                <Avatar className="w-36 h-36 bg-white shadow-2xl">
-                  <User className="w-20 h-20 text-verde-brasil" />
+              <ProfileCompletionRing percentage={localProfileCompletion} size={120} strokeWidth={6} className="md:w-[180px] md:h-[180px]">
+                <Avatar className="w-24 h-24 md:w-36 md:h-36 bg-white shadow-2xl">
+                  <User className="w-12 h-12 md:w-20 md:h-20 text-verde-brasil" />
                 </Avatar>
-                <button className="absolute bottom-0 right-0 w-11 h-11 bg-amarelo-ouro rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                  <Camera className="w-5 h-5 text-gray-800" />
+                <button className="absolute bottom-0 right-0 w-9 h-9 md:w-11 md:h-11 bg-amarelo-ouro rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform touch-target">
+                  <Camera className="w-4 h-4 md:w-5 md:h-5 text-gray-800" />
                 </button>
               </ProfileCompletionRing>
               <div className="text-center mt-3">
