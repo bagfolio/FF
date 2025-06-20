@@ -7,10 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/layout/Navigation";
 import EmptyState from "@/components/ui/empty-state";
 import { AthleteCardSkeleton, DashboardStatsSkeleton } from "@/components/ui/skeleton-loader";
-import { generateRealisticAthlete } from "@/lib/brazilianData";
 import { Search, Users, Eye, TrendingUp, Filter, MapPin, Medal, Star, Crown, Trophy } from "lucide-react";
 import { useLocation } from "wouter";
 import VerificationBadge from "@/components/ui/verification-badge";
+import { scoutService } from "@/services/api";
 
 export default function ScoutDashboard() {
   const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
@@ -18,12 +18,21 @@ export default function ScoutDashboard() {
   const { data: athletes } = useQuery({ queryKey: ["/api/athletes"] });
   const [, setLocation] = useLocation();
 
-  // Generate realistic Brazilian athletes
-  const [mockAthletes] = useState(() => 
-    Array.from({ length: 10 }, () => generateRealisticAthlete())
-  );
+  // Fetch real recent athletes instead of mock data
+  const { data: recentAthletes = [] } = useQuery({ 
+    queryKey: ['recent-athletes'],
+    queryFn: () => scoutService.getRecentAthletes(),
+    enabled: !!scout
+  });
   
   const [searchQuery, setSearchQuery] = useState("");
+  // Fetch scout statistics from API
+  const { data: scoutStats } = useQuery({ 
+    queryKey: ['scout-stats', scout?.id],
+    queryFn: () => scoutService.getScoutStats(scout!.id),
+    enabled: !!scout?.id
+  });
+  
   const [animatedStats, setAnimatedStats] = useState({
     discovered: 0,
     viewed: 0,
@@ -32,17 +41,19 @@ export default function ScoutDashboard() {
   });
   
   useEffect(() => {
-    // Animate stats on mount
-    const timer = setTimeout(() => {
-      setAnimatedStats({
-        discovered: mockAthletes.length,
-        viewed: 287,
-        newTalents: 23,
-        contacts: 12
-      });
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+    // Animate stats on mount with real data
+    if (scoutStats) {
+      const timer = setTimeout(() => {
+        setAnimatedStats({
+          discovered: scoutStats.athletesDiscovered || 0,
+          viewed: scoutStats.profilesViewed || 0,
+          newTalents: scoutStats.newTalentsThisWeek || 0,
+          contacts: scoutStats.contactsMade || 0
+        });
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [scoutStats]);
 
 
   if (!scout) {
@@ -205,7 +216,7 @@ export default function ScoutDashboard() {
                 <CardTitle className="font-bebas text-2xl azul-celeste">NOVOS TALENTOS</CardTitle>
               </CardHeader>
               <CardContent>
-                {!mockAthletes.length ? (
+                {!recentAthletes.length ? (
                   <EmptyState 
                     type="no-athletes"
                     action={{
@@ -215,7 +226,7 @@ export default function ScoutDashboard() {
                   />
                 ) : (
                   <div className="space-y-4">
-                    {mockAthletes.slice(0, 5).map((athlete, index) => (
+                    {recentAthletes.slice(0, 5).map((athlete, index) => (
                       <div 
                         key={index} 
                         className={`p-5 border-2 rounded-xl transition-all duration-300 cursor-pointer transform hover:scale-[1.02] hover:shadow-lg group ${

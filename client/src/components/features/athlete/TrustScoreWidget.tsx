@@ -25,9 +25,9 @@ const trustLevelConfig = {
     score: 25,
     label: 'Bronze',
     icon: Medal,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-300',
+    color: 'text-orange-400',
+    bgColor: 'glass-morph-orange',
+    borderColor: 'border-orange-500/30',
     progressColor: 'bg-orange-500',
     glowColor: 'shadow-orange-500/30',
     message: 'Dados auto-declarados'
@@ -36,9 +36,9 @@ const trustLevelConfig = {
     score: 50,
     label: 'Prata',
     icon: Star,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50',
-    borderColor: 'border-gray-300',
+    color: 'text-gray-300',
+    bgColor: 'glass-morph',
+    borderColor: 'border-gray-400/30',
     progressColor: 'bg-gray-500',
     glowColor: 'shadow-gray-500/30',
     message: 'Validado por treinador'
@@ -47,9 +47,9 @@ const trustLevelConfig = {
     score: 75,
     label: 'Ouro',
     icon: Crown,
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-50',
-    borderColor: 'border-yellow-300',
+    color: 'text-yellow-400',
+    bgColor: 'glass-morph-yellow',
+    borderColor: 'border-yellow-400/30',
     progressColor: 'bg-yellow-500',
     glowColor: 'shadow-yellow-500/30',
     message: 'Verificado por liga'
@@ -58,9 +58,9 @@ const trustLevelConfig = {
     score: 100,
     label: 'Platina',
     icon: Trophy,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-300',
+    color: 'text-purple-400',
+    bgColor: 'glass-morph-purple',
+    borderColor: 'border-purple-400/30',
     progressColor: 'bg-purple-500',
     glowColor: 'shadow-purple-500/30',
     message: 'Combine Digital verificado'
@@ -87,11 +87,11 @@ export function TrustScoreWidget({
                         currentLevel === 'silver' ? 60 : 40;
   
   return (
-    <Card className={cn("relative overflow-hidden", className)}>
+    <Card className={cn("relative overflow-hidden glass-morph border-white/10", className)}>
       {/* Animated background for bronze level */}
       {currentLevel === 'bronze' && (
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-orange-600/5"
+          className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-orange-600/10"
           animate={{
             opacity: [0.5, 0.8, 0.5]
           }}
@@ -108,7 +108,7 @@ export function TrustScoreWidget({
           <CardTitle className="font-bebas text-2xl">ÍNDICE DE CONFIANÇA</CardTitle>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <button className="text-white/40 hover:text-white/60 transition-colors">
                 <Info className="w-5 h-5" />
               </button>
             </TooltipTrigger>
@@ -176,7 +176,7 @@ export function TrustScoreWidget({
             <h3 className={cn("text-xl font-bold", config.color)}>
               Nível {config.label}
             </h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-white/60 mt-1">
               {config.message}
             </p>
           </div>
@@ -186,7 +186,7 @@ export function TrustScoreWidget({
         {nextLevel && (
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">Progresso para {trustLevelConfig[nextLevel].label}</span>
+              <span className="text-white/60">Progresso para {trustLevelConfig[nextLevel].label}</span>
               <span className="font-medium">{progressToNext}%</span>
             </div>
             <Progress value={progressToNext} className="h-2" />
@@ -198,7 +198,7 @@ export function TrustScoreWidget({
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-4 bg-orange-50 border border-orange-200 rounded-lg"
+            className="p-4 glass-morph-orange rounded-lg"
           >
             <div className="flex items-start gap-3">
               <motion.div
@@ -228,7 +228,7 @@ export function TrustScoreWidget({
             "border"
           )}>
             <TrendingUp className={cn("w-5 h-5 mx-auto mb-1", config.color)} />
-            <p className="text-xs text-gray-600">Visibilidade</p>
+            <p className="text-xs text-white/60">Visibilidade</p>
             <p className={cn("text-sm font-bold", config.color)}>
               {currentLevel === 'platinum' ? 'Máxima' :
                currentLevel === 'gold' ? 'Alta' :
@@ -243,7 +243,7 @@ export function TrustScoreWidget({
             "border"
           )}>
             <Shield className={cn("w-5 h-5 mx-auto mb-1", config.color)} />
-            <p className="text-xs text-gray-600">Credibilidade</p>
+            <p className="text-xs text-white/60">Credibilidade</p>
             <p className={cn("text-sm font-bold", config.color)}>
               {config.score}%
             </p>

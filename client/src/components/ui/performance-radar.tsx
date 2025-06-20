@@ -56,10 +56,21 @@ export default function PerformanceRadar({
 
       const progress = animated ? progressRef.current : 1;
 
+      // Detect dark mode
+      const isDarkMode = document.documentElement.classList.contains('dark') || 
+                        window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      // Theme-aware colors
+      const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : '#e5e7eb';
+      const textColor = isDarkMode ? 'rgba(255, 255, 255, 0.9)' : '#374151';
+      const labelBgColor = isDarkMode ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.9)';
+      const primaryColor = '#009C3B'; // Verde Brasil
+      const primaryColorAlpha = isDarkMode ? 'rgba(0, 156, 59, 0.3)' : 'rgba(0, 156, 59, 0.2)';
+      
       // Draw grid circles
       for (let i = 1; i <= 5; i++) {
         ctx.beginPath();
-        ctx.strokeStyle = '#e5e7eb';
+        ctx.strokeStyle = gridColor;
         ctx.lineWidth = 1;
         
         for (let j = 0; j < data.length; j++) {
@@ -79,7 +90,7 @@ export default function PerformanceRadar({
       }
 
       // Draw lines from center
-      ctx.strokeStyle = '#e5e7eb';
+      ctx.strokeStyle = gridColor;
       ctx.lineWidth = 1;
       
       for (let i = 0; i < data.length; i++) {
@@ -94,8 +105,8 @@ export default function PerformanceRadar({
 
       // Draw data polygon
       ctx.beginPath();
-      ctx.fillStyle = 'rgba(0, 156, 59, 0.2)'; // Verde Brasil with transparency
-      ctx.strokeStyle = '#009C3B'; // Verde Brasil
+      ctx.fillStyle = primaryColorAlpha;
+      ctx.strokeStyle = primaryColor;
       ctx.lineWidth = 2;
 
       for (let i = 0; i < data.length; i++) {
@@ -126,9 +137,9 @@ export default function PerformanceRadar({
         
         ctx.beginPath();
         ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#009C3B';
+        ctx.fillStyle = primaryColor;
         ctx.fill();
-        ctx.strokeStyle = 'white';
+        ctx.strokeStyle = isDarkMode ? 'black' : 'white';
         ctx.lineWidth = 2;
         ctx.stroke();
       }
@@ -149,7 +160,7 @@ export default function PerformanceRadar({
           const metrics = ctx.measureText(data[i].label);
           const padding = 4;
           
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.fillStyle = labelBgColor;
           ctx.fillRect(
             x - metrics.width / 2 - padding,
             y - 10,
@@ -157,12 +168,12 @@ export default function PerformanceRadar({
             20
           );
           
-          ctx.fillStyle = '#374151';
+          ctx.fillStyle = textColor;
           ctx.fillText(data[i].label, x, y);
           
           // Value
           ctx.font = '12px Oswald, sans-serif';
-          ctx.fillStyle = '#009C3B';
+          ctx.fillStyle = primaryColor;
           ctx.fillText(`${Math.round(data[i].value * progress)}%`, x, y + 15);
         }
       }

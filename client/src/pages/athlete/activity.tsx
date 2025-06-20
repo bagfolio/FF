@@ -7,7 +7,8 @@ import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbP
 import { ArrowLeft, Activity, Eye, Trophy, TrendingUp, Award, Play, User, Video, Bell, Filter, Calendar, Clock } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
-import { generateActivity } from "@/lib/brazilianData";
+import { useQuery } from "@tanstack/react-query";
+import { activityService } from "@/services/api";
 
 interface ActivityItem {
   id: string;
@@ -30,178 +31,24 @@ interface ActivityItem {
   isNew?: boolean;
 }
 
-// Generate more detailed activities
-const generateDetailedActivities = (): ActivityItem[] => {
-  const activities: ActivityItem[] = [];
-  const dates = ["Hoje", "Ontem", "2 dias atrás", "3 dias atrás", "5 dias atrás", "1 semana atrás", "2 semanas atrás"];
-  const times = ["agora mesmo", "5 minutos atrás", "15 minutos atrás", "1 hora atrás", "3 horas atrás", "8 horas atrás"];
-  
-  // Recent activities (today)
-  activities.push({
-    id: "1",
-    type: "view",
-    title: "Novo Olheiro Interessado",
-    message: "Seu perfil foi visualizado por um scout do Santos FC",
-    time: "5 minutos atrás",
-    date: "Hoje",
-    icon: Eye,
-    metadata: { club: "Santos FC", viewCount: 3 },
-    isNew: true
-  });
-  
-  activities.push({
-    id: "2",
-    type: "achievement",
-    title: "Conquista Desbloqueada!",
-    message: "Você desbloqueou 'Dedicação' - 7 dias de sequência",
-    time: "1 hora atrás",
-    date: "Hoje",
-    icon: Trophy,
-    metadata: { achievement: "Dedicação", xpEarned: 300 },
-    isNew: true
-  });
-  
-  activities.push({
-    id: "3",
-    type: "test",
-    title: "Novo Teste Disponível",
-    message: "Teste de Agilidade Illinois agora disponível para você",
-    time: "3 horas atrás",
-    date: "Hoje",
-    icon: Play,
-    metadata: { test: "Illinois Agility Test" }
-  });
-  
-  // Yesterday's activities
-  activities.push({
-    id: "4",
-    type: "rank",
-    title: "Subiu no Ranking!",
-    message: "Você subiu para o 78º percentil em velocidade",
-    time: "14:30",
-    date: "Ontem",
-    icon: TrendingUp,
-    metadata: { skill: "velocidade", percentile: 78 }
-  });
-  
-  activities.push({
-    id: "5",
-    type: "view",
-    title: "Múltiplas Visualizações",
-    message: "Seu perfil foi visualizado 5 vezes nas últimas 24 horas",
-    time: "10:15",
-    date: "Ontem",
-    icon: Eye,
-    metadata: { viewCount: 5 }
-  });
-  
-  activities.push({
-    id: "6",
-    type: "social",
-    title: "Nova Conexão",
-    message: "Pedro Santos da sua região começou a seguir você",
-    time: "09:00",
-    date: "Ontem",
-    icon: User,
-    metadata: { player: "Pedro Santos" }
-  });
-  
-  // Older activities
-  activities.push({
-    id: "7",
-    type: "achievement",
-    title: "Conquista Épica!",
-    message: "Você desbloqueou 'Relâmpago' - Top 10% em velocidade",
-    time: "16:45",
-    date: "2 dias atrás",
-    icon: Trophy,
-    metadata: { achievement: "Relâmpago", xpEarned: 500 }
-  });
-  
-  activities.push({
-    id: "8",
-    type: "update",
-    title: "Atualização Regional",
-    message: "João Silva da sua região melhorou seu tempo no sprint 20m",
-    time: "12:30",
-    date: "2 dias atrás",
-    icon: TrendingUp,
-    metadata: { player: "João Silva" }
-  });
-  
-  activities.push({
-    id: "9",
-    type: "system",
-    title: "Novo Recurso!",
-    message: "Teste de Tomada de Decisão adicionado ao Combine Digital",
-    time: "08:00",
-    date: "3 dias atrás",
-    icon: Bell,
-    metadata: {}
-  });
-  
-  activities.push({
-    id: "10",
-    type: "view",
-    title: "Scout Premium",
-    message: "Seu perfil foi visualizado por um scout verificado do Flamengo",
-    time: "19:20",
-    date: "3 dias atrás",
-    icon: Eye,
-    metadata: { club: "Flamengo", viewCount: 2 }
-  });
-  
-  activities.push({
-    id: "11",
-    type: "test",
-    title: "Teste Completado",
-    message: "Você completou o Teste de Embaixadinhas com 87 toques",
-    time: "15:00",
-    date: "5 dias atrás",
-    icon: Play,
-    metadata: { test: "Embaixadinhas" }
-  });
-  
-  activities.push({
-    id: "12",
-    type: "rank",
-    title: "Melhoria Significativa",
-    message: "Você melhorou 15 posições no ranking de agilidade",
-    time: "11:30",
-    date: "1 semana atrás",
-    icon: TrendingUp,
-    metadata: { skill: "agilidade" }
-  });
-  
-  // Add more generated activities
-  for (let i = 0; i < 20; i++) {
-    const activity = generateActivity();
-    activities.push({
-      id: `gen-${i}`,
-      type: activity.type as any,
-      title: activity.type === "view" ? "Visualização de Perfil" : 
-             activity.type === "achievement" ? "Nova Conquista" :
-             activity.type === "test" ? "Teste Disponível" :
-             activity.type === "update" ? "Atualização" : "Mudança no Ranking",
-      message: activity.message,
-      time: times[Math.floor(Math.random() * times.length)],
-      date: dates[Math.floor(Math.random() * dates.length)],
-      icon: activity.type === "view" ? Eye :
-            activity.type === "achievement" ? Trophy :
-            activity.type === "test" ? Play :
-            activity.type === "update" ? TrendingUp : Award
-    });
-  }
-  
-  return activities;
-};
 
 export default function ActivityPage() {
   const [, setLocation] = useLocation();
   const [selectedType, setSelectedType] = useState("all");
   const [selectedDate, setSelectedDate] = useState("all");
   
-  const activities = generateDetailedActivities();
+  // Fetch real activities from API
+  const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
+  const { data: athlete } = useQuery({ 
+    queryKey: ["/api/athletes/me"],
+    enabled: !!user 
+  });
+  
+  const { data: activities = [], isLoading } = useQuery({ 
+    queryKey: ['athlete-activities', athlete?.id, selectedType, selectedDate],
+    queryFn: () => activityService.getAthleteActivities(athlete!.id, { type: selectedType, date: selectedDate }),
+    enabled: !!athlete?.id,
+  });
   
   const activityTypes = [
     { id: "all", name: "Todas", count: activities.length },
@@ -230,13 +77,13 @@ export default function ActivityPage() {
   });
   
   const iconConfig = {
-    view: { color: "text-verde-brasil", bg: "bg-green-100" },
-    achievement: { color: "text-amarelo-ouro", bg: "bg-yellow-100" },
-    test: { color: "text-azul-celeste", bg: "bg-blue-100" },
-    update: { color: "text-purple-600", bg: "bg-purple-100" },
-    rank: { color: "text-orange-600", bg: "bg-orange-100" },
-    social: { color: "text-pink-600", bg: "bg-pink-100" },
-    system: { color: "text-gray-600", bg: "bg-gray-100" }
+    view: { color: "text-green-400", bg: "glass-morph-green" },
+    achievement: { color: "text-yellow-400", bg: "glass-morph-yellow" },
+    test: { color: "text-blue-400", bg: "glass-morph-blue" },
+    update: { color: "text-purple-400", bg: "glass-morph-purple" },
+    rank: { color: "text-orange-400", bg: "glass-morph-orange" },
+    social: { color: "text-pink-400", bg: "glass-morph-pink" },
+    system: { color: "text-white/60", bg: "glass-morph" }
   };
 
   return (
@@ -262,60 +109,60 @@ export default function ActivityPage() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-bebas text-4xl text-azul-celeste mb-2 flex items-center gap-3">
+          <h1 className="font-bebas text-4xl text-white mb-2 flex items-center gap-3">
             <Activity className="w-10 h-10" />
             HISTÓRICO DE ATIVIDADE
           </h1>
-          <p className="text-gray-600">
+          <p className="text-white/60">
             Acompanhe todas as suas atividades e interações na plataforma
           </p>
           
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <Card className="glass-morph-green hover:shadow-lg transition-all duration-300">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Visualizações Hoje</p>
-                    <p className="text-2xl font-bold text-green-700">3</p>
+                    <p className="text-sm text-white/60">Visualizações Hoje</p>
+                    <p className="text-2xl font-bold text-white">3</p>
                   </div>
-                  <Eye className="w-8 h-8 text-green-600" />
+                  <Eye className="w-8 h-8 text-green-400" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
+            <Card className="glass-morph-yellow hover:shadow-lg transition-all duration-300">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Conquistas esta Semana</p>
-                    <p className="text-2xl font-bold text-yellow-700">2</p>
+                    <p className="text-sm text-white/60">Conquistas esta Semana</p>
+                    <p className="text-2xl font-bold text-white">2</p>
                   </div>
-                  <Trophy className="w-8 h-8 text-yellow-600" />
+                  <Trophy className="w-8 h-8 text-yellow-400" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <Card className="glass-morph-blue hover:shadow-lg transition-all duration-300">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Testes Completados</p>
-                    <p className="text-2xl font-bold text-blue-700">7</p>
+                    <p className="text-sm text-white/60">Testes Completados</p>
+                    <p className="text-2xl font-bold text-white">7</p>
                   </div>
-                  <Play className="w-8 h-8 text-blue-600" />
+                  <Play className="w-8 h-8 text-blue-400" />
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <Card className="glass-morph-purple hover:shadow-lg transition-all duration-300">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Atividade Total</p>
-                    <p className="text-2xl font-bold text-purple-700">{activities.length}</p>
+                    <p className="text-sm text-white/60">Atividade Total</p>
+                    <p className="text-2xl font-bold text-white">{activities.length}</p>
                   </div>
-                  <Bell className="w-8 h-8 text-purple-600" />
+                  <Bell className="w-8 h-8 text-purple-400" />
                 </div>
               </CardContent>
             </Card>
@@ -327,10 +174,10 @@ export default function ActivityPage() {
           {/* Type Filter */}
           <div className="flex-1">
             <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger>
+              <SelectTrigger className="glass-morph border-white/10">
                 <SelectValue placeholder="Filtrar por tipo" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="glass-morph-dark border-white/10">
                 <SelectItem value="all">Tudo</SelectItem>
                 <SelectItem value="view">Visualizações de Scout</SelectItem>
                 <SelectItem value="achievement">Conquistas</SelectItem>
@@ -344,10 +191,10 @@ export default function ActivityPage() {
           {/* Date Filter */}
           <div>
             <Select value={selectedDate} onValueChange={setSelectedDate}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[200px] glass-morph border-white/10">
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="glass-morph-dark border-white/10">
                 {dateFilters.map(filter => (
                   <SelectItem key={filter.id} value={filter.id}>
                     {filter.name}
@@ -361,8 +208,8 @@ export default function ActivityPage() {
         {/* Vertical Timeline */}
         <div className="timeline-container">
           {filteredActivities.length === 0 ? (
-            <Card className="p-8 text-center">
-              <p className="text-gray-500">Nenhuma atividade encontrada para os filtros selecionados.</p>
+            <Card className="p-8 text-center glass-morph border-white/10">
+              <p className="text-white/50">Nenhuma atividade encontrada para os filtros selecionados.</p>
             </Card>
           ) : (
             <>
@@ -379,10 +226,10 @@ export default function ActivityPage() {
                     <div className="timeline-item">
                       <div className="timeline-dot border-gray-400 bg-gray-100" />
                       <div className="flex items-center justify-center mb-6">
-                        <div className="bg-white px-4 py-2 rounded-full shadow-sm border">
+                        <div className="glass-morph px-4 py-2 rounded-full border-white/10">
                           <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-500" />
-                            <h3 className="font-semibold text-gray-700">{date}</h3>
+                            <Calendar className="w-4 h-4 text-white/50" />
+                            <h3 className="font-semibold text-white">{date}</h3>
                           </div>
                         </div>
                       </div>
@@ -410,9 +257,9 @@ export default function ActivityPage() {
                         <div key={activity.id} className="timeline-item">
                           <div className={`timeline-dot ${getDotColor()} bg-white`} />
                           
-                          <Card className={`timeline-content ${isLeft ? 'timeline-left' : 'timeline-right'} ${
-                            activity.isNew ? 'border-verde-brasil border-2' : ''
-                          } hover:shadow-xl`}>
+                          <Card className={`timeline-content ${isLeft ? 'timeline-left' : 'timeline-right'} glass-morph border-white/10 ${
+                            activity.isNew ? 'border-green-500 border-2' : ''
+                          } hover:shadow-xl hover:border-white/20 transition-all duration-300`}>
                             <CardContent className="p-4">
                               <div className="flex items-start gap-4">
                                 <div className={`w-12 h-12 rounded-full ${config.bg} flex items-center justify-center flex-shrink-0`}>
@@ -421,7 +268,7 @@ export default function ActivityPage() {
                                 
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between mb-1">
-                                    <h4 className="font-semibold text-gray-900">
+                                    <h4 className="font-semibold text-white">
                                       {activity.title}
                                       {activity.isNew && (
                                         <Badge className="ml-2 bg-verde-brasil text-white text-xs">NOVO</Badge>
@@ -429,9 +276,9 @@ export default function ActivityPage() {
                                     </h4>
                                   </div>
                                   
-                                  <p className="text-sm text-gray-600 mb-2">{activity.message}</p>
+                                  <p className="text-sm text-white/60 mb-2">{activity.message}</p>
                                   
-                                  <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                                  <div className="flex items-center gap-1 text-xs text-white/40 mb-2">
                                     <Clock className="w-3 h-3" />
                                     <span>{activity.date === "Hoje" || activity.date === "Ontem" ? activity.time : `${activity.date} - ${activity.time}`}</span>
                                   </div>

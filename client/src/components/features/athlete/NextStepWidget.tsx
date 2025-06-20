@@ -12,23 +12,28 @@ interface NextStepWidgetProps {
 
 export function NextStepWidget({ profileCompletion, tests }: NextStepWidgetProps) {
   const [, setLocation] = useLocation();
-  const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });
   const [isHovered, setIsHovered] = useState(false);
+  
+  // Calculate time left until midnight (daily reset)
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
-  // Countdown timer for daily challenges
   useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      
+      const diff = midnight.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      return { hours, minutes, seconds };
+    };
+
+    setTimeLeft(calculateTimeLeft());
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        } else {
-          return { hours: 23, minutes: 59, seconds: 59 };
-        }
-      });
+      setTimeLeft(calculateTimeLeft());
     }, 1000);
 
     return () => clearInterval(timer);
@@ -158,7 +163,7 @@ export function NextStepWidget({ profileCompletion, tests }: NextStepWidgetProps
                 </div>
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-verde-brasil" />
-                  <span className="text-sm text-verde-brasil font-semibold">247 atletas fizeram hoje</span>
+                  <span className="text-sm text-verde-brasil font-semibold">Comece agora</span>
                 </div>
               </div>
               <p className="text-lg text-white/80 mb-6">
@@ -225,7 +230,7 @@ export function NextStepWidget({ profileCompletion, tests }: NextStepWidgetProps
               </div>
             </div>
             <p className="text-lg text-white/80 mb-6">
-              Complete 100 toques sem deixar cair para ganhar 200 XP e uma badge exclusiva!
+              Complete o desafio diário para ganhar XP e subir no ranking!
             </p>
             <Button 
               size="lg"

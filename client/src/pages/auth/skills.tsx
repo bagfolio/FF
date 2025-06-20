@@ -96,8 +96,8 @@ function SpeedAssessment({ onComplete }: { onComplete: (data: any) => void }) {
     >
       <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
-            <Zap className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-full glass-morph-yellow flex items-center justify-center">
+            <Zap className="w-8 h-8 text-yellow-400" />
           </div>
           <div>
             <h3 className="font-bebas text-3xl text-white">Como você avalia sua velocidade?</h3>
@@ -125,8 +125,8 @@ function SpeedAssessment({ onComplete }: { onComplete: (data: any) => void }) {
                 whileTap={{ scale: 0.98 }}
                 className={`p-4 rounded-xl border-2 transition-all duration-300 ${
                   selfRating === option.value
-                    ? 'border-amarelo-ouro bg-amarelo-ouro/20 shadow-lg shadow-amarelo-ouro/30'
-                    : 'border-white/20 bg-white/5 hover:border-white/40'
+                    ? 'border-yellow-400 glass-morph-yellow shadow-lg shadow-yellow-400/30'
+                    : 'glass-morph hover:border-white/40'
                 }`}
               >
                 <span className="text-2xl mb-2 block">{option.icon}</span>
@@ -145,7 +145,7 @@ function SpeedAssessment({ onComplete }: { onComplete: (data: any) => void }) {
             placeholder="Ex: 7.2 segundos"
             value={time50m}
             onChange={(e) => setTime50m(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:border-amarelo-ouro focus:outline-none transition-colors"
+            className="w-full px-4 py-3 rounded-lg glass-input"
           />
         </div>
         
@@ -174,7 +174,7 @@ function SpeedAssessment({ onComplete }: { onComplete: (data: any) => void }) {
         <Button
           onClick={handleComplete}
           disabled={!isComplete}
-          className="w-full bg-gradient-to-r from-verde-brasil to-amarelo-ouro hover:from-verde-brasil/80 hover:to-amarelo-ouro/80 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
         >
           PRÓXIMA AVALIAÇÃO
         </Button>
@@ -206,8 +206,8 @@ function StrengthAssessment({ onComplete }: { onComplete: (data: any) => void })
     >
       <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
-            <Dumbbell className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-full glass-morph-orange flex items-center justify-center">
+            <Dumbbell className="w-8 h-8 text-orange-400" />
           </div>
           <div>
             <h3 className="font-bebas text-3xl text-white">Avalie sua força física</h3>
@@ -234,8 +234,8 @@ function StrengthAssessment({ onComplete }: { onComplete: (data: any) => void })
                 whileTap={{ scale: 0.98 }}
                 className={`p-4 rounded-xl border-2 transition-all duration-300 flex items-center gap-4 ${
                   ballDisputes === option.value
-                    ? 'border-amarelo-ouro bg-amarelo-ouro/20 shadow-lg shadow-amarelo-ouro/30'
-                    : 'border-white/20 bg-white/5 hover:border-white/40'
+                    ? 'border-yellow-400 glass-morph-yellow shadow-lg shadow-yellow-400/30'
+                    : 'glass-morph hover:border-white/40'
                 }`}
               >
                 <span className="text-3xl">{option.icon}</span>
@@ -274,7 +274,7 @@ function StrengthAssessment({ onComplete }: { onComplete: (data: any) => void })
         <Button
           onClick={handleComplete}
           disabled={!isComplete}
-          className="w-full bg-gradient-to-r from-verde-brasil to-amarelo-ouro hover:from-verde-brasil/80 hover:to-amarelo-ouro/80 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
         >
           PRÓXIMA AVALIAÇÃO
         </Button>
@@ -315,8 +315,8 @@ function TechniqueAssessment({ onComplete }: { onComplete: (data: any) => void }
     >
       <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-            <Target className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-full glass-morph-blue flex items-center justify-center">
+            <Target className="w-8 h-8 text-blue-400" />
           </div>
           <div>
             <h3 className="font-bebas text-3xl text-white">Suas habilidades técnicas</h3>
@@ -351,7 +351,7 @@ function TechniqueAssessment({ onComplete }: { onComplete: (data: any) => void }
                     whileTap={{ scale: 0.9 }}
                     className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
                       skills[skill.id] >= star 
-                        ? 'bg-amarelo-ouro border-amarelo-ouro text-white' 
+                        ? 'bg-yellow-400/20 border-yellow-400 text-yellow-400' 
                         : 'bg-transparent border-white/30 text-white/30 hover:border-white/60'
                     }`}
                   >
@@ -382,8 +382,8 @@ function TechniqueAssessment({ onComplete }: { onComplete: (data: any) => void }
                 whileTap={{ scale: 0.98 }}
                 className={`p-4 rounded-xl border-2 transition-all duration-300 ${
                   preferredFoot === option.value
-                    ? 'border-amarelo-ouro bg-amarelo-ouro/20 shadow-lg shadow-amarelo-ouro/30'
-                    : 'border-white/20 bg-white/5 hover:border-white/40'
+                    ? 'border-yellow-400 glass-morph-yellow shadow-lg shadow-yellow-400/30'
+                    : 'glass-morph hover:border-white/40'
                 }`}
               >
                 <span className="text-2xl mb-2 block">{option.icon}</span>
@@ -396,7 +396,7 @@ function TechniqueAssessment({ onComplete }: { onComplete: (data: any) => void }
         <Button
           onClick={handleComplete}
           disabled={!isComplete}
-          className="w-full bg-gradient-to-r from-verde-brasil to-amarelo-ouro hover:from-verde-brasil/80 hover:to-amarelo-ouro/80 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
         >
           PRÓXIMA AVALIAÇÃO
         </Button>
@@ -428,8 +428,8 @@ function StaminaAssessment({ onComplete }: { onComplete: (data: any) => void }) 
     >
       <div className="assessment-card bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-            <Heart className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 rounded-full glass-morph-green flex items-center justify-center">
+            <Heart className="w-8 h-8 text-green-400" />
           </div>
           <div>
             <h3 className="font-bebas text-3xl text-white">Sua resistência em campo</h3>
@@ -457,8 +457,8 @@ function StaminaAssessment({ onComplete }: { onComplete: (data: any) => void }) 
                 whileTap={{ scale: 0.98 }}
                 className={`p-4 rounded-xl border-2 transition-all duration-300 ${
                   duration === option.value
-                    ? 'border-amarelo-ouro bg-amarelo-ouro/20 shadow-lg shadow-amarelo-ouro/30'
-                    : 'border-white/20 bg-white/5 hover:border-white/40'
+                    ? 'border-yellow-400 glass-morph-yellow shadow-lg shadow-yellow-400/30'
+                    : 'glass-morph hover:border-white/40'
                 }`}
               >
                 <span className="text-white font-medium block text-lg">{option.label}</span>
@@ -484,8 +484,8 @@ function StaminaAssessment({ onComplete }: { onComplete: (data: any) => void }) 
                 whileTap={{ scale: 0.98 }}
                 className={`w-full p-4 rounded-xl border-2 transition-all duration-300 flex items-center gap-4 ${
                   recovery === option.value
-                    ? 'border-amarelo-ouro bg-amarelo-ouro/20 shadow-lg shadow-amarelo-ouro/30'
-                    : 'border-white/20 bg-white/5 hover:border-white/40'
+                    ? 'border-yellow-400 glass-morph-yellow shadow-lg shadow-yellow-400/30'
+                    : 'glass-morph hover:border-white/40'
                 }`}
               >
                 <span className="text-2xl">{option.icon}</span>
@@ -501,7 +501,7 @@ function StaminaAssessment({ onComplete }: { onComplete: (data: any) => void }) 
         <Button
           onClick={handleComplete}
           disabled={!isComplete}
-          className="w-full bg-gradient-to-r from-verde-brasil to-amarelo-ouro hover:from-verde-brasil/80 hover:to-amarelo-ouro/80 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-green-500 to-yellow-400 hover:from-green-600 hover:to-yellow-500 text-white font-bebas text-xl py-4 rounded-full transition-all duration-300 disabled:opacity-50"
         >
           FINALIZAR AVALIAÇÃO
         </Button>
@@ -821,7 +821,7 @@ export default function AuthSkills() {
             <div
               key={index}
               className={`w-12 h-1 rounded-full transition-colors duration-300 ${
-                index <= currentAssessment + 2 ? 'bg-verde-brasil' : 'bg-gray-600'
+                index <= currentAssessment + 2 ? 'bg-green-500' : 'bg-white/20'
               }`}
             />
           ))}

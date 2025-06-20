@@ -1,0 +1,198 @@
+WEEK 1: Foundation (10 hours total)
+Day 1-2: Database Setup (4 hours)
+sql-- Run these migrations first
+CREATE TABLE activities (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  athlete_id UUID REFERENCES athletes(id) ON DELETE CASCADE,
+  type VARCHAR(50) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  message TEXT,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMP DEFAULT NOW(),
+  INDEX idx_athlete_activities (athlete_id, created_at DESC)
+);
+
+CREATE TABLE checkins (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  athlete_id UUID REFERENCES athletes(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  focus_area VARCHAR(50),
+  drills JSONB DEFAULT '[]',
+  duration INTEGER,
+  intensity INTEGER,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(athlete_id, date) -- One check-in per day
+);
+Day 3: Check-in Backend (3 hours)
+typescript// server/routes/checkin.ts
+app.post('/api/checkin', async (req, res) => {
+  const { focusArea, drills, duration, intensity, notes } = req.body;
+  const athleteId = req.user.athleteId;
+  
+  // Save check-in
+  const checkin = await saveCheckin({ athleteId, ...req.body });
+  
+  // Trigger activity
+  await createActivity({
+    athleteId,
+    type: 'checkin',
+    title: 'Treino Diário Completado',
+    message: `Foco em ${focusArea} por ${duration} minutos`
+  });
+  
+  // Check streak achievement
+  const streak = await calculateStreak(athleteId);
+  await checkStreakAchievements(athleteId, streak);
+  
+  return res.json({ checkin, streak });
+});
+Day 4: Activity Triggers (3 hours)
+typescript// Add these to existing endpoints:
+
+// In POST /api/athletes/:id/view
+await createActivity({
+  athleteId: id,
+  type: 'view',
+  title: 'Novo Olheiro Interessado',
+  message: `${scoutClub} visualizou seu perfil`,
+  metadata: { scoutId, scoutClub }
+});
+
+// In POST /api/tests
+await createActivity({
+  athleteId,
+  type: 'test',
+  title: `Teste Completado: ${testName}`,
+  message: `Resultado: ${result.value}${result.unit}`,
+  metadata: { testId, result, percentile }
+});
+
+// In achievement unlock logic
+await createActivity({
+  athleteId,
+  type: 'achievement',
+  title: achievement.name,
+  message: `+${achievement.xp} XP`,
+  metadata: { achievementId, xp: achievement.xp }
+});
+WEEK 2: UI Integration (8 hours)
+Day 5-6: Update Check-in Modal (4 hours)
+typescript// Update DailyCheckinModal.tsx
+const saveCheckin = async () => {
+  try {
+    const response = await fetch('/api/checkin', {
+      method: 'POST',
+      body: JSON.stringify(checkinData)
+    });
+    
+    const { streak } = await response.json();
+    
+    // Update UI with new streak
+    setCurrentStreak(streak.current);
+    
+    // Show success animation
+    celebrate();
+    
+  } catch (error) {
+    // Fallback to localStorage if API fails
+    localStorage.setItem(`dailyCheckin_${today}`, JSON.stringify(checkinData));
+  }
+};
+Day 7: Test Results Form (2 hours)
+typescript// Add to combine/[testId].tsx
+const CompleteTestForm = ({ test }) => {
+  const [result, setResult] = useState('');
+  const [videoFile, setVideoFile] = useState(null);
+  
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append('testId', test.id);
+    formData.append('result', result);
+    if (videoFile) formData.append('video', videoFile);
+    
+    await fetch('/api/tests', { 
+      method: 'POST', 
+      body: formData 
+    });
+    
+    // Redirect to dashboard with celebration
+    router.push('/athlete/dashboard?celebrate=true');
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      <input 
+        type="number" 
+        value={result} 
+        onChange={(e) => setResult(e.target.value)}
+        placeholder={`Resultado em ${test.unit}`}
+      />
+      <VideoUpload onChange={setVideoFile} optional />
+      <button type="submit">Salvar Resultado</button>
+    </form>
+  );
+};
+Day 8: Activity Feed Real-time (2 hours)
+typescript// Update activity.tsx
+const useActivities = () => {
+  const { data, refetch } = useQuery('activities', 
+    () => fetch('/api/activities').then(r => r.json()),
+    { refetchInterval: 30000 } // Poll every 30s
+  );
+  
+  // Listen for new activities via WebSocket (optional)
+  useEffect(() => {
+    const ws = new WebSocket('/ws/activities');
+    ws.onmessage = (event) => {
+      const newActivity = JSON.parse(event.data);
+      // Optimistically add to feed
+      queryClient.setQueryData('activities', old => [newActivity, ...old]);
+    };
+    return () => ws.close();
+  }, []);
+  
+  return data?.activities || [];
+};
+Quick Wins (Do These First!)
+1. Test Results Form (2 hours)
+
+Highest impact, lowest effort
+Uses existing /api/tests endpoint
+Immediately makes Combine functional
+
+2. Activity Generation (1 hour)
+
+Add 5 lines to existing endpoints
+Instant timeline population
+No new endpoints needed
+
+3. Check-in API (3 hours)
+
+Unlocks streak tracking
+Enables daily engagement
+Powers achievement system
+
+Smart Shortcuts
+1. Skip Video Upload Initially
+typescript// Just add a "Request Verification" button
+<button onClick={() => createActivity({
+  type: 'system',
+  title: 'Verificação Solicitada',
+  message: 'Análise em até 48 horas'
+})}>
+  Solicitar Verificação
+</button>
+2. Use Existing Achievement Triggers
+typescript// The system already checks these on every update:
+- Profile completion → "complete_profile" 
+- First test → "first_test"
+- Speed percentile → "speed_demon"
+
+// Just ensure activities are created when unlocked
+3. Leverage Mock Data for Seeding
+typescript// Use the 60 drills as default suggestions
+import { drillsDatabase } from './drillsDatabase';
+
+// Show as autocomplete options in check-in
+<DrillSelector suggestions={drillsDatabase[focusArea]} />

@@ -1,46 +1,52 @@
 import { useState, useEffect } from "react";
 import { Users, TrendingUp, Award, Eye } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { activityService } from "@/services/api";
+import { API_CONFIG, FEATURES } from "@/config/api";
 
 interface SocialProofNotificationProps {
   className?: string;
 }
 
-const notifications = [
-  {
+// Icon mapping for notification types
+const notificationConfig = {
+  scout_view: {
     icon: Users,
     color: "text-verde-brasil",
-    bg: "bg-green-100",
-    message: "Scout do Flamengo visualizou seu perfil",
-    time: "há 2 min"
+    bg: "bg-green-100"
   },
-  {
+  athlete_achievement: {
     icon: TrendingUp,
     color: "text-blue-600",
-    bg: "bg-blue-100",
-    message: "João Silva subiu para o Top 10% nacional",
-    time: "há 5 min"
+    bg: "bg-blue-100"
   },
-  {
+  test_completed: {
     icon: Award,
     color: "text-amarelo-ouro",
-    bg: "bg-yellow-100",
-    message: "Maria completou o Teste de Agilidade",
-    time: "há 8 min"
+    bg: "bg-yellow-100"
   },
-  {
+  scouts_online: {
     icon: Eye,
     color: "text-purple-600",
-    bg: "bg-purple-100",
-    message: "3 scouts estão online agora",
-    time: "agora"
+    bg: "bg-purple-100"
   }
-];
+};
 
 export function SocialProofNotification({ className = "" }: SocialProofNotificationProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
+  // Fetch real-time notifications from API
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['social-proof-notifications'],
+    queryFn: () => activityService.getSocialProofNotifications(),
+    refetchInterval: API_CONFIG.POLLING.SOCIAL_PROOF,
+    enabled: FEATURES.SOCIAL_PROOF_NOTIFICATIONS,
+  });
+
   useEffect(() => {
+    if (notifications.length === 0) return;
+    
     const showTimer = setTimeout(() => setIsVisible(true), 3000);
     
     const rotateTimer = setInterval(() => {
@@ -55,10 +61,13 @@ export function SocialProofNotification({ className = "" }: SocialProofNotificat
       clearTimeout(showTimer);
       clearInterval(rotateTimer);
     };
-  }, []);
+  }, [notifications.length]);
+
+  if (notifications.length === 0) return null;
 
   const notification = notifications[currentIndex];
-  const Icon = notification.icon;
+  const config = notificationConfig[notification.type] || notificationConfig.scout_view;
+  const Icon = config.icon;
 
   return (
     <div className={`fixed bottom-8 left-8 z-40 ${className}`}>
@@ -67,8 +76,8 @@ export function SocialProofNotification({ className = "" }: SocialProofNotificat
         transform transition-all duration-500 
         ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}
       `}>
-        <div className={`w-10 h-10 ${notification.bg} rounded-full flex items-center justify-center`}>
-          <Icon className={`w-5 h-5 ${notification.color}`} />
+        <div className={`w-10 h-10 ${config.bg} rounded-full flex items-center justify-center`}>
+          <Icon className={`w-5 h-5 ${config.color}`} />
         </div>
         <div>
           <p className="text-sm font-medium text-gray-800">{notification.message}</p>

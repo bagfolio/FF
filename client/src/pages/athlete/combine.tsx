@@ -2,13 +2,15 @@ import EnhancedAthleteLayout from "@/components/layout/EnhancedAthleteLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { GlassTabs, GlassTabsList, GlassTabsTrigger, GlassTabsContent } from "@/components/ui/glass-tabs";
+import { GlassStats, GlassStatsGrid } from "@/components/ui/glass-stats";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import VerificationBadge from "@/components/ui/verification-badge";
 import { ArrowLeft, Zap, Video, Play, Clock, Star, Filter, TrendingUp, Award, Target, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface Test {
   id: string;
@@ -271,32 +273,61 @@ export default function CombinePage() {
 
   const getTestColor = (type: string) => {
     const colors = {
-      speed: "from-green-100 to-green-200",
-      agility: "from-yellow-100 to-yellow-200",
-      technical: "from-blue-100 to-blue-200",
-      endurance: "from-purple-100 to-purple-200",
-      strength: "from-orange-100 to-orange-200",
-      mental: "from-pink-100 to-pink-200"
+      speed: "glass-morph-green",
+      agility: "glass-morph-yellow",
+      technical: "glass-morph-blue",
+      endurance: "glass-morph-purple",
+      strength: "glass-morph-orange",
+      mental: "glass-morph-pink"
     };
     return colors[type as keyof typeof colors] || colors.speed;
   };
 
   const getTestIconColor = (type: string) => {
     const colors = {
-      speed: "text-green-600",
-      agility: "text-yellow-600",
-      technical: "text-blue-600",
-      endurance: "text-purple-600",
-      strength: "text-orange-600",
-      mental: "text-pink-600"
+      speed: "text-green-400",
+      agility: "text-yellow-400",
+      technical: "text-blue-400",
+      endurance: "text-purple-400",
+      strength: "text-orange-400",
+      mental: "text-pink-400"
     };
     return colors[type as keyof typeof colors] || colors.speed;
   };
 
   return (
     <EnhancedAthleteLayout>
-      <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+      <div className="min-h-screen relative">
+        {/* Floating background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0.05, 0.1, 0.05]
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute top-20 left-10 w-64 h-64 bg-verde-brasil rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{
+              y: [0, 20, 0],
+              opacity: [0.05, 0.1, 0.05]
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2
+            }}
+            className="absolute bottom-20 right-10 w-96 h-96 bg-azul-celeste rounded-full blur-3xl"
+          />
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 relative z-10">
         {/* Breadcrumb Navigation */}
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
@@ -315,90 +346,176 @@ export default function CombinePage() {
         </Breadcrumb>
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="font-bebas text-4xl text-azul-celeste mb-2 flex items-center gap-3">
-            <Zap className="w-10 h-10" />
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mb-8"
+        >
+          <h1 className="font-bebas text-4xl text-white mb-2 flex items-center gap-3">
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            >
+              <Zap className="w-10 h-10" />
+            </motion.div>
             COMBINE DIGITAL
           </h1>
-          <p className="text-gray-600">
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-white/60"
+          >
             Sua central de testes para performance de elite. Cada teste verificado aumenta sua visibilidade.
-          </p>
+          </motion.p>
           
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Testes Completados</p>
-                    <p className="text-2xl font-bold text-green-700">{completedTests}/{allTests.length}</p>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, type: "spring" }}
+            >
+              <Card className="glass-morph-green hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-white/60">Testes Completados</p>
+                      <motion.p 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.5, type: "spring" }}
+                        className="text-2xl font-bold text-white"
+                      >
+                        {completedTests}/{allTests.length}
+                      </motion.p>
+                    </div>
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <Target className="w-8 h-8 text-green-400" />
+                    </motion.div>
                   </div>
-                  <Target className="w-8 h-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
             
-            <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">XP Total</p>
-                    <p className="text-2xl font-bold text-yellow-700">{totalXP.toLocaleString()}</p>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4, type: "spring" }}
+            >
+              <Card className="glass-morph-yellow hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-white/60">XP Total</p>
+                      <motion.p 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.6, type: "spring" }}
+                        className="text-2xl font-bold text-white"
+                      >
+                        {totalXP.toLocaleString()}
+                      </motion.p>
+                    </div>
+                    <motion.div
+                      animate={{ 
+                        rotate: [0, 10, -10, 0],
+                        scale: [1, 1.1, 1]
+                      }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                    >
+                      <Star className="w-8 h-8 text-yellow-400" />
+                    </motion.div>
                   </div>
-                  <Star className="w-8 h-8 text-yellow-600" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
             
-            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Percentil Médio</p>
-                    <p className="text-2xl font-bold text-purple-700">82º</p>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, type: "spring" }}
+            >
+              <Card className="glass-morph-purple hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-white/60">Percentil Médio</p>
+                      <motion.p 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.7, type: "spring" }}
+                        className="text-2xl font-bold text-white"
+                      >
+                        82º
+                      </motion.p>
+                    </div>
+                    <motion.div
+                      animate={{ y: [-2, 2, -2] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <TrendingUp className="w-8 h-8 text-purple-400" />
+                    </motion.div>
                   </div>
-                  <TrendingUp className="w-8 h-8 text-purple-600" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* AI Recommendation - Moved to top */}
-        <Card className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <Sparkles className="w-6 h-6 text-purple-600 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-purple-900 mb-2">Recomendação Personalizada da IA</h3>
-                <p className="text-purple-700">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <Card className="mb-6 glass-morph-purple hover:shadow-lg transition-all duration-300">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 5, -5, 0]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                >
+                  <Sparkles className="w-6 h-6 text-purple-400 mt-0.5" />
+                </motion.div>
+                <div>
+                <h3 className="font-semibold text-white mb-2">Recomendação Personalizada da IA</h3>
+                <p className="text-white/80">
                   Baseado no seu desempenho recente, recomendamos focar em testes de <strong>Agilidade</strong> para 
                   equilibrar seu perfil. Você está no top 10% em velocidade, mas pode melhorar sua mudança de direção.
                 </p>
               </div>
             </div>
           </CardContent>
-        </Card>
+          </Card>
+        </motion.div>
 
         {/* Filters */}
         <div className="mb-6 space-y-4">
           {/* Status Tabs */}
-          <Tabs defaultValue="all" value={selectedStatus} onValueChange={setSelectedStatus}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">Todos</TabsTrigger>
-              <TabsTrigger value="to_do">A Realizar</TabsTrigger>
-              <TabsTrigger value="verified">Verificados</TabsTrigger>
-              <TabsTrigger value="in_analysis">Em Análise</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <GlassTabs defaultValue="all" value={selectedStatus} onValueChange={setSelectedStatus}>
+            <GlassTabsList className="grid w-full grid-cols-4">
+              <GlassTabsTrigger value="all">Todos</GlassTabsTrigger>
+              <GlassTabsTrigger value="to_do">A Realizar</GlassTabsTrigger>
+              <GlassTabsTrigger value="verified">Verificados</GlassTabsTrigger>
+              <GlassTabsTrigger value="in_analysis">Em Análise</GlassTabsTrigger>
+            </GlassTabsList>
+          </GlassTabs>
           
           {/* Sorting Dropdown */}
           <div className="flex justify-end">
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[250px]">
+              <SelectTrigger className="w-[250px] glass-morph border-white/10">
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="glass-morph-dark border-white/10">
                 <SelectItem value="recommended">Recomendados</SelectItem>
                 <SelectItem value="difficulty_asc">Dificuldade (Fácil → Difícil)</SelectItem>
                 <SelectItem value="difficulty_desc">Dificuldade (Difícil → Fácil)</SelectItem>
@@ -410,11 +527,23 @@ export default function CombinePage() {
         </div>
 
         {/* Tests Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedTests.map(test => (
-            <Card key={test.id} className="group cursor-pointer hover:shadow-xl transition-all duration-300 overflow-hidden">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {sortedTests.map((test, index) => (
+            <motion.div
+              key={test.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 + index * 0.1 }}
+              whileHover={{ y: -5 }}
+            >
+              <Card className="group cursor-pointer glass-morph border-white/10 hover:border-white/20 hover:shadow-xl transition-all duration-300 overflow-hidden">
               <div className="relative">
-                <div className={`h-32 bg-gradient-to-br ${getTestColor(test.type)} flex items-center justify-center relative`}>
+                <div className={`h-32 ${getTestColor(test.type)} flex items-center justify-center relative`}>
                   <Video className={`w-16 h-16 ${getTestIconColor(test.type)}`} />
                   
                   {/* Badges */}
@@ -427,27 +556,31 @@ export default function CombinePage() {
                   
                   {/* Play button overlay */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                    <div className="w-14 h-14 bg-white/0 group-hover:bg-white/90 rounded-full flex items-center justify-center transform scale-0 group-hover:scale-100 transition-all duration-300">
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      whileHover={{ scale: 1 }}
+                      className="w-14 h-14 bg-white/0 group-hover:bg-white/90 rounded-full flex items-center justify-center"
+                    >
                       <Play className="w-7 h-7 text-verde-brasil ml-1" />
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
               </div>
               
               <CardContent className="p-4">
                 <h3 className="font-semibold text-lg mb-1">{test.name}</h3>
-                <p className="text-sm text-gray-600 mb-3">{test.description}</p>
+                <p className="text-sm text-white/60 mb-3">{test.description}</p>
                 
                 {/* Test Info */}
                 <div className="space-y-2 mb-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4 text-gray-400" />
+                      <Clock className="w-4 h-4 text-white/40" />
                       {test.duration}
                     </span>
                     <span className="flex items-center gap-1">
                       {[1, 2, 3].map(star => (
-                        <span key={star} className={star <= test.difficulty ? "text-amarelo-ouro" : "text-gray-300"}>
+                        <span key={star} className={star <= test.difficulty ? "text-yellow-400" : "text-white/20"}>
                           ★
                         </span>
                       ))}
@@ -455,7 +588,7 @@ export default function CombinePage() {
                   </div>
                   
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Recompensa XP</span>
+                    <span className="text-white/60">Recompensa XP</span>
                     <span className="font-semibold text-verde-brasil">+{test.xpReward} XP</span>
                   </div>
                 </div>
@@ -464,16 +597,16 @@ export default function CombinePage() {
                 {test.bestScore ? (
                   <div className="border-t pt-3">
                     <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-gray-600">Melhor resultado</span>
+                      <span className="text-white/60">Melhor resultado</span>
                       <span className="font-bold text-verde-brasil">{test.bestScore}</span>
                     </div>
                     {test.percentile && (
                       <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600">Percentil</span>
+                        <span className="text-white/60">Percentil</span>
                         <span className="font-semibold">{test.percentile}º</span>
                       </div>
                     )}
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-white/40">
                       {test.attempts} tentativas • Última: {test.lastAttempt}
                     </p>
                   </div>
@@ -488,9 +621,10 @@ export default function CombinePage() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
       </div>
     </div>

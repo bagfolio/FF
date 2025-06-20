@@ -175,8 +175,13 @@ export default function TestPage() {
                 variant="outline"
                 className="text-red-600"
                 onClick={() => {
+                  // Clear all storage except critical auth data
+                  const authToken = localStorage.getItem('authToken');
                   localStorage.clear();
                   sessionStorage.clear();
+                  if (authToken) {
+                    localStorage.setItem('authToken', authToken);
+                  }
                   window.location.reload();
                 }}
               >

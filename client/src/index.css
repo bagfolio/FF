@@ -87,6 +87,34 @@
               inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
+/* Glass morphism blur variations */
+.glass-morph-sm {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-morph-lg {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.4),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Glass morphism with color tint */
+.glass-morph-tint {
+  background: linear-gradient(135deg, 
+    rgba(0, 156, 59, 0.05) 0%, 
+    rgba(255, 223, 0, 0.05) 50%, 
+    rgba(0, 39, 118, 0.05) 100%);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Dark glass morphism variant - Soccer theme */
 .glass-morph-dark {
   background: rgba(0, 0, 0, 0.6);
@@ -248,10 +276,41 @@
   .z-modal { z-index: 50; }
 }
 
+/* Responsive glassmorphic utilities */
+@layer utilities {
+  /* Mobile-first responsive glass morphism */
+  @media (min-width: 640px) {
+    .sm\:glass-morph { @apply glass-morph; }
+    .sm\:glass-morph-dark { @apply glass-morph-dark; }
+    .sm\:glass-morph-green { @apply glass-morph-green; }
+    .sm\:glass-morph-yellow { @apply glass-morph-yellow; }
+    .sm\:glass-morph-blue { @apply glass-morph-blue; }
+  }
+  
+  @media (min-width: 768px) {
+    .md\:glass-morph { @apply glass-morph; }
+    .md\:glass-morph-dark { @apply glass-morph-dark; }
+    .md\:glass-morph-green { @apply glass-morph-green; }
+    .md\:glass-morph-yellow { @apply glass-morph-yellow; }
+    .md\:glass-morph-blue { @apply glass-morph-blue; }
+  }
+  
+  @media (min-width: 1024px) {
+    .lg\:glass-morph { @apply glass-morph; }
+    .lg\:glass-morph-dark { @apply glass-morph-dark; }
+    .lg\:glass-morph-green { @apply glass-morph-green; }
+    .lg\:glass-morph-yellow { @apply glass-morph-yellow; }
+    .lg\:glass-morph-blue { @apply glass-morph-blue; }
+  }
+}
+
 /* Mobile performance optimizations */
 @media (max-width: 768px) {
   /* Reduce backdrop blur for better performance */
-  .glass-morph {
+  .glass-morph,
+  .glass-morph-sm,
+  .glass-morph-lg,
+  .glass-morph-tint {
     backdrop-filter: blur(8px) saturate(120%);
     -webkit-backdrop-filter: blur(8px) saturate(120%);
   }
@@ -259,6 +318,13 @@
   .glass-morph-dark {
     backdrop-filter: blur(10px) saturate(150%);
     -webkit-backdrop-filter: blur(10px) saturate(150%);
+  }
+  
+  .glass-morph-green,
+  .glass-morph-yellow,
+  .glass-morph-blue {
+    backdrop-filter: blur(8px) saturate(130%);
+    -webkit-backdrop-filter: blur(8px) saturate(130%);
   }
   
   /* Disable complex animations on mobile */
@@ -390,26 +456,145 @@
 }
 
 .dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(142, 100%, 31%);
+  --background: hsl(220, 26%, 7%);
+  --foreground: hsl(0, 0%, 95%);
+  --muted: hsl(220, 15%, 13%);
+  --muted-foreground: hsl(220, 9%, 60%);
+  --popover: hsl(220, 26%, 10%);
+  --popover-foreground: hsl(0, 0%, 95%);
+  --card: hsl(220, 26%, 10%);
+  --card-foreground: hsl(0, 0%, 95%);
+  --border: hsl(220, 15%, 20%);
+  --input: hsl(220, 15%, 20%);
+  --primary: hsl(142, 85%, 40%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(240, 3.7%, 15.9%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
+  --secondary: hsl(220, 15%, 18%);
+  --secondary-foreground: hsl(0, 0%, 95%);
+  --accent: hsl(220, 15%, 18%);
+  --accent-foreground: hsl(0, 0%, 95%);
+  --destructive: hsl(0, 70%, 50%);
   --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
+  --ring: hsl(142, 85%, 40%);
   --radius: 0.5rem;
+  
+  /* Sidebar specific colors for dark mode */
+  --sidebar: hsl(220, 26%, 9%);
+  --sidebar-foreground: hsl(0, 0%, 95%);
+  --sidebar-border: hsl(220, 15%, 20%);
+  --sidebar-accent: hsl(220, 15%, 18%);
+  --sidebar-accent-foreground: hsl(0, 0%, 95%);
+  --sidebar-ring: hsl(142, 85%, 40%);
+
+  /* Brazilian Colors for dark mode */
+  --verde-brasil: hsl(142, 85%, 45%);
+  --amarelo-ouro: hsl(52, 90%, 55%);
+  --azul-celeste: hsl(218, 85%, 35%);
+  --verde-sucesso: hsl(158, 70%, 58%);
+  --vermelho-alerta: hsl(0, 70%, 50%);
+  --laranja-destaque: hsl(25, 90%, 58%);
+}
+
+/* Dark mode glassmorphic adjustments */
+.dark .glass-morph {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.dark .glass-morph:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .glass-morph-dark {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .glass-morph-green {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.dark .glass-morph-yellow {
+  background: rgba(255, 223, 0, 0.1);
+  border: 1px solid rgba(255, 223, 0, 0.25);
+}
+
+.dark .glass-morph-blue {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+/* Semantic color tokens for consistent theming */
+:root {
+  /* Glass backgrounds */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-bg-hover: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.12);
+  
+  /* Card backgrounds */
+  --card-bg: rgba(255, 255, 255, 0.02);
+  --card-bg-hover: rgba(255, 255, 255, 0.04);
+  --modal-bg: rgba(0, 0, 0, 0.6);
+  
+  /* Text hierarchy */
+  --text-primary: rgba(255, 255, 255, 1);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-muted: rgba(255, 255, 255, 0.4);
+}
+
+/* Extended glass utility classes */
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  background: var(--card-bg-hover);
+  border-color: var(--glass-border-hover);
+}
+
+/* Color-specific glass variants with proper dark theme support */
+.glass-morph-purple {
+  background: rgba(147, 51, 234, 0.1);
+  backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(147, 51, 234, 0.25);
+}
+
+.glass-morph-orange {
+  background: rgba(251, 146, 60, 0.1);
+  backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(251, 146, 60, 0.25);
+}
+
+.glass-morph-pink {
+  background: rgba(236, 72, 153, 0.1);
+  backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid rgba(236, 72, 153, 0.25);
+}
+
+/* Glass input styles */
+.glass-input {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  outline: none;
+}
+
+.glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 @layer base {

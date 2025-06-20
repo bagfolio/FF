@@ -79,9 +79,9 @@ export function AchievementsGallery({ achievements }: AchievementsGalleryProps) 
         <div className="grid grid-cols-3 gap-3">
           {achievements.slice(0, 9).map((achievement, i) => {
             const isUnlocked = achievement.unlocked !== false;
-            const rarity = achievement.rarity || (i < 2 ? "common" : i < 5 ? "rare" : i < 8 ? "epic" : "legendary");
+            const rarity = achievement.rarity || "common";
             const rarityConfig = getRarityConfig(rarity);
-            const progress = achievement.progress || (isUnlocked ? 100 : Math.floor(Math.random() * 80));
+            const progress = achievement.progress || (isUnlocked ? 100 : 0);
             
             return (
               <div key={achievement.id || i} className="relative">

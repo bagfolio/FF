@@ -16,7 +16,7 @@ export default function LoadingScreen() {
           </div>
         </div>
         <h2 className="mt-6 font-inter font-bold text-2xl bg-gradient-to-r from-verde-brasil via-amarelo-ouro to-azul-celeste bg-clip-text text-transparent animate-pulse">
-          FUTEBOL FUTURO
+          REVELA
         </h2>
         <div className="mt-4 flex items-center justify-center gap-1">
           <div className="w-2 h-2 bg-verde-brasil rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>

@@ -20,7 +20,8 @@
       "Bash(lsof:*)",
       "Bash(npx tsx:*)",
       "Bash(tsx:*)",
-      "Bash(npx drizzle-kit push:*)"
+      "Bash(npx drizzle-kit push:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }

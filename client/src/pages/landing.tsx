@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import StatCounter from "@/components/features/StatCounter";
 import UserTypeModal from "@/components/features/UserTypeModal";
 import { Play, Search, Terminal, Video, Bot, Handshake, Check, Medal, Star, Crown, Trophy } from "lucide-react";
@@ -45,347 +46,494 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Modern Glassmorphic Navigation */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-xl border-b border-white/20 shadow-lg z-50">
+    <div className="min-h-screen bg-black">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full glass-morph-dark backdrop-blur-xl border-b border-white/10 shadow-2xl z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <h1 className="font-bebas text-3xl bg-gradient-to-r from-verde-brasil to-amarelo-ouro bg-clip-text text-transparent">
+              <h1 className="font-bebas text-4xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 REVELA
+                <span className="ml-2 inline-block w-2 h-2 bg-verde-brasil rounded-full shadow-[0_0_10px_rgba(0,156,59,0.8)]"></span>
               </h1>
             </div>
-            
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#como-funciona" className="text-gray-700 hover:text-verde-brasil transition-colors font-medium">Como Funciona</a>
-              <a href="#trust-pyramid" className="text-gray-700 hover:text-verde-brasil transition-colors font-medium">Verificação</a>
-              <a href="#testimonials" className="text-gray-700 hover:text-verde-brasil transition-colors font-medium">Depoimentos</a>
-              <Button 
-                onClick={handleLogin}
-                variant="outline" 
-                className="border-verde-brasil text-verde-brasil hover:bg-verde-brasil hover:text-white transition-all duration-300"
-              >
+            <div className="hidden md:flex items-center space-x-4">
+              <a href="#como-funciona" className="text-gray-300 hover:text-verde-brasil px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-white/5">
+                Como Funciona
+              </a>
+              <a href="#depoimentos" className="text-gray-300 hover:text-verde-brasil px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-white/5">
+                Histórias de Sucesso
+              </a>
+              <a href="#parceiros" className="text-gray-300 hover:text-verde-brasil px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-white/5">
+                Parceiros
+              </a>
+              <ThemeToggle variant="glass" />
+              <Button onClick={handleLogin} className="glass-morph-blue text-white hover:shadow-azul-celeste/30 transition-all duration-300">
                 Entrar
               </Button>
             </div>
           </div>
         </div>
       </nav>
-
-      {/* Hero Section with Enhanced Glassmorphism */}
+      {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 w-full h-full">
           <img 
-            src="https://images.unsplash.com/photo-1522778119026-d647f0596c20?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080" 
-            alt="Brazilian football stadium with vibrant colors" 
+            src="https://images.unsplash.com/photo-1560272564-c83b66b1ad12?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080" 
+            alt="Young Brazilian football players training" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-verde-brasil/20 via-black/40 to-amarelo-ouro/20"></div>
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-8"
-          >
-            <h1 className="font-bebas text-6xl md:text-8xl text-white leading-tight">
-              O FUTURO DO
-              <br />
-              <span className="bg-gradient-to-r from-verde-brasil to-amarelo-ouro bg-clip-text text-transparent">
-                FUTEBOL BRASILEIRO
-              </span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto font-light">
-              Conectamos jovens talentos aos principais scouts do país através de tecnologia avançada e verificação confiável
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8">
-              <Button
-                onClick={() => handleCTAClick("athlete")}
-                size="lg"
-                className="group bg-gradient-to-r from-verde-brasil to-green-600 hover:from-green-600 hover:to-verde-brasil text-white font-bold py-4 px-12 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-300 text-lg"
-              >
-                <Play className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
-                COMEÇAR MINHA JORNADA
-              </Button>
-              
-              <Button
-                onClick={() => handleCTAClick("scout")}
-                variant="outline"
-                size="lg"
-                className="bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white hover:text-gray-900 font-bold py-4 px-12 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-300 text-lg"
-              >
-                <Search className="w-6 h-6 mr-3" />
-                SOU SCOUT
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8"
-          >
-            <div className="glass-morph rounded-2xl p-6 text-center">
-              <StatCounter target={12500} duration={2000} className="text-4xl font-bold text-white" />
-              <p className="text-white/80 mt-2">Atletas Conectados</p>
-            </div>
-            <div className="glass-morph rounded-2xl p-6 text-center">
-              <StatCounter target={450} duration={2000} className="text-4xl font-bold text-white" />
-              <p className="text-white/80 mt-2">Scouts Ativos</p>
-            </div>
-            <div className="glass-morph rounded-2xl p-6 text-center">
-              <StatCounter target={89} duration={2000} className="text-4xl font-bold text-white" />
-              <p className="text-white/80 mt-2">Contratos Assinados</p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* How It Works Section - Enhanced */}
-      <section id="como-funciona" className="py-24 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 left-20 w-96 h-96 bg-verde-brasil rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-amarelo-ouro rounded-full blur-3xl"></div>
+          <div className="absolute inset-0 hero-video-overlay"></div>
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="font-bebas text-5xl md:text-6xl text-gray-900 mb-6">
-              COMO FUNCIONA
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Um processo simples e transparente para conectar talentos aos scouts
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            {/* Step 1 */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              className="group"
+        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+          <h1 className="font-bebas text-6xl md:text-8xl lg:text-9xl leading-none mb-8 tracking-wider">
+            SEU TALENTO<br />
+            <span className="amarelo-ouro drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] text-shadow-strong font-light">
+              MERECE SER VISTO
+            </span>
+          </h1>
+          
+          <p className="text-lg md:text-xl lg:text-2xl mb-10 font-light max-w-4xl mx-auto leading-relaxed drop-shadow-md">
+            A primeira plataforma brasileira que usa IA para verificar talentos do futebol.<br />
+            <span className="font-medium">Democratizando oportunidades do Amazonas a São Paulo.</span>
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+            <Button 
+              onClick={() => setLocation("/auth/welcome")}
+              className="glass-morph-green text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105 relative overflow-hidden group"
             >
-              <Card className="glass-morph border-0 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-verde-brasil/5 to-transparent"></div>
-                <CardContent className="p-8 relative">
-                  <motion.div
-                    className="relative mb-6 group-hover:scale-110 transition-transform duration-500"
+              <Trophy className="w-6 h-6 relative z-10" />
+              <span className="relative z-10">COMEÇAR MINHA JORNADA</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-verde-brasil to-verde-brasil/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </Button>
+            <Button 
+              onClick={() => handleCTAClick("scout")}
+              className="glass-morph-blue text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[240px] h-auto rounded-2xl shadow-2xl hover:shadow-azul-celeste/50 transition-all duration-300 transform hover:scale-105 relative overflow-hidden group"
+            >
+              <Search className="w-6 h-6 relative z-10" />
+              <span className="relative z-10">SOU SCOUT</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-azul-celeste to-azul-celeste/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </Button>
+          </div>
+          
+          {/* Stats row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-4xl mx-auto">
+            <div className="text-center fade-in">
+              <StatCounter target={1247} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
+              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Atletas Cadastrados</div>
+            </div>
+            <div className="text-center fade-in">
+              <StatCounter target={3856} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
+              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Testes Realizados</div>
+            </div>
+            <div className="text-center fade-in">
+              <StatCounter target={127} suffix="+" className="text-4xl md:text-5xl font-bold amarelo-ouro font-oswald drop-shadow-lg" />
+              <div className="text-base md:text-lg uppercase tracking-wider font-medium mt-2 drop-shadow-sm">Scouts Ativos</div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce">
+          <div className="text-2xl">⌄</div>
+        </div>
+        {/* Gradient transition to dark sections */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-black"></div>
+      </section>
+      {/* Como Funciona Section */}
+      <section id="como-funciona" className="py-24 relative overflow-hidden bg-black">
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900/50 to-black"></div>
+        <div className="absolute inset-0 bg-pattern-hexagon opacity-5"></div>
+        {/* Subtle animated orbs */}
+        <motion.div 
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.02, 0.05, 0.02]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-20 right-1/4 w-96 h-96 bg-verde-brasil rounded-full blur-3xl"
+        />
+        <motion.div 
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.02, 0.05, 0.02]
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 4
+          }}
+          className="absolute bottom-20 left-1/4 w-96 h-96 bg-azul-celeste rounded-full blur-3xl"
+        />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="font-bebas text-5xl md:text-7xl text-white mb-6 drop-shadow-2xl">COMO FUNCIONA</h2>
+            <p className="text-2xl text-gray-300 max-w-3xl mx-auto font-medium">
+              Três passos simples para transformar seu talento em oportunidades reais
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            <div className="text-center fade-in card-hover relative">
+              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-verde-brasil to-verde-brasil/50"></div>
+                <CardContent className="p-0">
+                  <motion.div 
+                    animate={{
+                      boxShadow: [
+                        "0 0 20px rgba(0, 156, 59, 0.3), 0 0 40px rgba(0, 156, 59, 0.2)",
+                        "0 0 30px rgba(0, 156, 59, 0.5), 0 0 60px rgba(0, 156, 59, 0.3)",
+                        "0 0 20px rgba(0, 156, 59, 0.3), 0 0 40px rgba(0, 156, 59, 0.2)"
+                      ]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="w-20 h-20 glass-morph-green rounded-full flex items-center justify-center mx-auto mb-6 relative"
                   >
+                    <div className="absolute inset-0 bg-gradient-to-br from-verde-brasil to-verde-brasil/50 rounded-full"></div>
+                    <Video className="text-white w-8 h-8 relative z-10" />
+                  </motion.div>
+                  <h3 className="font-bebas text-3xl text-white mb-4 tracking-wider">1. GRAVE SEU TESTE</h3>
+                  <p className="text-white/80 mb-6 text-base leading-relaxed">
+                    Use nosso Combine Digital para realizar testes físicos verificados por IA. 
+                    Velocidade, agilidade e habilidades técnicas.
+                  </p>
+                  <div className="relative overflow-hidden rounded-xl group">
                     <img 
-                      src="https://images.unsplash.com/photo-1518611012118-696072aa579a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
-                      alt="Young Brazilian player setting up smartphone on field" 
-                      className="w-full h-48 object-cover rounded-xl brightness-90 contrast-110"
+                      src="https://images.unsplash.com/photo-1606925797300-0b35e9d1794e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                      alt="Young Brazilian player training with cones" 
+                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500 brightness-75"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-xl"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                     <div className="absolute bottom-3 left-3 text-white">
                       <p className="text-xs font-semibold tracking-wider">PASSO 1</p>
                     </div>
-                  </motion.div>
-                  <h3 className="font-bebas text-2xl text-gray-900 mb-4">CRIE SEU PERFIL</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Cadastre suas informações pessoais, posição e complete nossa avaliação de habilidades inteligente
-                  </p>
+                  </div>
                 </CardContent>
               </Card>
-            </motion.div>
-
-            {/* Arrow */}
-            <div className="hidden md:flex items-center justify-center">
-              <div className="w-16 h-1 bg-gradient-to-r from-verde-brasil to-amarelo-ouro rounded-full"></div>
+              <div className="hidden md:block progress-arrow"></div>
             </div>
-
-            {/* Step 2 */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="group"
-            >
-              <Card className="glass-morph border-0 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-amarelo-ouro/5 to-transparent"></div>
-                <CardContent className="p-8 relative">
-                  <motion.div
-                    className="relative mb-6 group-hover:scale-110 transition-transform duration-500"
+            
+            <div className="text-center fade-in card-hover relative">
+              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amarelo-ouro to-amarelo-ouro/50"></div>
+                <CardContent className="p-0">
+                  <motion.div 
+                    animate={{
+                      boxShadow: [
+                        "0 0 20px rgba(255, 223, 0, 0.3), 0 0 40px rgba(255, 223, 0, 0.2)",
+                        "0 0 30px rgba(255, 223, 0, 0.5), 0 0 60px rgba(255, 223, 0, 0.3)",
+                        "0 0 20px rgba(255, 223, 0, 0.3), 0 0 40px rgba(255, 223, 0, 0.2)"
+                      ]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.5
+                    }}
+                    className="w-20 h-20 glass-morph-yellow rounded-full flex items-center justify-center mx-auto mb-6 relative"
                   >
+                    <div className="absolute inset-0 bg-gradient-to-br from-amarelo-ouro to-amarelo-ouro/50 rounded-full"></div>
+                    <Bot className="text-white w-8 h-8 relative z-10" />
+                  </motion.div>
+                  <h3 className="font-bebas text-3xl text-white mb-4 tracking-wider">2. IA VERIFICA</h3>
+                  <p className="text-white/80 mb-6 text-base leading-relaxed">
+                    Nosso "Árbitro Digital" analisa cada movimento com precisão científica. 
+                    100% objetivo, sem favorecimento.
+                  </p>
+                  <div className="relative overflow-hidden rounded-xl group">
                     <img 
-                      src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
-                      alt="Athlete performing skills assessment" 
-                      className="w-full h-48 object-cover rounded-xl brightness-90 contrast-110"
+                      src="https://images.unsplash.com/photo-1551958219-acbc608c6377?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                      alt="Digital analysis of soccer player movements" 
+                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500 brightness-75"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-xl"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-32 h-32 border-2 border-verde-brasil rounded-full animate-pulse opacity-60"></div>
+                    </div>
                     <div className="absolute bottom-3 left-3 text-white">
                       <p className="text-xs font-semibold tracking-wider">PASSO 2</p>
                     </div>
-                  </motion.div>
-                  <h3 className="font-bebas text-2xl text-gray-900 mb-4">VERIFICAÇÃO INTELIGENTE</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Nossa IA analisa suas habilidades e cria um perfil confiável para os scouts
-                  </p>
+                  </div>
                 </CardContent>
               </Card>
-            </motion.div>
-
-            {/* Arrow */}
-            <div className="hidden md:flex items-center justify-center">
-              <div className="w-16 h-1 bg-gradient-to-r from-amarelo-ouro to-verde-brasil rounded-full"></div>
+              <div className="hidden md:block progress-arrow"></div>
             </div>
-
-            {/* Step 3 */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="group"
-            >
-              <Card className="glass-morph border-0 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-verde-brasil/5 to-transparent"></div>
-                <CardContent className="p-8 relative">
-                  <motion.div
-                    className="relative mb-6 group-hover:scale-110 transition-transform duration-500"
+            
+            <div className="text-center fade-in card-hover relative">
+              <Card className="p-8 shadow-xl border-0 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 glass-morph-dark relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-azul-celeste to-azul-celeste/50"></div>
+                <CardContent className="p-0">
+                  <motion.div 
+                    animate={{
+                      boxShadow: [
+                        "0 0 20px rgba(0, 39, 118, 0.3), 0 0 40px rgba(0, 39, 118, 0.2)",
+                        "0 0 30px rgba(0, 39, 118, 0.5), 0 0 60px rgba(0, 39, 118, 0.3)",
+                        "0 0 20px rgba(0, 39, 118, 0.3), 0 0 40px rgba(0, 39, 118, 0.2)"
+                      ]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 1
+                    }}
+                    className="w-20 h-20 glass-morph-blue rounded-full flex items-center justify-center mx-auto mb-6 relative"
                   >
+                    <div className="absolute inset-0 bg-gradient-to-br from-azul-celeste to-azul-celeste/50 rounded-full"></div>
+                    <Handshake className="text-white w-8 h-8 relative z-10" />
+                  </motion.div>
+                  <h3 className="font-bebas text-3xl text-white mb-4 tracking-wider">3. SCOUTS ENCONTRAM</h3>
+                  <p className="text-white/80 mb-6 text-base leading-relaxed">
+                    Clubes e agentes descobrem seu talento através de dados verificados. 
+                    Sua performance fala por você.
+                  </p>
+                  <div className="relative overflow-hidden rounded-xl group">
                     <img 
-                      src="https://images.unsplash.com/photo-1560272564-c83b66b1ad12?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
-                      alt="Scout analyzing player data on tablet" 
-                      className="w-full h-48 object-cover rounded-xl brightness-90 contrast-110"
+                      src="https://images.unsplash.com/photo-1577223625816-7546f13df25d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                      alt="Professional scout analyzing player performance" 
+                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500 brightness-75"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-xl"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                     <div className="absolute bottom-3 left-3 text-white">
                       <p className="text-xs font-semibold tracking-wider">PASSO 3</p>
                     </div>
-                  </motion.div>
-                  <h3 className="font-bebas text-2xl text-gray-900 mb-4">CONECTE-SE AOS SCOUTS</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    Seja descoberto pelos principais scouts e clubes do futebol brasileiro
-                  </p>
+                  </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
-
-      {/* Trust Pyramid Section - Enhanced */}
-      <section id="trust-pyramid" className="py-24 relative overflow-hidden">
+      {/* Combine Digital Section */}
+      <section className="py-24 relative overflow-hidden bg-black">
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900/50 to-verde-brasil/10"></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="fade-in">
+              <h2 className="font-bebas text-5xl md:text-7xl text-white mb-8 drop-shadow-2xl">
+                COMBINE DIGITAL
+                <span className="text-verde-brasil block drop-shadow-[0_0_20px_rgba(0,156,59,0.5)]">REVOLUCIONÁRIO</span>
+              </h2>
+              <p className="text-2xl text-gray-300 mb-10 leading-relaxed font-light">
+                O primeiro sistema do mundo que permite realizar testes físicos profissionais 
+                usando apenas seu smartphone, com verificação por inteligência artificial.
+              </p>
+              
+              <div className="space-y-8 mb-12">
+                <div className="flex items-start gap-6 group cursor-pointer tooltip-container p-6 rounded-xl glass-morph-dark border border-white/10 hover:border-verde-brasil/30 transition-all duration-300">
+                  <div className="w-12 h-12 glass-morph-green rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-verde-brasil/30 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-verde-brasil to-verde-brasil/50 rounded-full"></div>
+                    <Check className="text-white w-6 h-6 relative z-10" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bebas text-2xl text-white mb-2 group-hover:text-verde-brasil transition-colors tracking-wide">Teste de Velocidade 20m</h4>
+                    <p className="text-gray-400 text-base leading-relaxed">Medição precisa de aceleração e velocidade máxima</p>
+                    <span className="tooltip">Mede sua aceleração explosiva, essencial para atacantes e laterais</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-6 group cursor-pointer tooltip-container p-6 rounded-xl glass-morph-dark border border-white/10 hover:border-verde-brasil/30 transition-all duration-300">
+                  <div className="w-12 h-12 glass-morph-green rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-verde-brasil/30 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-verde-brasil to-verde-brasil/50 rounded-full"></div>
+                    <Check className="text-white w-6 h-6 relative z-10" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bebas text-2xl text-white mb-2 group-hover:text-verde-brasil transition-colors tracking-wide">Teste de Agilidade 5-10-5</h4>
+                    <p className="text-gray-400 text-base leading-relaxed">Avalia mudanças de direção e coordenação</p>
+                    <span className="tooltip">Testa sua capacidade de mudar direção rapidamente, crucial para defensores</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-6 group cursor-pointer tooltip-container p-6 rounded-xl glass-morph-dark border border-white/10 hover:border-verde-brasil/30 transition-all duration-300">
+                  <div className="w-12 h-12 glass-morph-green rounded-full flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-verde-brasil/30 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-verde-brasil to-verde-brasil/50 rounded-full"></div>
+                    <Check className="text-white w-6 h-6 relative z-10" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bebas text-2xl text-white mb-2 group-hover:text-verde-brasil transition-colors tracking-wide">Habilidades Técnicas</h4>
+                    <p className="text-gray-400 text-base leading-relaxed">Controle de bola, chutes e passes com precisão</p>
+                    <span className="tooltip">Demonstre sua técnica apurada com exercícios específicos por posição</span>
+                  </div>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={() => handleCTAClick("athlete")}
+                className="glass-morph-green text-white px-10 py-6 text-xl font-semibold flex items-center gap-4 rounded-2xl h-auto shadow-2xl hover:shadow-verde-brasil/50 transition-all duration-300 transform hover:scale-105 relative overflow-hidden group"
+              >
+                <Play className="w-6 h-6 relative z-10" />
+                <span className="relative z-10">FAZER MEU PRIMEIRO TESTE</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-verde-brasil to-verde-brasil/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </Button>
+              <p className="text-base text-gray-400 mt-4 font-medium">Verificação por IA gratuita no seu primeiro teste</p>
+            </div>
+            
+            <div className="fade-in relative">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+                <img 
+                  src="https://images.unsplash.com/photo-1553778263-73a83bab9b0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
+                  alt="Professional soccer training with cones and equipment" 
+                  className="w-full h-full object-cover brightness-90"
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-verde-brasil/30 via-transparent to-amarelo-ouro/30"></div>
+                <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                  <div className="flex gap-4 text-white">
+                    <div className="text-center">
+                      <p className="font-bebas text-3xl">20m</p>
+                      <p className="text-xs uppercase tracking-wider">Velocidade</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="font-bebas text-3xl">5-10-5</p>
+                      <p className="text-xs uppercase tracking-wider">Agilidade</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="font-bebas text-3xl">100%</p>
+                      <p className="text-xs uppercase tracking-wider">Precisão IA</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -bottom-6 -right-6 w-40 h-40 bg-verde-brasil rounded-full opacity-20 blur-3xl"></div>
+              <div className="absolute -top-6 -left-6 w-40 h-40 bg-amarelo-ouro rounded-full opacity-20 blur-3xl"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      {/* Pirâmide da Confiança */}
+      <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0">
           <img 
             src="https://images.unsplash.com/photo-1522778119026-d647f0596c20?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080" 
             alt="Stadium at dusk" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/75"></div>
+          <div className="absolute inset-0 bg-black/70"></div>
         </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
-            <h2 className="font-bebas text-5xl md:text-6xl text-white mb-6">
-              PIRÂMIDE DA CONFIANÇA
-            </h2>
-            <p className="text-xl text-white/90 max-w-3xl mx-auto">
-              Sistema de verificação em camadas que garante a credibilidade dos perfis
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="fade-in">
+            <h2 className="font-bebas text-4xl md:text-6xl text-white mb-6 drop-shadow-lg">PIRÂMIDE DA CONFIANÇA</h2>
+            <p className="text-xl text-white/90 mb-12 max-w-3xl mx-auto drop-shadow-md">
+              Sistema transparente de verificação que garante credibilidade total aos seus dados
             </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Bronze */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.8 }}
-              className="glass-morph rounded-2xl p-8 text-center border border-orange-400/30"
-            >
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
-                <Medal className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-bebas text-2xl text-white mb-4">BRONZE</h3>
-              <ul className="text-white/80 space-y-2 text-sm">
-                <li>✓ Perfil Completo</li>
-                <li>✓ Auto-avaliação</li>
-                <li>✓ Informações Básicas</li>
-              </ul>
-            </motion.div>
-
-            {/* Silver */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              className="glass-morph rounded-2xl p-8 text-center border border-gray-400/30"
-            >
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-300 to-gray-500 flex items-center justify-center">
-                <Star className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-bebas text-2xl text-white mb-4">SILVER</h3>
-              <ul className="text-white/80 space-y-2 text-sm">
-                <li>✓ Bronze +</li>
-                <li>✓ Testes Técnicos</li>
-                <li>✓ Validação IA</li>
-              </ul>
-            </motion.div>
-
-            {/* Gold */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              className="glass-morph rounded-2xl p-8 text-center border border-yellow-400/30"
-            >
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center">
-                <Crown className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-bebas text-2xl text-white mb-4">GOLD</h3>
-              <ul className="text-white/80 space-y-2 text-sm">
-                <li>✓ Silver +</li>
-                <li>✓ Múltiplos Testes</li>
-                <li>✓ Métricas Avançadas</li>
-              </ul>
-            </motion.div>
-
-            {/* Platinum */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="glass-morph rounded-2xl p-8 text-center border border-purple-400/30"
-            >
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
-                <Trophy className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="font-bebas text-2xl text-white mb-4">PLATINUM</h3>
-              <ul className="text-white/80 space-y-2 text-sm">
-                <li>✓ Gold +</li>
-                <li>✓ Validação Scout</li>
-                <li>✓ Selo Premium</li>
-              </ul>
-            </motion.div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-5xl mx-auto mb-12">
+              <Card className="card-hover texture-bronze border-0 p-6 glow-bronze">
+                <CardContent className="p-0 text-center text-white">
+                  <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Medal className="text-white w-8 h-8 drop-shadow-lg" />
+                  </div>
+                  <h3 className="font-bebas text-2xl text-white mb-2 drop-shadow-lg">BRONZE</h3>
+                  <p className="text-sm text-white/90">Perfil básico verificado</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="card-hover texture-silver border-0 p-6 glow-silver">
+                <CardContent className="p-0 text-center">
+                  <div className="w-16 h-16 bg-black/20 backdrop-blur rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Star className="text-white w-8 h-8 drop-shadow-lg" />
+                  </div>
+                  <h3 className="font-bebas text-2xl text-gray-800 mb-2 drop-shadow-lg">PRATA</h3>
+                  <p className="text-sm text-gray-700">1+ teste verificado por IA</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="card-hover texture-gold border-0 p-6 glow-gold">
+                <CardContent className="p-0 text-center">
+                  <div className="w-16 h-16 bg-black/20 backdrop-blur rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Crown className="text-white w-8 h-8 drop-shadow-lg" />
+                  </div>
+                  <h3 className="font-bebas text-2xl text-yellow-900 mb-2 drop-shadow-lg">OURO</h3>
+                  <p className="text-sm text-yellow-800">3+ testes + dados de liga</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="card-hover texture-platinum border-0 p-6 glow-platinum pulse-animation">
+                <CardContent className="p-0 text-center">
+                  <div className="w-16 h-16 bg-white/30 backdrop-blur rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Trophy className="text-white w-8 h-8 drop-shadow-lg" />
+                  </div>
+                  <h3 className="font-bebas text-2xl text-purple-900 mb-2 drop-shadow-lg">PLATINA</h3>
+                  <p className="text-sm text-purple-800">Perfil completo + scout validação</p>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <p className="text-white/90 text-lg font-medium drop-shadow-md">
+              Cada nível desbloqueia mais visibilidade e acesso a scouts de elite. 
+              <span className="block mt-2 text-amarelo-ouro font-semibold">Onde sua jornada vai te levar?</span>
+            </p>
           </div>
         </div>
       </section>
-
+      {/* CTA Final */}
+      <section className="py-20 bg-texture-grass relative overflow-hidden">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="fade-in">
+            <h2 className="font-bebas text-5xl md:text-7xl text-white mb-8 drop-shadow-lg">
+              SEU FUTURO<br />
+              <span className="amarelo-ouro drop-shadow-lg">COMEÇA AGORA</span>
+            </h2>
+            <p className="text-xl text-white/90 mb-12 max-w-3xl mx-auto drop-shadow-md">
+              Junte-se a milhares de jovens talentos que já transformaram seus sonhos em realidade
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
+              <Button 
+                onClick={() => handleCTAClick("athlete")}
+                className="glass-morph-green text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-verde-brasil/50 relative overflow-hidden group"
+              >
+                <Terminal className="w-6 h-6 relative z-10" />
+                <span className="relative z-10">COMECE SUA JORNADA (ATLETA)</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-verde-brasil to-verde-brasil/80 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </Button>
+              <Button 
+                onClick={() => handleCTAClick("scout")}
+                className="glass-morph text-white px-10 py-5 text-xl font-semibold flex items-center gap-3 min-w-[280px] h-auto rounded-2xl shadow-2xl hover:shadow-white/30 relative overflow-hidden group border border-white/20"
+              >
+                <Search className="w-6 h-6 relative z-10" />
+                <span className="relative z-10">DESCOBRIR TALENTOS (SCOUT)</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </Button>
+            </div>
+            
+            {/* Social Proof Section */}
+            <div className="mt-20 pt-12 border-t border-white/20">
+              <h3 className="font-bebas text-2xl text-white/80 mb-8">CLUBES QUE CONFIAM NA REVELA</h3>
+              <div className="flex flex-wrap justify-center items-center gap-8 opacity-70">
+                <div className="w-32 h-16 bg-white/10 backdrop-blur rounded-lg flex items-center justify-center">
+                  <span className="text-white font-semibold">São Paulo FC</span>
+                </div>
+                <div className="w-32 h-16 bg-white/10 backdrop-blur rounded-lg flex items-center justify-center">
+                  <span className="text-white font-semibold">Corinthians</span>
+                </div>
+                <div className="w-32 h-16 bg-white/10 backdrop-blur rounded-lg flex items-center justify-center">
+                  <span className="text-white font-semibold">Flamengo</span>
+                </div>
+                <div className="w-32 h-16 bg-white/10 backdrop-blur rounded-lg flex items-center justify-center">
+                  <span className="text-white font-semibold">Santos FC</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="font-bebas text-2xl text-verde-brasil mb-4">REVELA</h3>
+              <h3 className="font-bebas text-2xl verde-brasil mb-4">REVELA</h3>
               <p className="text-gray-400 mb-4">
                 Democratizando o acesso ao futebol profissional através da tecnologia.
               </p>
@@ -432,7 +580,6 @@ export default function Landing() {
           </div>
         </div>
       </footer>
-
       <UserTypeModal 
         isOpen={showUserTypeModal}
         onClose={() => setShowUserTypeModal(false)}

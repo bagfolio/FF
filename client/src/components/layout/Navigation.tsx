@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, User, Search, Home, Menu, Zap, Trophy, Activity } from "lucide-react";
 import { useState } from "react";
@@ -29,7 +30,7 @@ export default function Navigation() {
   const isActive = (path: string) => location === path;
 
   return (
-    <nav className="sticky top-0 w-full bg-white/95 backdrop-blur-md shadow-lg z-50">
+    <nav className="sticky top-0 w-full glass-morph border-b border-border shadow-lg z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-2">
@@ -37,7 +38,7 @@ export default function Navigation() {
               <SidebarTrigger className="md:hidden" />
             )}
             <Link href="/">
-              <h1 className="font-bebas text-2xl verde-brasil cursor-pointer">FUTEBOL FUTURO</h1>
+              <h1 className="font-bebas text-2xl verde-brasil cursor-pointer">REVELA</h1>
             </Link>
           </div>
 
@@ -81,6 +82,7 @@ export default function Navigation() {
             )}
 
             <div className="flex items-center gap-2 pl-4 border-l">
+              <ThemeToggle />
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 <span className="text-sm font-medium">
@@ -111,7 +113,7 @@ export default function Navigation() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && !isAthletePage && (
-          <div className="md:hidden border-t bg-white/95 backdrop-blur-md">
+          <div className="md:hidden border-t glass-morph">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {user?.userType === "athlete" && (
                 <>
@@ -184,11 +186,14 @@ export default function Navigation() {
               )}
 
               <div className="border-t pt-2">
-                <div className="flex items-center gap-2 px-3 py-2">
-                  <User className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    {user?.firstName || "Usuário"}
-                  </span>
+                <div className="flex items-center justify-between px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {user?.firstName || "Usuário"}
+                    </span>
+                  </div>
+                  <ThemeToggle />
                 </div>
                 <Button 
                   variant="ghost" 

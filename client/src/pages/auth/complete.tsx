@@ -310,7 +310,7 @@ export default function AuthComplete() {
             transition={{ delay: 2 }}
             className="font-bebas text-3xl md:text-5xl text-amarelo-ouro tracking-wider"
           >
-            AO FUTEBOL FUTURO
+            AO REVELA
           </motion.h2>
         </motion.div>
 
