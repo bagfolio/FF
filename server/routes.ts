@@ -195,6 +195,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update athlete verification level based on requirements
+  app.post("/api/athletes/:id/update-verification-level", async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+      const athlete = await storage.getAthlete(parseInt(id));
+      
+      if (!athlete) {
+        return res.status(404).json({ error: "Athlete not found" });
+      }
+      
+      const tests = await storage.getTestsByAthlete(parseInt(id));
+      
+      // Calculate new verification level using Trust Pyramid Calculator
+      const hasSkills = athlete.skillsAssessment && Object.keys(athlete.skillsAssessment).length > 0;
+      const profileComplete = !!(athlete.fullName && athlete.birthDate && athlete.position);
+      
+      let currentLevel = 'bronze';
+      if (tests.length >= 3 && athlete.scoutValidated) {
+        currentLevel = 'platinum';
+      } else if (tests.length >= 3) {
+        currentLevel = 'gold';
+      } else if (tests.length > 0 && athlete.skillsVerified) {
+        currentLevel = 'silver';
+      } else if (hasSkills && profileComplete) {
+        currentLevel = 'bronze';
+      }
+      
+      // Update athlete verification level
+      const updatedAthlete = await storage.updateAthlete(parseInt(id), { 
+        verificationLevel: currentLevel as any,
+        updatedAt: new Date()
+      });
+      
+      res.json({ 
+        verificationLevel: currentLevel,
+        athlete: updatedAthlete
+      });
+    } catch (error) {
+      console.error("Error updating verification level:", error);
+      res.status(500).json({ error: "Failed to update verification level" });
+    }
+  });
+
   app.get('/api/athletes/:id', async (req, res) => {
     try {
       const athleteId = parseInt(req.params.id);

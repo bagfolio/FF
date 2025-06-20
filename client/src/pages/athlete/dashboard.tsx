@@ -260,7 +260,7 @@ export default function AthleteDashboard() {
         <SocialProofNotification />
         
         {/* Skills sync notification */}
-        {hasLocalSkills && (
+        {hasLocalData && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -354,10 +354,11 @@ export default function AthleteDashboard() {
                   className="glass-morph rounded-2xl p-6"
                 >
                   <PerformanceEvolution athlete={{
-                    speed: skills.find(s => s.id === "speed")?.data?.sliderValue || 5,
-                    agility: skills.find(s => s.id === "strength")?.data?.sliderValue || 5,
-                    technique: Object.values(skills.find(s => s.id === "technique")?.data?.skills || {}).reduce((a: any, b: any) => a + b, 0) / 4 || 3,
-                    endurance: skills.find(s => s.id === "stamina")?.data?.duration === "90+" ? 9 : 6
+                    speed: skills?.find(s => s.id === "speed")?.data?.sliderValue || 5,
+                    agility: skills?.find(s => s.id === "strength")?.data?.sliderValue || 5,
+                    technique: skills?.find(s => s.id === "technique")?.data?.skills ? 
+                      Object.values(skills.find(s => s.id === "technique")!.data.skills).reduce((a: number, b: any) => a + (Number(b) || 0), 0) / 4 : 3,
+                    endurance: skills?.find(s => s.id === "stamina")?.data?.duration === "90+" ? 9 : 6
                   }} />
                 </motion.div>
 
@@ -389,7 +390,7 @@ export default function AthleteDashboard() {
                 >
                   <TrustScoreWidget 
                     currentLevel={verificationLevel}
-                    skills={skills}
+                    skills={skills || []}
                     profileCompletion={profileCompletion}
                   />
                 </motion.div>
@@ -403,7 +404,7 @@ export default function AthleteDashboard() {
                 >
                   <TrustPyramidProgressWidget 
                     athlete={dashboardData?.athlete}
-                    skills={skills}
+                    skills={skills || []}
                     tests={tests}
                     currentLevel={verificationLevel}
                   />
