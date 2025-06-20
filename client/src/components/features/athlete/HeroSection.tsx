@@ -85,7 +85,7 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
                   <User className="w-12 h-12 md:w-20 md:h-20 text-verde-brasil" />
                 </Avatar>
                 <button className="absolute bottom-0 right-0 w-9 h-9 md:w-11 md:h-11 bg-amarelo-ouro rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform touch-target">
-                  <Camera className="w-4 h-4 md:w-5 md:h-5 text-gray-800" />
+                  <Camera className="w-4 h-4 md:w-5 md:h-5 text-white" />
                 </button>
               </ProfileCompletionRing>
               <div className="text-center mt-3">
@@ -132,7 +132,7 @@ export function HeroSection({ athlete, profileCompletion = 65, testsCompleted = 
           <div className="flex flex-wrap gap-4">
             <Button 
               size="lg" 
-              className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-300 hover:to-green-400 text-gray-900 font-semibold shadow-xl transform hover:scale-105 transition-all"
+              className="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-300 hover:to-green-400 text-black font-semibold shadow-xl transform hover:scale-105 transition-all"
             >
               <Play className="w-5 h-5 mr-2" />
               Realizar Novo Teste

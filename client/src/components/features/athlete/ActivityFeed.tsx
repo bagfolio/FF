@@ -88,7 +88,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
             </div>
             <div className="flex items-center gap-2">
               <Circle className="w-2 h-2 bg-green-500 animate-pulse" />
-              <span className="text-xs text-gray-400">Ao vivo</span>
+              <span className="text-xs text-white/50">Ao vivo</span>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
               <div className="glass-sphere mx-auto w-20 h-20 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center mb-4">
                 <Bell className="w-8 h-8 text-white/40 animate-bounce" />
               </div>
-              <p className="text-gray-400">Sua jornada começa agora</p>
+              <p className="text-white/60">Sua jornada começa agora</p>
             </motion.div>
           ) : (
             <AnimatePresence>
@@ -150,7 +150,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
                       </motion.div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-white/90 font-medium line-clamp-2">{activity.message}</p>
-                        <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
+                        <p className="text-xs text-white/50 mt-1">{activity.time}</p>
                       </div>
                     </div>
                   </motion.div>

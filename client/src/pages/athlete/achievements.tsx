@@ -10,6 +10,7 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { achievementService } from "@/services/api";
+import { useAthleteStats } from "@/hooks/useAthleteStats";
 
 interface Achievement {
   id: string;
@@ -38,6 +39,7 @@ const iconMap = {
   flame: Flame,
   trophy: Trophy,
   trending_up: TrendingUp
+};
 
 export default function AchievementsPage() {
   const [, setLocation] = useLocation();
@@ -56,6 +58,9 @@ export default function AchievementsPage() {
     queryFn: () => achievementService.getAthleteAchievements(athlete!.id),
     enabled: !!athlete?.id,
   });
+  
+  // Fetch real stats including XP and level
+  const { data: stats } = useAthleteStats(athlete?.id);
 
   // Map API data to include icons
   const allAchievements = achievementsData.map((achievement: any) => ({
@@ -119,7 +124,7 @@ export default function AchievementsPage() {
             GALERIA DE CONQUISTAS
           </h1>
           <p className="text-xl text-white/80 font-medium">
-            🏆 1,250 XP • Rank: Estrela em Ascensão ✨
+            🏆 {stats?.totalXP || 0} XP • Rank: {stats?.currentLevel ? `Nível ${stats.currentLevel}` : 'Iniciante'} ✨
           </p>
           
           {/* Stats */}
@@ -153,7 +158,7 @@ export default function AchievementsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/60">Taxa de Conclusão</p>
-                    <p className="text-2xl font-bold text-white">{Math.round((unlockedCount / allAchievements.length) * 100)}%</p>
+                    <p className="text-2xl font-bold text-white">{allAchievements.length > 0 ? Math.round((unlockedCount / allAchievements.length) * 100) : 0}%</p>
                   </div>
                   <Award className="w-8 h-8 text-purple-400" />
                 </div>
@@ -165,7 +170,7 @@ export default function AchievementsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/60">Nível Atual</p>
-                    <p className="text-2xl font-bold text-white">15</p>
+                    <p className="text-2xl font-bold text-white">{stats?.currentLevel || 0}</p>
                   </div>
                   <Shield className="w-8 h-8 text-blue-400" />
                 </div>
@@ -315,14 +320,14 @@ export default function AchievementsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="font-semibold text-white text-lg">Progresso do Nível</h3>
-                <p className="text-white/80">Nível 15 → Nível 16</p>
+                <p className="text-white/80">Nível {stats?.currentLevel || 0} → Nível {(stats?.currentLevel || 0) + 1}</p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-white">2,800 / 3,000 XP</p>
-                <p className="text-sm text-white/60">200 XP para o próximo nível</p>
+                <p className="text-2xl font-bold text-white">{stats?.currentLevelXP || 0} / {stats?.nextLevelXP || 200} XP</p>
+                <p className="text-sm text-white/60">{(stats?.nextLevelXP || 200) - (stats?.currentLevelXP || 0)} XP para o próximo nível</p>
               </div>
             </div>
-            <Progress value={93} className="h-3" />
+            <Progress value={stats?.levelProgress || 0} className="h-3" />
           </CardContent>
         </Card>
       </div>

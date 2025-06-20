@@ -44,27 +44,34 @@ export default function DailyCheckIn() {
   const { data: todayCheckIn } = useQuery({
     queryKey: ['/api/checkin/today'],
     queryFn: async () => {
-      // This would fetch from your API
-      const today = new Date().toDateString();
-      const saved = localStorage.getItem('lastCheckIn');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return new Date(parsed.timestamp).toDateString() === today ? parsed : null;
-      }
-      return null;
+      const response = await fetch('/api/checkin/today', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to check today status');
+      const data = await response.json();
+      return data.hasCheckedIn ? data.checkin : null;
     }
   });
 
   // Save check-in mutation
   const saveCheckIn = useMutation({
     mutationFn: async (data: CheckInData) => {
-      // In production, this would POST to your API
-      localStorage.setItem('lastCheckIn', JSON.stringify(data));
-      return data;
+      const response = await fetch('/api/checkin/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to submit check-in');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/checkin'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/checkin/today'] });
       queryClient.invalidateQueries({ queryKey: ['/api/athletes/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/athlete'] });
     }
   });
 
@@ -89,7 +96,7 @@ export default function DailyCheckIn() {
 
   const handleComplete = async () => {
     await saveCheckIn.mutateAsync(checkInData);
-    setCurrentStep(3); // Show celebration
+    setCurrentStep(4); // Show celebration
   };
 
   const canProceed = () => {

@@ -58,6 +58,30 @@ const ACHIEVEMENT_TEMPLATES = {
   }
 };
 
+async function awardAchievement(athleteId: number, achievementType: string) {
+  const template = ACHIEVEMENT_TEMPLATES[achievementType];
+  
+  // Create achievement
+  await storage.createAchievement({
+    athleteId,
+    achievementType,
+    ...template
+  });
+  
+  // Create activity for achievement
+  await storage.createActivity({
+    athleteId,
+    type: 'achievement',
+    title: 'Conquista Desbloqueada!',
+    message: `${template.title} - ${template.description}`,
+    metadata: {
+      achievementType,
+      points: template.points,
+      icon: template.icon
+    }
+  });
+}
+
 export async function checkAndAwardAchievements(athleteId: number): Promise<void> {
   try {
     // Get athlete data and existing achievements
@@ -75,11 +99,7 @@ export async function checkAndAwardAchievements(athleteId: number): Promise<void
 
     // Check for first test achievement
     if (!unlockedTypes.has('first_test') && tests.length > 0) {
-      await storage.createAchievement({
-        athleteId,
-        achievementType: 'first_test',
-        ...ACHIEVEMENT_TEMPLATES.first_test
-      });
+      await awardAchievement(athleteId, 'first_test');
     }
 
     // Check for complete profile achievement
@@ -97,68 +117,40 @@ export async function checkAndAwardAchievements(athleteId: number): Promise<void
     const profileCompletion = profileFields.filter(f => f != null && f !== '').length / profileFields.length;
     
     if (!unlockedTypes.has('complete_profile') && profileCompletion >= 1) {
-      await storage.createAchievement({
-        athleteId,
-        achievementType: 'complete_profile',
-        ...ACHIEVEMENT_TEMPLATES.complete_profile
-      });
+      await awardAchievement(athleteId, 'complete_profile');
     }
 
     // Check for week streak achievement
-    const streak = await storage.getAthleteStreak(athleteId);
+    const streak = await storage.getCheckinStreak(athleteId);
     if (!unlockedTypes.has('week_streak') && streak >= 7) {
-      await storage.createAchievement({
-        athleteId,
-        achievementType: 'week_streak',
-        ...ACHIEVEMENT_TEMPLATES.week_streak
-      });
+      await awardAchievement(athleteId, 'week_streak');
     }
 
     // Check for rising star achievement (10 scout views)
     if (!unlockedTypes.has('rising_star') && views >= 10) {
-      await storage.createAchievement({
-        athleteId,
-        achievementType: 'rising_star',
-        ...ACHIEVEMENT_TEMPLATES.rising_star
-      });
+      await awardAchievement(athleteId, 'rising_star');
     }
 
     // Check for speed demon achievement (top 10% in speed)
     const percentile = await storage.getAthletePercentile(athleteId);
     if (!unlockedTypes.has('speed_demon') && percentile >= 90) {
-      await storage.createAchievement({
-        athleteId,
-        achievementType: 'speed_demon',
-        ...ACHIEVEMENT_TEMPLATES.speed_demon
-      });
+      await awardAchievement(athleteId, 'speed_demon');
     }
 
     // Check for champion achievement (top 5%)
     if (!unlockedTypes.has('champion') && percentile >= 95) {
-      await storage.createAchievement({
-        athleteId,
-        achievementType: 'champion',
-        ...ACHIEVEMENT_TEMPLATES.champion
-      });
+      await awardAchievement(athleteId, 'champion');
     }
 
     // Check for verified athlete achievement (all 6 tests completed)
     const uniqueTestTypes = new Set(tests.map(t => t.testType));
     if (!unlockedTypes.has('verified_athlete') && uniqueTestTypes.size >= 6) {
-      await storage.createAchievement({
-        athleteId,
-        achievementType: 'verified_athlete',
-        ...ACHIEVEMENT_TEMPLATES.verified_athlete
-      });
+      await awardAchievement(athleteId, 'verified_athlete');
     }
 
     // Check for gold verification level achievement
     if (!unlockedTypes.has('verified_gold') && athlete.verificationLevel === 'gold') {
-      await storage.createAchievement({
-        athleteId,
-        achievementType: 'verified_gold',
-        ...ACHIEVEMENT_TEMPLATES.verified_gold
-      });
+      await awardAchievement(athleteId, 'verified_gold');
     }
 
   } catch (error) {

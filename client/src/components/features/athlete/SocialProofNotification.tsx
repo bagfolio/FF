@@ -13,22 +13,22 @@ const notificationConfig = {
   scout_view: {
     icon: Users,
     color: "text-verde-brasil",
-    bg: "bg-green-100"
+    bg: "glass-morph-green"
   },
   athlete_achievement: {
     icon: TrendingUp,
-    color: "text-blue-600",
-    bg: "bg-blue-100"
+    color: "text-blue-400",
+    bg: "glass-morph-blue"
   },
   test_completed: {
     icon: Award,
     color: "text-amarelo-ouro",
-    bg: "bg-yellow-100"
+    bg: "glass-morph-yellow"
   },
   scouts_online: {
     icon: Eye,
-    color: "text-purple-600",
-    bg: "bg-purple-100"
+    color: "text-purple-400",
+    bg: "glass-morph-purple"
   }
 };
 
@@ -72,16 +72,16 @@ export function SocialProofNotification({ className = "" }: SocialProofNotificat
   return (
     <div className={`fixed bottom-8 left-8 z-40 ${className}`}>
       <div className={`
-        bg-gradient-to-r from-gray-50 to-white rounded-lg shadow-lg border-2 border-gray-200 p-4 flex items-center gap-3
+        glass-morph backdrop-blur-xl rounded-lg shadow-lg border-2 border-white/20 p-4 flex items-center gap-3
         transform transition-all duration-500 
         ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}
       `}>
-        <div className={`w-10 h-10 ${config.bg} rounded-full flex items-center justify-center`}>
+        <div className={`w-10 h-10 ${config.bg} rounded-full flex items-center justify-center shadow-md`}>
           <Icon className={`w-5 h-5 ${config.color}`} />
         </div>
         <div>
-          <p className="text-sm font-medium text-gray-800">{notification.message}</p>
-          <p className="text-xs text-gray-500">{notification.time}</p>
+          <p className="text-sm font-medium text-white">{notification.message}</p>
+          <p className="text-xs text-white/60">{notification.time}</p>
         </div>
       </div>
     </div>

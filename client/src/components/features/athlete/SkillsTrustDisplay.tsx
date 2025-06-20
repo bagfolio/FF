@@ -44,10 +44,10 @@ const skillIcons = {
 };
 
 const trustLevels = [
-  { id: 'bronze', name: 'Bronze', icon: Medal, color: 'text-orange-600', bgColor: 'bg-orange-50' },
-  { id: 'silver', name: 'Prata', icon: Star, color: 'text-gray-600', bgColor: 'bg-gray-50' },
-  { id: 'gold', name: 'Ouro', icon: Crown, color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
-  { id: 'platinum', name: 'Platina', icon: Trophy, color: 'text-purple-600', bgColor: 'bg-purple-50' }
+  { id: 'bronze', name: 'Bronze', icon: Medal, color: 'text-orange-400', bgColor: 'glass-morph-orange' },
+  { id: 'silver', name: 'Prata', icon: Star, color: 'text-gray-300', bgColor: 'glass-morph' },
+  { id: 'gold', name: 'Ouro', icon: Crown, color: 'text-yellow-400', bgColor: 'glass-morph-yellow' },
+  { id: 'platinum', name: 'Platina', icon: Trophy, color: 'text-purple-400', bgColor: 'glass-morph-purple' }
 ];
 
 const verificationMethods: Record<TrustLevel, { label: string; description: string }> = {
@@ -95,7 +95,7 @@ export function SkillsTrustDisplay({
   };
 
   return (
-    <Card className={className}>
+    <Card className={cn("glass-morph border-white/10", className)}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="font-bebas text-2xl">VERIFICAÇÃO DE HABILIDADES</CardTitle>
@@ -116,9 +116,9 @@ export function SkillsTrustDisplay({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Overall Trust Level */}
-        <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+        <div className="p-4 rounded-lg glass-morph border border-white/10">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-gray-700">Nível de Confiança Geral</span>
+            <span className="text-sm font-medium text-white/80">Nível de Confiança Geral</span>
             <div className="flex items-center gap-2">
               {trustLevels.map((level, index) => {
                 const Icon = level.icon;
@@ -128,11 +128,11 @@ export function SkillsTrustDisplay({
                     key={level.id}
                     className={cn(
                       "w-8 h-8 rounded-full flex items-center justify-center transition-all",
-                      isActive ? level.bgColor : "bg-gray-200",
+                      isActive ? level.bgColor : "bg-white/10",
                       currentTrustLevel === level.id && "ring-2 ring-offset-1 ring-verde-brasil"
                     )}
                   >
-                    <Icon className={cn("w-4 h-4", isActive ? level.color : "text-gray-400")} />
+                    <Icon className={cn("w-4 h-4", isActive ? level.color : "text-white/30")} />
                   </div>
                 );
               })}
@@ -141,7 +141,7 @@ export function SkillsTrustDisplay({
           <div className="space-y-1">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">{trustLevels.find(l => l.id === currentTrustLevel)?.name}</span>
-              <span className="text-gray-600">{verificationMethods[currentTrustLevel].label}</span>
+              <span className="text-white/60">{verificationMethods[currentTrustLevel].label}</span>
             </div>
             <Progress 
               value={(getTrustLevelIndex(currentTrustLevel) + 1) * 25} 
@@ -152,7 +152,7 @@ export function SkillsTrustDisplay({
 
         {/* Individual Skill Verifications */}
         <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-gray-900">Verificação por Habilidade</h4>
+          <h4 className="text-sm font-semibold text-white">Verificação por Habilidade</h4>
           
           {skills.map(skill => {
             const Icon = skillIcons[skill.id as keyof typeof skillIcons];
@@ -165,14 +165,14 @@ export function SkillsTrustDisplay({
             return (
               <div 
                 key={skill.id}
-                className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+                className="flex items-center justify-between p-3 rounded-lg glass-morph border border-white/10 hover:border-white/20 transition-all duration-300"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-gray-700" />
+                  <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-white/80" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{skill.name}</p>
+                    <p className="font-medium text-white">{skill.name}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge 
                         variant="secondary" 
@@ -186,7 +186,7 @@ export function SkillsTrustDisplay({
                         {trustLevel?.name}
                       </Badge>
                       {verification?.verifiedAt && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-white/40">
                           Verificado em {new Date(verification.verifiedAt).toLocaleDateString('pt-BR')}
                         </span>
                       )}
@@ -223,15 +223,15 @@ export function SkillsTrustDisplay({
         </div>
 
         {/* Call to Action */}
-        <div className="mt-6 p-4 rounded-lg bg-blue-50 border border-blue-200">
+        <div className="mt-6 p-4 rounded-lg glass-morph-blue">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-blue-900">Aumente sua credibilidade</p>
-              <p className="text-sm text-blue-700 mt-1">
+              <p className="text-sm font-medium text-white">Aumente sua credibilidade</p>
+              <p className="text-sm text-white/80 mt-1">
                 Complete testes do Combine Digital ou peça validação do seu treinador para melhorar o nível de confiança das suas habilidades.
               </p>
-              <Button size="sm" variant="link" className="text-blue-700 p-0 h-auto mt-2">
+              <Button size="sm" variant="link" className="text-blue-400 hover:text-blue-300 p-0 h-auto mt-2">
                 Saiba mais sobre verificação <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             </div>

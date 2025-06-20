@@ -143,6 +143,36 @@ export const achievements = pgTable("achievements", {
   unlockedAt: timestamp("unlocked_at").defaultNow(),
 });
 
+// Daily check-ins table
+export const checkins = pgTable("checkins", {
+  id: serial("id").primaryKey(),
+  athleteId: integer("athlete_id").notNull().references(() => athletes.id, { onDelete: "cascade" }),
+  mood: jsonb("mood").notNull(), // { emoji, label, value, color, xp }
+  intensity: integer("intensity").notNull(), // Training duration in minutes
+  trainingFocus: jsonb("training_focus"), // Training areas and time allocation
+  reflection: text("reflection"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("IDX_checkins_athlete_created").on(table.athleteId, table.createdAt),
+]);
+
+// Activities feed table
+export const activities = pgTable("activities", {
+  id: serial("id").primaryKey(),
+  athleteId: integer("athlete_id").notNull().references(() => athletes.id, { onDelete: "cascade" }),
+  type: varchar("type", { 
+    enum: ["checkin", "test", "achievement", "view", "skill_update", "rank_change", "system"] 
+  }).notNull(),
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  metadata: jsonb("metadata"), // Type-specific data (e.g., test results, achievement details)
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("IDX_activities_athlete_created").on(table.athleteId, table.createdAt),
+  index("IDX_activities_type").on(table.type),
+]);
+
 // Relations
 export const usersRelations = relations(users, ({ one }) => ({
   athlete: one(athletes, { fields: [users.id], references: [athletes.userId] }),
@@ -155,6 +185,8 @@ export const athletesRelations = relations(athletes, ({ one, many }) => ({
   views: many(athleteViews),
   achievements: many(achievements),
   skillVerifications: many(skillVerifications),
+  checkins: many(checkins),
+  activities: many(activities),
 }));
 
 export const scoutsRelations = relations(scouts, ({ one, many }) => ({
@@ -165,6 +197,14 @@ export const scoutsRelations = relations(scouts, ({ one, many }) => ({
 
 export const testsRelations = relations(tests, ({ one }) => ({
   athlete: one(athletes, { fields: [tests.athleteId], references: [athletes.id] }),
+}));
+
+export const checkinsRelations = relations(checkins, ({ one }) => ({
+  athlete: one(athletes, { fields: [checkins.athleteId], references: [athletes.id] }),
+}));
+
+export const activitiesRelations = relations(activities, ({ one }) => ({
+  athlete: one(athletes, { fields: [activities.athleteId], references: [athletes.id] }),
 }));
 
 // Zod schemas
@@ -197,6 +237,39 @@ export const insertTestSchema = createInsertSchema(tests).omit({
   createdAt: true,
 });
 
+export const insertCheckinSchema = createInsertSchema(checkins).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  mood: z.object({
+    emoji: z.string(),
+    label: z.string(),
+    value: z.number(),
+    color: z.string(),
+    xp: z.number(),
+  }),
+  intensity: z.number().min(0).max(300), // Max 5 hours
+  trainingFocus: z.object({
+    areas: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      time: z.number(),
+      drills: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        duration: z.number(),
+      })).optional(),
+    })),
+    totalAllocatedTime: z.number(),
+  }).nullable(),
+  reflection: z.string().optional(),
+});
+
+export const insertActivitySchema = createInsertSchema(activities).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -209,3 +282,7 @@ export type InsertTest = z.infer<typeof insertTestSchema>;
 export type Achievement = typeof achievements.$inferSelect;
 export type AthleteView = typeof athleteViews.$inferSelect;
 export type SkillVerification = typeof skillVerifications.$inferSelect;
+export type Checkin = typeof checkins.$inferSelect;
+export type InsertCheckin = z.infer<typeof insertCheckinSchema>;
+export type Activity = typeof activities.$inferSelect;
+export type InsertActivity = z.infer<typeof insertActivitySchema>;

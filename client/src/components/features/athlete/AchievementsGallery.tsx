@@ -26,41 +26,41 @@ export function AchievementsGallery({ achievements }: AchievementsGalleryProps) 
   const getRarityConfig = (rarity?: string) => {
     const configs = {
       common: {
-        border: "border-gray-300",
-        bg: "from-gray-100 to-gray-200"
+        border: "border-white/20",
+        bg: "glass-morph"
       },
       rare: {
-        border: "border-blue-400",
-        bg: "from-blue-100 to-blue-200"
+        border: "border-blue-400/50",
+        bg: "glass-morph-blue"
       },
       epic: {
-        border: "border-purple-400",
-        bg: "from-purple-100 to-purple-200"
+        border: "border-purple-400/50",
+        bg: "glass-morph-purple"
       },
       legendary: {
-        border: "border-amarelo-ouro shadow-lg shadow-amarelo-ouro/20",
-        bg: "from-yellow-100 to-yellow-200"
+        border: "border-yellow-400/50 shadow-lg shadow-yellow-400/20",
+        bg: "glass-morph-yellow"
       }
     };
     return configs[rarity as keyof typeof configs] || configs.common;
   };
 
   return (
-    <Card className="overflow-hidden shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-100 border-b-2 border-orange-200 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-200/20 to-transparent transform -translate-x-full animate-shimmer" />
-        <CardTitle className="tracking-tight font-bebas text-xl flex items-center justify-between text-orange-900 font-medium relative z-10">
+    <Card className="overflow-hidden glass-morph border-white/10 hover:border-white/20 transition-all duration-300">
+      <CardHeader className="glass-morph-yellow border-b border-white/10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent transform -translate-x-full animate-shimmer" />
+        <CardTitle className="tracking-tight font-bebas text-xl flex items-center justify-between text-white font-medium relative z-10">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 animate-pulse" />
             MINHAS CONQUISTAS
-            <Badge className="bg-white/80 text-gray-700 text-xs animate-count-up">
+            <Badge className="bg-white/10 text-white/90 border-white/20 text-xs animate-count-up">
               🏆 {totalXP.toLocaleString()} XP
             </Badge>
           </div>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-orange-900 hover:bg-orange-900/10"
+            className="text-white/80 hover:bg-white/10"
             onClick={() => setLocation('/athlete/achievements')}
           >
             Ver Todas
@@ -89,25 +89,25 @@ export function AchievementsGallery({ achievements }: AchievementsGalleryProps) 
                   className={`aspect-square rounded-lg flex flex-col items-center justify-center relative group cursor-pointer transition-all border-2 ${
                     isUnlocked 
                       ? `bg-gradient-to-br ${rarityConfig.bg} ${rarityConfig.border}` 
-                      : `bg-gray-100 border-gray-200`
+                      : `bg-white/5 border-white/10`
                   } ${
                     isUnlocked && i === 4 ? 'animate-pulse-slow' : ''
                   } transform hover:scale-105`}
                 >
                   {(() => {
                     const Icon = achievement.icon;
-                    return <Icon className={`w-8 h-8 ${isUnlocked ? 'text-gray-700' : 'text-gray-400'}`} />;
+                    return <Icon className={`w-8 h-8 ${isUnlocked ? 'text-white' : 'text-white/30'}`} />;
                   })()}
                   
                   {!isUnlocked && (
                     <>
-                      <div className="absolute inset-0 bg-gray-900/80 rounded-lg flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-lg flex items-center justify-center">
                         <Lock className="w-6 h-6 text-white" />
                       </div>
                       
                       {/* Progress bar for locked achievements */}
                       <div className="absolute bottom-0 left-0 right-0 px-2 pb-2">
-                        <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                        <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
                           <div 
                             className="bg-gradient-to-r from-amarelo-ouro to-yellow-500 h-full rounded-full transition-all duration-500"
                             style={{ width: `${progress}%` }}
@@ -121,13 +121,13 @@ export function AchievementsGallery({ achievements }: AchievementsGalleryProps) 
                   {/* Rarity indicator */}
                   {isUnlocked && (
                     <div className="absolute top-1 right-1">
-                      {rarity === "legendary" && <Sparkles className="w-3 h-3 text-yellow-600" />}
-                      {rarity === "epic" && <Star className="w-3 h-3 text-purple-600" />}
-                      {rarity === "rare" && <Award className="w-3 h-3 text-blue-600" />}
+                      {rarity === "legendary" && <Sparkles className="w-3 h-3 text-yellow-400" />}
+                      {rarity === "epic" && <Star className="w-3 h-3 text-purple-400" />}
+                      {rarity === "rare" && <Award className="w-3 h-3 text-blue-400" />}
                     </div>
                   )}
                   
-                  <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex flex-col items-center justify-center p-2">
+                  <div className="absolute inset-0 bg-black/90 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex flex-col items-center justify-center p-2">
                     <p className="text-white text-xs text-center font-semibold">{achievement.name}</p>
                     <p className="text-white/80 text-xs mt-1">+{achievement.points} XP</p>
                   </div>
@@ -135,7 +135,7 @@ export function AchievementsGallery({ achievements }: AchievementsGalleryProps) 
                 
                 {/* Recently unlocked pulse */}
                 {isUnlocked && i === 4 && (
-                  <div className="absolute -inset-1 bg-amarelo-ouro/50 rounded-lg animate-ping" />
+                  <div className="absolute -inset-1 bg-yellow-400/50 rounded-lg animate-ping" />
                 )}
               </div>
             );
@@ -145,8 +145,8 @@ export function AchievementsGallery({ achievements }: AchievementsGalleryProps) 
         {/* Overall Progress */}
         <div className="mt-4">
           <div className="flex justify-between items-center mb-2">
-            <p className="text-sm text-gray-600">{unlockedCount} de {achievements.length} desbloqueadas</p>
-            <p className="text-xs text-gray-500">Próxima em 2 dias</p>
+            <p className="text-sm text-white/60">{unlockedCount} de {achievements.length} desbloqueadas</p>
+            <p className="text-xs text-white/40">Próxima em 2 dias</p>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
             <div 

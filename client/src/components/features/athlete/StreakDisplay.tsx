@@ -188,7 +188,7 @@ export function StreakDisplay({
             <div className="grid grid-cols-7 gap-2">
               {/* Calendar header */}
               {["D", "S", "T", "Q", "Q", "S", "S"].map((day, i) => (
-                <div key={i} className="text-center text-xs text-gray-400 font-semibold">
+                <div key={i} className="text-center text-xs text-white/50 font-semibold">
                   {day}
                 </div>
               ))}
@@ -234,7 +234,7 @@ export function StreakDisplay({
                       </motion.div>
                     )}
                     {!hasActivity && (
-                      <span className="text-xs text-gray-500">{date.getDate()}</span>
+                      <span className="text-xs text-white/40">{date.getDate()}</span>
                     )}
                   </motion.div>
                 );
@@ -245,15 +245,15 @@ export function StreakDisplay({
             <div className="mt-6 grid grid-cols-3 gap-4">
               <div className="text-center p-3 bg-white/5 rounded-lg border border-white/10">
                 <p className="text-2xl font-bold text-orange-400">{streak}</p>
-                <p className="text-xs text-gray-400">Sequência Atual</p>
+                <p className="text-xs text-white/50">Sequência Atual</p>
               </div>
               <div className="text-center p-3 bg-white/5 rounded-lg border border-white/10">
                 <p className="text-2xl font-bold text-yellow-400">15</p>
-                <p className="text-xs text-gray-400">Maior Sequência</p>
+                <p className="text-xs text-white/50">Maior Sequência</p>
               </div>
               <div className="text-center p-3 bg-white/5 rounded-lg border border-white/10">
                 <p className="text-2xl font-bold text-green-400">85%</p>
-                <p className="text-xs text-gray-400">Consistência</p>
+                <p className="text-xs text-white/50">Consistência</p>
               </div>
             </div>
           </div>

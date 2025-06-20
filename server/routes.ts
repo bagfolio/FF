@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 // Auth system removed for development
-import { insertAthleteSchema, insertScoutSchema, insertTestSchema } from "@shared/schema";
+import { insertAthleteSchema, insertScoutSchema, insertTestSchema, insertCheckinSchema } from "@shared/schema";
 import { z } from "zod";
 import { checkAndAwardAchievements } from "./achievementSeeder";
 
@@ -716,6 +716,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const testData = insertTestSchema.parse({ ...req.body, athleteId: athlete.id });
       const test = await storage.createTest(testData);
       
+      // Create activity entry for test completion
+      const testTypeNames: Record<string, string> = {
+        speed_20m: "Velocidade 20m",
+        agility_5_10_5: "Agilidade 5-10-5",
+        technical_skills: "Habilidades Técnicas"
+      };
+      
+      await storage.createActivity({
+        athleteId: athlete.id,
+        type: "test",
+        title: "Teste Concluído",
+        message: `${testTypeNames[testData.testType] || testData.testType} - Resultado: ${testData.result}`,
+        metadata: {
+          testId: test.id,
+          testType: testData.testType,
+          result: testData.result,
+          verified: test.verified
+        }
+      });
+      
       // Check for new achievements after creating test
       await checkAndAwardAchievements(athlete.id);
       
@@ -763,6 +783,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       await storage.recordAthleteView(athleteId, scout.id);
+      
+      // Create activity entry for the athlete being viewed
+      await storage.createActivity({
+        athleteId: athleteId,
+        type: "view",
+        title: "Perfil Visualizado",
+        message: `Seu perfil foi visualizado por um scout do ${scout.organization}`,
+        metadata: {
+          scoutId: scout.id,
+          organization: scout.organization
+        }
+      });
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Error recording view:", error);
@@ -795,7 +828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getRecentAthleteViews(athlete.id, 7),
         storage.getAthleteAchievements(athlete.id),
         storage.getTestsByAthlete(athlete.id),
-        storage.getAthleteStreak(athlete.id),
+        storage.getCheckinStreak(athlete.id), // Use checkin streak instead
         storage.getAthletePercentile(athlete.id)
       ]);
       
@@ -979,6 +1012,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to update verification level" });
     }
   });
+
+  // Daily check-in endpoints
+  app.post('/api/checkin/submit', async (req: any, res) => {
+    try {
+      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const athlete = await storage.getAthleteByUserId(userId);
+      
+      if (!athlete) {
+        return res.status(403).json({ message: "Only athletes can submit check-ins" });
+      }
+      
+      // Check if already checked in today
+      const todayCheckin = await storage.getTodayCheckin(athlete.id);
+      if (todayCheckin) {
+        return res.status(400).json({ message: "Already checked in today" });
+      }
+      
+      // Validate and create checkin
+      const checkinData = insertCheckinSchema.parse({ ...req.body, athleteId: athlete.id });
+      const checkin = await storage.createCheckin(checkinData);
+      
+      // Calculate XP earned
+      const xpEarned = checkinData.mood.xp + Math.floor(checkinData.intensity / 10);
+      
+      // Create activity entry
+      await storage.createActivity({
+        athleteId: athlete.id,
+        type: "checkin",
+        title: "Check-in Diário Concluído",
+        message: `Humor: ${checkinData.mood.label}, Intensidade: ${checkinData.intensity} min`,
+        metadata: {
+          xpEarned,
+          mood: checkinData.mood.label,
+          intensity: checkinData.intensity,
+          streak: await storage.getCheckinStreak(athlete.id)
+        }
+      });
+      
+      // Check for new achievements
+      await checkAndAwardAchievements(athlete.id);
+      
+      res.json({ 
+        checkin,
+        xpEarned,
+        streak: await storage.getCheckinStreak(athlete.id)
+      });
+    } catch (error) {
+      console.error("Error submitting check-in:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to submit check-in" });
+    }
+  });
+  
+  app.get('/api/checkin/today', async (req: any, res) => {
+    try {
+      const userId = await getDevUserId(); // In production: req.user.claims.sub
+      const athlete = await storage.getAthleteByUserId(userId);
+      
+      if (!athlete) {
+        return res.status(403).json({ message: "Only athletes can check daily status" });
+      }
+      
+      const todayCheckin = await storage.getTodayCheckin(athlete.id);
+      res.json({ hasCheckedIn: !!todayCheckin, checkin: todayCheckin });
+    } catch (error) {
+      console.error("Error checking today's check-in:", error);
+      res.status(500).json({ message: "Failed to check today's status" });
+    }
+  });
+  
+  app.get('/api/checkin/athlete/:id/history', async (req, res) => {
+    try {
+      const athleteId = parseInt(req.params.id);
+      const limit = parseInt(req.query.limit as string) || 30;
+      
+      const history = await storage.getCheckinHistory(athleteId, limit);
+      const streak = await storage.getCheckinStreak(athleteId);
+      
+      res.json({ history, streak });
+    } catch (error) {
+      console.error("Error fetching check-in history:", error);
+      res.status(500).json({ message: "Failed to fetch check-in history" });
+    }
+  });
+
+  // Activity feed endpoints
+  app.get('/api/athletes/:id/activities', async (req, res) => {
+    try {
+      const athleteId = parseInt(req.params.id);
+      const type = req.query.type as string;
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      const activities = await storage.getAthleteActivities(athleteId, { type, limit });
+      
+      // Format activities for frontend
+      const formattedActivities = activities.map(activity => ({
+        id: activity.id.toString(),
+        type: activity.type,
+        title: activity.title,
+        message: activity.message,
+        time: formatTimeAgo(activity.createdAt),
+        date: getActivityDate(activity.createdAt),
+        metadata: activity.metadata,
+        isNew: !activity.isRead,
+        icon: getActivityIcon(activity.type)
+      }));
+      
+      res.json(formattedActivities);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      res.status(500).json({ message: "Failed to fetch activities" });
+    }
+  });
+  
+  app.post('/api/athletes/:id/activities/mark-read', async (req, res) => {
+    try {
+      const athleteId = parseInt(req.params.id);
+      const { activityIds } = req.body;
+      
+      if (!Array.isArray(activityIds)) {
+        return res.status(400).json({ message: "activityIds must be an array" });
+      }
+      
+      await storage.markActivitiesAsRead(athleteId, activityIds);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking activities as read:", error);
+      res.status(500).json({ message: "Failed to mark activities as read" });
+    }
+  });
+
+  // Helper function to format activity date
+  function getActivityDate(date: Date): string {
+    const now = new Date();
+    const activityDate = new Date(date);
+    const diffMs = now.getTime() - activityDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Hoje";
+    if (diffDays === 1) return "Ontem";
+    if (diffDays < 7) return `${diffDays} dias atrás`;
+    if (diffDays < 14) return "1 semana atrás";
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} semanas atrás`;
+    return `${Math.floor(diffDays / 30)} ${Math.floor(diffDays / 30) === 1 ? 'mês' : 'meses'} atrás`;
+  }
+  
+  // Helper function to get activity icon name
+  function getActivityIcon(type: string): string {
+    const iconMap: Record<string, string> = {
+      checkin: "calendar-check",
+      test: "play",
+      achievement: "trophy",
+      view: "eye",
+      skill_update: "trending-up",
+      rank_change: "award",
+      system: "bell"
+    };
+    return iconMap[type] || "bell";
+  }
 
   const httpServer = createServer(app);
   return httpServer;

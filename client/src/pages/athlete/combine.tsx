@@ -11,6 +11,8 @@ import { ArrowLeft, Zap, Video, Play, Clock, Star, Filter, TrendingUp, Award, Ta
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { useAthleteStats } from "@/hooks/useAthleteStats";
 
 interface Test {
   id: string;
@@ -234,6 +236,43 @@ export default function CombinePage() {
   const [, setLocation] = useLocation();
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [sortBy, setSortBy] = useState("recommended");
+  
+  // Fetch athlete data and stats
+  const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
+  const { data: athlete } = useQuery({ 
+    queryKey: ["/api/athletes/me"],
+    enabled: !!user 
+  });
+  
+  // Fetch real stats
+  const { data: stats } = useAthleteStats(athlete?.id);
+  
+  // Fetch real test results
+  const { data: realTests = [] } = useQuery({
+    queryKey: ['/api/tests/athlete', athlete?.id],
+    queryFn: async () => {
+      if (!athlete?.id) return [];
+      const response = await fetch(`/api/tests/athlete/${athlete.id}`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!athlete?.id
+  });
+  
+  // Merge real test results with test definitions
+  const testsWithResults = allTests.map(test => {
+    const realResult = realTests.find((rt: any) => rt.testType === test.id);
+    if (realResult) {
+      return {
+        ...test,
+        bestScore: `${realResult.result}${realResult.unit || ''}`,
+        lastAttempt: new Date(realResult.createdAt).toLocaleDateString('pt-BR'),
+        attempts: 1, // Could be calculated from multiple results
+        verified: realResult.verified
+      };
+    }
+    return test;
+  });
 
   const getTestStatus = (test: Test) => {
     if (test.verified) return "verified";
@@ -241,7 +280,7 @@ export default function CombinePage() {
     return "to_do";
   };
   
-  const filteredTests = allTests.filter(test => {
+  const filteredTests = testsWithResults.filter(test => {
     if (selectedStatus === "all") return true;
     const status = getTestStatus(test);
     if (selectedStatus === "to_do" && status === "to_do") return true;
@@ -268,8 +307,29 @@ export default function CombinePage() {
     }
   });
 
-  const completedTests = allTests.filter(t => t.bestScore).length;
-  const totalXP = allTests.filter(t => t.bestScore).reduce((sum, t) => sum + t.xpReward, 0);
+  // Calculate from real test data
+  const completedTests = realTests.length;
+  const totalXP = realTests.reduce((sum: number, test: any) => {
+    // Map test types to XP values
+    const xpMap: Record<string, number> = {
+      'speed_10m': 50,
+      'speed_20m': 75,
+      'speed_40m': 100,
+      'agility_5_10_5': 125,
+      'agility_illinois': 150,
+      'agility_cone_drill': 100,
+      'technical_juggling': 100,
+      'technical_passing': 125,
+      'technical_dribbling': 150,
+      'endurance_yo_yo': 200,
+      'endurance_12min': 175,
+      'strength_vertical': 75,
+      'strength_horizontal': 75,
+      'mental_reaction': 50,
+      'mental_decision': 100
+    };
+    return sum + (xpMap[test.testType] || 50);
+  }, 0);
 
   const getTestColor = (type: string) => {
     const colors = {
@@ -388,7 +448,7 @@ export default function CombinePage() {
                         transition={{ delay: 0.5, type: "spring" }}
                         className="text-2xl font-bold text-white"
                       >
-                        {completedTests}/{allTests.length}
+                        {completedTests}/{testsWithResults.length}
                       </motion.p>
                     </div>
                     <motion.div
@@ -451,7 +511,7 @@ export default function CombinePage() {
                         transition={{ delay: 0.7, type: "spring" }}
                         className="text-2xl font-bold text-white"
                       >
-                        82º
+                        {stats?.percentile || 0}º
                       </motion.p>
                     </div>
                     <motion.div
@@ -615,6 +675,7 @@ export default function CombinePage() {
                     <Button 
                       className="w-full bg-gradient-to-r from-verde-brasil to-green-600 hover:from-green-600 hover:to-verde-brasil"
                       size="sm"
+                      onClick={() => setLocation(`/athlete/combine/${test.id}`)}
                     >
                       Iniciar Teste
                     </Button>

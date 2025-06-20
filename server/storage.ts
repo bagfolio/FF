@@ -16,6 +16,12 @@ import {
   type Test,
   type InsertTest,
   type SkillVerification,
+  checkins,
+  activities,
+  type Checkin,
+  type InsertCheckin,
+  type Activity,
+  type InsertActivity,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
@@ -78,6 +84,17 @@ export interface IStorage {
   deleteSkillVerification(verificationId: number, athleteId: number): Promise<boolean>;
   updateAthleteVerificationLevel(athleteId: number, level: string): Promise<void>;
   getTests(athleteId: number): Promise<Test[]>;
+  
+  // Checkin operations
+  createCheckin(checkin: InsertCheckin): Promise<Checkin>;
+  getTodayCheckin(athleteId: number): Promise<Checkin | undefined>;
+  getCheckinHistory(athleteId: number, limit?: number): Promise<Checkin[]>;
+  getCheckinStreak(athleteId: number): Promise<number>;
+  
+  // Activity operations
+  createActivity(activity: InsertActivity): Promise<Activity>;
+  getAthleteActivities(athleteId: number, filters?: { type?: string; limit?: number }): Promise<Activity[]>;
+  markActivitiesAsRead(athleteId: number, activityIds: number[]): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -432,6 +449,136 @@ export class DatabaseStorage implements IStorage {
       .from(tests)
       .where(eq(tests.athleteId, athleteId))
       .orderBy(desc(tests.createdAt));
+  }
+
+  // Checkin operations
+  async createCheckin(checkinData: InsertCheckin): Promise<Checkin> {
+    const [checkin] = await db
+      .insert(checkins)
+      .values(checkinData)
+      .returning();
+    return checkin;
+  }
+
+  async getTodayCheckin(athleteId: number): Promise<Checkin | undefined> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const [checkin] = await db
+      .select()
+      .from(checkins)
+      .where(
+        and(
+          eq(checkins.athleteId, athleteId),
+          sql`${checkins.createdAt} >= ${today}`,
+          sql`${checkins.createdAt} < ${tomorrow}`
+        )
+      )
+      .limit(1);
+    
+    return checkin;
+  }
+
+  async getCheckinHistory(athleteId: number, limit: number = 30): Promise<Checkin[]> {
+    return await db
+      .select()
+      .from(checkins)
+      .where(eq(checkins.athleteId, athleteId))
+      .orderBy(desc(checkins.createdAt))
+      .limit(limit);
+  }
+
+  async getCheckinStreak(athleteId: number): Promise<number> {
+    // Get checkins ordered by date descending
+    const checkinHistory = await db
+      .select()
+      .from(checkins)
+      .where(eq(checkins.athleteId, athleteId))
+      .orderBy(desc(checkins.createdAt));
+    
+    if (checkinHistory.length === 0) return 0;
+    
+    let streak = 0;
+    let currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    
+    // Check if there's a checkin today
+    const todayCheckin = checkinHistory.find(c => {
+      const checkinDate = new Date(c.createdAt);
+      checkinDate.setHours(0, 0, 0, 0);
+      return checkinDate.getTime() === currentDate.getTime();
+    });
+    
+    // If no checkin today, check if there was one yesterday
+    if (!todayCheckin) {
+      currentDate.setDate(currentDate.getDate() - 1);
+      const yesterdayCheckin = checkinHistory.find(c => {
+        const checkinDate = new Date(c.createdAt);
+        checkinDate.setHours(0, 0, 0, 0);
+        return checkinDate.getTime() === currentDate.getTime();
+      });
+      
+      if (!yesterdayCheckin) return 0;
+    }
+    
+    // Count consecutive days
+    for (const checkin of checkinHistory) {
+      const checkinDate = new Date(checkin.createdAt);
+      checkinDate.setHours(0, 0, 0, 0);
+      
+      if (checkinDate.getTime() === currentDate.getTime()) {
+        streak++;
+        currentDate.setDate(currentDate.getDate() - 1);
+      } else if (checkinDate.getTime() < currentDate.getTime()) {
+        break;
+      }
+    }
+    
+    return streak;
+  }
+
+  // Activity operations
+  async createActivity(activityData: InsertActivity): Promise<Activity> {
+    const [activity] = await db
+      .insert(activities)
+      .values(activityData)
+      .returning();
+    return activity;
+  }
+
+  async getAthleteActivities(
+    athleteId: number, 
+    filters?: { type?: string; limit?: number }
+  ): Promise<Activity[]> {
+    let query = db
+      .select()
+      .from(activities)
+      .where(eq(activities.athleteId, athleteId));
+    
+    if (filters?.type && filters.type !== 'all') {
+      query = query.where(eq(activities.type, filters.type as any));
+    }
+    
+    return await query
+      .orderBy(desc(activities.createdAt))
+      .limit(filters?.limit || 50);
+  }
+
+  async markActivitiesAsRead(athleteId: number, activityIds: number[]): Promise<void> {
+    if (activityIds.length === 0) return;
+    
+    await db
+      .update(activities)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(activities.athleteId, athleteId),
+          inArray(activities.id, activityIds)
+        )
+      );
   }
 }
 

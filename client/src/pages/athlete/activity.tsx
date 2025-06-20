@@ -9,6 +9,7 @@ import { useLocation } from "wouter";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { activityService } from "@/services/api";
+import { useActivityStats } from "@/hooks/useAthleteStats";
 
 interface ActivityItem {
   id: string;
@@ -46,9 +47,13 @@ export default function ActivityPage() {
   
   const { data: activities = [], isLoading } = useQuery({ 
     queryKey: ['athlete-activities', athlete?.id, selectedType, selectedDate],
-    queryFn: () => activityService.getAthleteActivities(athlete!.id, { type: selectedType, date: selectedDate }),
+    queryFn: () => activityService.getAthleteActivities(athlete!.id.toString(), { type: selectedType, date: selectedDate }),
     enabled: !!athlete?.id,
   });
+  
+  // Fetch real-time stats
+  const { data: todayStats } = useActivityStats(athlete?.id, 'today');
+  const { data: weekStats } = useActivityStats(athlete?.id, 'week');
   
   const activityTypes = [
     { id: "all", name: "Todas", count: activities.length },
@@ -124,7 +129,7 @@ export default function ActivityPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/60">Visualizações Hoje</p>
-                    <p className="text-2xl font-bold text-white">3</p>
+                    <p className="text-2xl font-bold text-white">{todayStats?.views || 0}</p>
                   </div>
                   <Eye className="w-8 h-8 text-green-400" />
                 </div>
@@ -136,7 +141,7 @@ export default function ActivityPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/60">Conquistas esta Semana</p>
-                    <p className="text-2xl font-bold text-white">2</p>
+                    <p className="text-2xl font-bold text-white">{weekStats?.achievements || 0}</p>
                   </div>
                   <Trophy className="w-8 h-8 text-yellow-400" />
                 </div>
@@ -148,7 +153,7 @@ export default function ActivityPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-white/60">Testes Completados</p>
-                    <p className="text-2xl font-bold text-white">7</p>
+                    <p className="text-2xl font-bold text-white">{weekStats?.totalTests || 0}</p>
                   </div>
                   <Play className="w-8 h-8 text-blue-400" />
                 </div>
