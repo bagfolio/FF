@@ -546,6 +546,19 @@
   --text-muted: rgba(255, 255, 255, 0.4);
 }
 
+/* Force overflow visible for pricing containers */
+.pricing-container,
+.pricing-container * {
+  overflow: visible !important;
+}
+
+/* Ensure badge containers don't clip content */
+.badge-container {
+  overflow: visible !important;
+  position: relative;
+  z-index: 100;
+}
+
 /* Extended glass utility classes */
 .glass-card {
   background: var(--card-bg);

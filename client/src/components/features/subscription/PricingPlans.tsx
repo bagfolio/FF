@@ -32,7 +32,7 @@ export function PricingPlans() {
   const currentPlanId = subscription?.planId;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-3 overflow-visible relative" style={{ paddingTop: '2rem' }}>
+    <div className="grid gap-8 lg:grid-cols-3 overflow-visible relative pricing-container" style={{ paddingTop: '2rem' }}>
       {/* Basic Plan */}
       <Card className="relative glass-morph-pricing-basic stadium-spotlight pattern-brazilian">
         <CardHeader>
@@ -78,7 +78,7 @@ export function PricingPlans() {
 
       {/* Pro Plan */}
       <Card className="relative glass-morph-pricing-pro stadium-spotlight pattern-brazilian overflow-visible">
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-50" style={{ overflow: 'visible' }}>
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-50 badge-container">
           <div className="badge-popular badge-championship">
             Mais Popular
           </div>

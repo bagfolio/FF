@@ -5,9 +5,13 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./replitAuth";
 import { seedSubscriptionPlans } from "./seedSubscriptionPlans";
+import { validateEnv } from "./validateEnv";
 
 // Check environment variables are loaded
 checkEnvLoaded();
+
+// Validate environment configuration
+validateEnv();
 
 const app = express();
 

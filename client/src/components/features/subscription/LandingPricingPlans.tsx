@@ -51,7 +51,7 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.3 }}
-      className="grid gap-8 lg:grid-cols-3 overflow-visible relative"
+      className="grid gap-8 lg:grid-cols-3 overflow-visible relative pricing-container"
       style={{ paddingTop: '2rem' }}
     >
       {/* Basic Plan */}
@@ -161,8 +161,7 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
         />
         <Card className="relative glass-morph-pricing-pro stadium-spotlight pattern-brazilian h-full overflow-visible">
           <motion.div 
-            className="absolute -top-4 left-1/2 -translate-x-1/2 z-50"
-            style={{ overflow: 'visible' }}
+            className="absolute -top-4 left-1/2 -translate-x-1/2 z-50 badge-container"
             initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, type: "spring" }}
