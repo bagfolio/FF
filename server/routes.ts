@@ -77,6 +77,42 @@ function calculateOverallTrustLevel(verifications: any[]): "bronze" | "silver" |
 export async function registerRoutes(app: Express): Promise<Server> {
   const authService = new AuthService();
   
+  // Health check endpoint
+  app.get('/health', async (req, res) => {
+    try {
+      // Check database connection
+      const dbHealthy = await storage.healthCheck();
+      
+      const health = {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'unknown',
+        version: process.env.npm_package_version || 'unknown',
+        uptime: process.uptime(),
+        checks: {
+          database: dbHealthy ? 'healthy' : 'unhealthy',
+          memory: {
+            used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+            total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+            unit: 'MB'
+          }
+        }
+      };
+      
+      if (!dbHealthy) {
+        health.status = 'degraded';
+      }
+      
+      res.status(health.status === 'ok' ? 200 : 503).json(health);
+    } catch (error) {
+      res.status(503).json({
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        error: 'Health check failed'
+      });
+    }
+  });
+  
   // Test route for debugging auth
   app.get('/test-auth', (req, res) => {
     res.sendFile(path.join(process.cwd(), 'test-auth.html'));
@@ -99,9 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             lastName: req.user.claims.last_name || "User",
             profileImageUrl: req.user.claims.profile_image_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
             userType: null,
-            emailVerified: true,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            emailVerified: true
           });
         }
         return user.id;
@@ -121,9 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: "User",
         profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
         userType: null,
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        emailVerified: true
       });
       
       return devUser.id;
@@ -154,9 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName: "User",
           profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
           userType: null,
-          emailVerified: true,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          emailVerified: true
         });
       }
       
@@ -187,8 +217,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update user in database
       const updatedUser = await storage.updateUser(userId, {
-        userType,
-        updatedAt: new Date()
+        userType
       });
       
       // Get updated user with role data
@@ -227,7 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update user type and create athlete profile
       const [updatedUser, athlete] = await Promise.all([
-        storage.updateUser(userId, { userType: 'athlete', updatedAt: new Date() }),
+        storage.updateUser(userId, { userType: 'athlete' }),
         storage.createAthlete(athleteData)
       ]);
       
@@ -264,7 +293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update user type and create scout profile
       const [updatedUser, scout] = await Promise.all([
-        storage.updateUser(userId, { userType: 'scout', updatedAt: new Date() }),
+        storage.updateUser(userId, { userType: 'scout' }),
         storage.createScout(scoutData)
       ]);
       
@@ -1037,7 +1066,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Profile completion score (up to 15 points)
       const profileFields = ['fullName', 'birthDate', 'height', 'weight', 'city', 'state', 'position'];
-      const completedFields = profileFields.filter(field => athlete[field]).length;
+      const completedFields = profileFields.filter(field => athlete[field as keyof typeof athlete]).length;
       trustScore.breakdown.profileComplete = Math.round((completedFields / profileFields.length) * 15);
       
       // Skills assessment score (up to 10 points)

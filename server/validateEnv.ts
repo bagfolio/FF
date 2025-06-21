@@ -7,7 +7,7 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(1),
   
   // Optional with defaults
-  PORT: z.string().optional().default('5000'),
+  PORT: z.string().optional().default('5000').transform(val => parseInt(val, 10).toString()),
   APP_URL: z.string().optional().default('http://localhost:5000'),
   EMAIL_FROM: z.string().optional().default('Revela <noreply@revela.app>'),
   RESEND_API_KEY: z.string().optional().default('re_test_key'),

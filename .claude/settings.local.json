@@ -38,7 +38,10 @@
       "Bash(npm ls:*)",
       "Bash(npm outdated)",
       "Bash(npm audit:*)",
-      "Bash(npm dedupe:*)"
+      "Bash(npm dedupe:*)",
+      "Bash(NODE_ENV=production npm run build 2 >& 1)",
+      "Bash(NODE_ENV=production npm run build 2>&1)",
+      "Bash(NODE_ENV=production npm run build)"
     ],
     "deny": []
   }

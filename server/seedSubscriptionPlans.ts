@@ -19,7 +19,7 @@ export async function seedSubscriptionPlans() {
       {
         name: 'basic',
         displayName: 'Revela Basic',
-        price: 0,
+        price: '0.00',
         currency: 'BRL',
         features: [
           'Perfil básico de atleta',
@@ -36,7 +36,7 @@ export async function seedSubscriptionPlans() {
       {
         name: 'pro',
         displayName: 'Revela Pro',
-        price: 29.90,
+        price: '29.90',
         currency: 'BRL',
         features: [
           'Perfil básico de atleta',
@@ -56,7 +56,7 @@ export async function seedSubscriptionPlans() {
       {
         name: 'elite',
         displayName: 'Revela Elite',
-        price: 79.90,
+        price: '79.90',
         currency: 'BRL',
         features: [
           'Perfil básico de atleta',

@@ -59,7 +59,7 @@ const ACHIEVEMENT_TEMPLATES = {
 };
 
 async function awardAchievement(athleteId: number, achievementType: string) {
-  const template = ACHIEVEMENT_TEMPLATES[achievementType];
+  const template = ACHIEVEMENT_TEMPLATES[achievementType as keyof typeof ACHIEVEMENT_TEMPLATES];
   
   // Create achievement
   await storage.createAchievement({

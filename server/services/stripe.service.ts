@@ -170,6 +170,9 @@ export class StripeService {
 
     let event: Stripe.Event;
     try {
+      if (!stripe) {
+        throw new Error('Stripe não está configurado');
+      }
       event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
     } catch (err) {
       throw new Error('Webhook signature inválida');
@@ -211,6 +214,9 @@ export class StripeService {
       return;
     }
 
+    if (!stripe) {
+      throw new Error('Stripe não está configurado');
+    }
     const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
 
     // Create or update user subscription
@@ -276,6 +282,9 @@ export class StripeService {
 
   // Handle successful payment
   private async handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
+    if (!stripe) {
+      throw new Error('Stripe não está configurado');
+    }
     const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string);
     const userId = subscription.metadata?.userId;
     if (!userId) return;
@@ -298,6 +307,9 @@ export class StripeService {
 
   // Handle failed payment
   private async handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
+    if (!stripe) {
+      throw new Error('Stripe não está configurado');
+    }
     const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string);
     const userId = subscription.metadata?.userId;
     if (!userId) return;
@@ -306,7 +318,7 @@ export class StripeService {
     await storage.createPaymentTransaction({
       userId,
       stripePaymentIntentId: (invoice as any).payment_intent as string,
-      amount: (invoice.amount_due || 0) / 100,
+      amount: ((invoice.amount_due || 0) / 100).toString(),
       currency: invoice.currency || 'BRL',
       status: 'failed',
       type: 'subscription',
@@ -338,6 +350,9 @@ export class StripeService {
     }
 
     // Cancel at period end to allow user to continue using until end of billing period
+    if (!stripe) {
+      throw new Error('Stripe não está configurado');
+    }
     await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
       cancel_at_period_end: true,
     });
@@ -360,6 +375,9 @@ export class StripeService {
     }
 
     // Resume subscription
+    if (!stripe) {
+      throw new Error('Stripe não está configurado');
+    }
     await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
       cancel_at_period_end: false,
     });
@@ -382,6 +400,9 @@ export class StripeService {
     }
 
     try {
+      if (!stripe) {
+        throw new Error('Stripe não está configurado');
+      }
       const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
       return {
         ...subscription,

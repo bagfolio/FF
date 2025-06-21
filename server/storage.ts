@@ -767,6 +767,18 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(paymentTransactions.createdAt))
       .limit(limit);
   }
+  
+  // Health check
+  async healthCheck(): Promise<boolean> {
+    try {
+      // Simple query to test database connection
+      await db.execute(sql`SELECT 1`);
+      return true;
+    } catch (error) {
+      console.error('Database health check failed:', error);
+      return false;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

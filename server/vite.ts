@@ -33,7 +33,6 @@ export async function setupVite(app: Express, server: Server) {
   });
   
   const vite = await createViteServer({
-    ...viteConfig,
     configFile: false,
     customLogger: {
       ...viteLogger,
@@ -43,12 +42,8 @@ export async function setupVite(app: Express, server: Server) {
       },
     },
     server: {
-      ...viteConfig.server,
       middlewareMode: true,
-      hmr: { 
-        ...viteConfig.server?.hmr,
-        server 
-      },
+      hmr: { server },
       // Explicitly disable host check in middleware mode
       cors: true,
     },

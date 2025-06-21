@@ -47,9 +47,9 @@ export default function ScoutSearch() {
     minTrustLevel: "" as "" | "bronze" | "silver" | "gold" | "platinum"
   });
 
-  const { data: athletes } = useQuery({ 
+  const { data: athletes = [] } = useQuery<any[]>({ 
     queryKey: ["/api/athletes", filters],
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
   
   // Helper function to get skill value from assessment data
