@@ -1012,7 +1012,9 @@
                 0 4px 15px rgba(0, 0, 0, 0.2);
     animation: pulse-glow-green 2s ease-in-out infinite;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
+    z-index: 50;
+    white-space: nowrap;
   }
 
   .badge-popular::before {
@@ -1117,6 +1119,7 @@
                 0 0 80px rgba(0, 200, 81, 0.05),
                 inset 0 0 0 1px rgba(0, 200, 81, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: visible;
   }
 
   .glass-morph-pricing-elite {
@@ -1201,6 +1204,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    overflow: visible;
+    z-index: 100;
   }
 
   .badge-championship::before {
@@ -1217,7 +1222,6 @@
   /* Brazilian pattern overlay */
   .pattern-brazilian {
     position: relative;
-    overflow: hidden;
   }
 
   .pattern-brazilian::after {
