@@ -12,9 +12,7 @@ const externalModules = [
   'pg-native',
   'bufferutil',
   'utf-8-validate',
-  'lightningcss',
-  'node-gyp',
-  'libpq'
+  'lightningcss'
 ];
 
 console.log('Building server bundle...');

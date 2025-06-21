@@ -102,12 +102,6 @@ Revela is a comprehensive web application designed to democratize football talen
 - **Environment Variables**: DATABASE_URL for connection management
 - **Connection Pooling**: Neon serverless with automatic scaling
 
-### Deployment Configuration
-- **Build System**: Enhanced with Python3 support for native module compilation
-- **Node-gyp Compatibility**: Automatic Python path detection and npm configuration
-- **Native Dependencies**: Proper handling of libpq and other native modules
-- **System Dependencies**: Python3, GCC, and build tools configured via Nix
-
 ### Progressive Web App
 - **Manifest**: Complete PWA configuration with Brazilian-themed icons
 - **Offline Support**: Service worker integration (future enhancement)
@@ -124,7 +118,6 @@ Revela is a comprehensive web application designed to democratize football talen
 - June 19, 2025: Created missing 3D components (BrazilianStadiumScene, PlayerCard3D)
 - June 19, 2025: Updated "COMEÇAR MINHA JORNADA" button styling to match modern aesthetic
 - June 19, 2025: Complete rebrand from "Futebol Futuro" to "Revela"
-- June 21, 2025: Fixed Python/node-gyp deployment issues with system dependencies and build configuration
 
 ## User Preferences
 

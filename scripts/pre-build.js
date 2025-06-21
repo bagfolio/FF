@@ -50,31 +50,6 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
-// Set Python path for node-gyp
-console.log('\n📋 Configuring Python for node-gyp...');
-try {
-  // Try to find Python executable
-  const pythonPath = execSync('which python3', { encoding: 'utf-8', cwd: rootDir }).trim();
-  if (pythonPath) {
-    process.env.PYTHON = pythonPath;
-    process.env.npm_config_python = pythonPath;
-    process.env.PYTHON_PATH = pythonPath;
-    
-    // Set environment variables for node-gyp
-    process.env.npm_config_target_platform = 'linux';
-    process.env.npm_config_target_arch = 'x64';
-    
-    console.log(`✅ Python configured: ${pythonPath}`);
-    console.log('✅ NPM configured for native compilation');
-  } else {
-    throw new Error('Python3 not found');
-  }
-} catch (error) {
-  console.error('❌ Could not configure Python path for node-gyp');
-  console.error('   This may cause native module compilation to fail during deployment');
-  errors++;
-}
-
 // Check dependencies
 console.log('\n📋 Checking dependencies...');
 try {
