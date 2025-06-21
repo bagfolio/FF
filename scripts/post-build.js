@@ -22,8 +22,10 @@ const productionPackageJson = {
   main: "index.js",
   dependencies: {
     // Only include native/binary dependencies that can't be bundled
-    "ws": packageJson.dependencies.ws,
-    "pg-native": packageJson.dependencies["pg-native"] || "^3.0.1",
+    "ws": packageJson.dependencies.ws
+  },
+  optionalDependencies: {
+    // These are optional and won't fail the build if they can't be installed
     "bufferutil": packageJson.optionalDependencies?.bufferutil,
     "utf-8-validate": packageJson.optionalDependencies?.["utf-8-validate"]
   }

@@ -43,7 +43,7 @@ const importStatements = indexJs.match(/^import .+ from ['"].+['"];?$/gm) || [];
 
 if (importStatements.length > 0) {
   console.log(`📦 Found ${importStatements.length} import statements in bundled code`);
-  const allowedExternals = ['ws', 'pg-native', 'bufferutil', 'utf-8-validate', 'lightningcss'];
+  const allowedExternals = ['ws', 'bufferutil', 'utf-8-validate', 'lightningcss'];
   const nodeBuiltins = new Set([
     'assert', 'buffer', 'child_process', 'cluster', 'console', 'constants',
     'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https',

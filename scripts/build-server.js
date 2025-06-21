@@ -9,7 +9,6 @@ const nodeBuiltins = builtinModules.flatMap(m => [m, `node:${m}`]);
 const externalModules = [
   ...nodeBuiltins,
   'ws',
-  'pg-native',
   'bufferutil',
   'utf-8-validate',
   'lightningcss'
