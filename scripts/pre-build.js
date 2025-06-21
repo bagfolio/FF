@@ -60,10 +60,9 @@ try {
     process.env.npm_config_python = pythonPath;
     process.env.PYTHON_PATH = pythonPath;
     
-    // Configure npm for native compilation
-    execSync(`npm config set python "${pythonPath}"`, { cwd: rootDir });
-    execSync('npm config set target_platform linux', { cwd: rootDir });
-    execSync('npm config set target_arch x64', { cwd: rootDir });
+    // Set environment variables for node-gyp
+    process.env.npm_config_target_platform = 'linux';
+    process.env.npm_config_target_arch = 'x64';
     
     console.log(`✅ Python configured: ${pythonPath}`);
     console.log('✅ NPM configured for native compilation');
