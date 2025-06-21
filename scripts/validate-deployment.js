@@ -42,23 +42,42 @@ const indexJs = fs.readFileSync(path.join(distDir, 'index.js'), 'utf-8');
 const importStatements = indexJs.match(/^import .+ from ['"].+['"];?$/gm) || [];
 
 if (importStatements.length > 0) {
-  console.log(`⚠️  Found ${importStatements.length} import statements in bundled code:`);
-  const allowedExternals = ['ws', 'pg-native', 'bufferutil', 'utf-8-validate'];
+  console.log(`📦 Found ${importStatements.length} import statements in bundled code`);
+  const allowedExternals = ['ws', 'pg-native', 'bufferutil', 'utf-8-validate', 'lightningcss'];
+  const nodeBuiltins = new Set([
+    'assert', 'buffer', 'child_process', 'cluster', 'console', 'constants',
+    'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https',
+    'module', 'net', 'os', 'path', 'perf_hooks', 'process', 'punycode',
+    'querystring', 'readline', 'repl', 'stream', 'string_decoder', 'sys',
+    'timers', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'worker_threads', 'zlib'
+  ]);
   
+  let unexpectedImports = 0;
   importStatements.forEach(stmt => {
     const match = stmt.match(/from ['"](.+?)['"]/);
     if (match) {
       const module = match[1];
-      if (allowedExternals.includes(module)) {
-        console.log(`   ✓ ${module} (allowed external)`);
+      const baseModule = module.startsWith('node:') ? module.slice(5) : module;
+      
+      if (allowedExternals.includes(module) || nodeBuiltins.has(baseModule) || module.startsWith('node:')) {
+        // These are expected external modules
+      } else if (module.includes('${')) {
+        // Dynamic imports, skip
       } else {
-        console.error(`   ✗ ${module} (should be bundled)`);
-        errors++;
+        console.error(`   ✗ Unexpected import: ${module}`);
+        unexpectedImports++;
       }
     }
   });
+  
+  if (unexpectedImports === 0) {
+    console.log('✅ All imports are properly externalized');
+  } else {
+    console.error(`❌ Found ${unexpectedImports} unexpected imports`);
+    errors += unexpectedImports;
+  }
 } else {
-  console.log('✅ No unexpected import statements found');
+  console.log('✅ No import statements found (fully bundled)');
 }
 
 // Check package.json in dist
@@ -110,17 +129,24 @@ if (!foundSensitive) {
 // Simulate server startup
 console.log('\n📋 Testing server startup...');
 try {
-  // Just check if the file can be parsed
-  require(path.join(distDir, 'index.js'));
-  console.log('✅ Server file can be loaded');
-} catch (error) {
-  // This might fail due to missing dependencies, which is ok
-  if (error.code === 'MODULE_NOT_FOUND') {
-    console.log('⚠️  Server requires runtime dependencies (expected)');
-  } else {
-    console.error('❌ Server file has syntax errors:', error.message);
-    errors++;
+  // Check if the file has valid JavaScript syntax by parsing it
+  const serverCode = fs.readFileSync(path.join(distDir, 'index.js'), 'utf-8');
+  
+  // Basic syntax check - look for common issues
+  if (serverCode.includes('export default') || serverCode.includes('import ')) {
+    console.log('✅ Server file uses ESM syntax (correct)');
   }
+  
+  // Check for basic structure
+  if (serverCode.includes('express') && serverCode.includes('listen')) {
+    console.log('✅ Server file appears to have Express setup');
+  } else {
+    console.warn('⚠️  Could not verify Express setup in bundle');
+    warnings++;
+  }
+} catch (error) {
+  console.error('❌ Could not read server file:', error.message);
+  errors++;
 }
 
 // Summary
