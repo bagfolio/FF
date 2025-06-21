@@ -13,6 +13,7 @@ import { emailService } from "./services/email.service";
 import { setupMediaRoutes } from "./routes/media.routes";
 import { setupNotificationRoutes } from "./routes/notification.routes";
 import { notificationService } from "./services/notification.service";
+import path from "path";
 
 // Helper function to format time ago in Portuguese
 function formatTimeAgo(date: Date): string {
@@ -75,6 +76,11 @@ function calculateOverallTrustLevel(verifications: any[]): "bronze" | "silver" |
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const authService = new AuthService();
+  
+  // Test route for debugging auth
+  app.get('/test-auth', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'test-auth.html'));
+  });
 
   // Helper to get authenticated user ID from request
   async function getAuthenticatedUserId(req: any): Promise<string> {
@@ -82,7 +88,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true') {
       // Use the simulated user from the auth middleware
       if (req.user?.claims?.sub) {
-        return req.user.claims.sub;
+        // Ensure the dev user exists in the database
+        let user = await storage.getUser(req.user.claims.sub);
+        if (!user) {
+          // Create the dev user if it doesn't exist
+          user = await storage.createUser({
+            id: req.user.claims.sub,
+            email: req.user.claims.email || "dev@futebol-futuro.com",
+            firstName: req.user.claims.first_name || "Dev",
+            lastName: req.user.claims.last_name || "User",
+            profileImageUrl: req.user.claims.profile_image_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
+            userType: null,
+            emailVerified: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+        }
+        return user.id;
       }
       
       // Fallback: get or create a dev user
@@ -99,6 +121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: "User",
         profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
         userType: null,
+        emailVerified: true,
         createdAt: new Date(),
         updatedAt: new Date()
       });
@@ -115,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // Auth routes
-  app.get('/api/auth/user', async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = await getAuthenticatedUserId(req);
       
@@ -131,6 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastName: "User",
           profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
           userType: null,
+          emailVerified: true,
           createdAt: new Date(),
           updatedAt: new Date()
         });
@@ -152,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Set user type
-  app.post('/api/auth/user-type', async (req: any, res) => {
+  app.post('/api/auth/user-type', isAuthenticated, async (req: any, res) => {
     try {
       const { userType } = req.body;
       const userId = await getAuthenticatedUserId(req);
@@ -328,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (rememberMeToken) {
         res.cookie('remember_me', rememberMeToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
+          secure: process.env.NODE_ENV === 'production', // Only secure in production
           sameSite: 'lax',
           maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
         });

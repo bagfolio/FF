@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import BrazilianStadiumScene from "@/components/3d/BrazilianStadiumScene";
-import ProgressJourney from "@/components/features/auth/ProgressJourney";
+import { ProgressJourney } from "@/components/features/auth/ProgressJourney";
 import SoundController from "@/components/features/auth/SoundController";
 import CulturalTooltips from "@/components/features/auth/CulturalTooltips";
 import { Users, Activity } from "lucide-react";
@@ -142,7 +142,7 @@ export default function AuthWelcomeEnhanced() {
       <BrazilianStadiumScene variant="entrance" intensity={0.8} />
 
       {/* Progress Journey */}
-      <ProgressJourney currentStep={0} />
+      <ProgressJourney currentStep={1} totalSteps={4} />
 
       {/* Sound Controller */}
       <SoundController variant="stadium" />

@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react";
+import { Check, X, Trophy, CircleDot, Goal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,16 +6,16 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Skeleton } from "@/components/ui/skeleton-loader";
 
 const features = [
-  { name: "Perfil básico de atleta", basic: true, pro: true, elite: true },
-  { name: "Upload de fotos", basic: true, pro: true, elite: true },
-  { name: "Autoavaliação de habilidades", basic: true, pro: true, elite: true },
+  { name: "Perfil completo de atleta", basic: true, pro: true, elite: true },
+  { name: "Vídeos de highlights", basic: "2 vídeos", pro: "10 vídeos", elite: "Ilimitado" },
+  { name: "Estatísticas de desempenho", basic: true, pro: true, elite: true },
   { name: "Visibilidade para scouts", basic: false, pro: true, elite: true },
-  { name: "Testes de verificação mensais", basic: "0", pro: "3", elite: "Ilimitados" },
-  { name: "Selo de verificação", basic: false, pro: true, elite: true },
-  { name: "Análise prioritária", basic: false, pro: false, elite: true },
-  { name: "Suporte prioritário", basic: false, pro: false, elite: true },
-  { name: "Destaque nas buscas", basic: false, pro: false, elite: true },
-  { name: "Perfis adicionais", basic: "1", pro: "1", elite: "3" },
+  { name: "Testes físicos verificados", basic: false, pro: "3/mês", elite: "Ilimitado", icon: CircleDot },
+  { name: "Selo de atleta verificado", basic: false, pro: true, elite: true, icon: Trophy },
+  { name: "Análise técnica por IA", basic: false, pro: "Básica", elite: "Avançada" },
+  { name: "Conexão direta com clubes", basic: false, pro: false, elite: true },
+  { name: "Destaque em pesquisas", basic: false, pro: false, elite: true },
+  { name: "Relatórios de evolução", basic: false, pro: "Mensal", elite: "Semanal", icon: Goal },
 ];
 
 export function PricingPlans() {
@@ -32,31 +32,34 @@ export function PricingPlans() {
   const currentPlanId = subscription?.planId;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-3">
+    <div className="grid gap-8 lg:grid-cols-3 overflow-visible">
       {/* Basic Plan */}
-      <Card className="relative">
+      <Card className="relative glass-morph-pricing-basic stadium-spotlight pattern-brazilian">
         <CardHeader>
-          <CardTitle>Revela Basic</CardTitle>
-          <CardDescription>Perfeito para começar sua jornada</CardDescription>
+          <CardTitle className="text-2xl font-bold text-white">Revela Basic</CardTitle>
+          <CardDescription className="text-gray-400">Perfeito para começar sua jornada</CardDescription>
           <div className="mt-4">
-            <span className="text-4xl font-bold">Grátis</span>
+            <span className="text-4xl font-bold text-white">Grátis</span>
           </div>
         </CardHeader>
         <CardContent>
           <ul className="space-y-3">
             {features.map((feature) => (
               <li key={feature.name} className="flex items-start gap-2">
-                {feature.basic === true ? (
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                {typeof feature.icon === 'function' && feature.basic === false ? (
+                  <feature.icon className="h-5 w-5 icon-referee shrink-0 mt-0.5" />
+                ) : feature.basic === true ? (
+                  <Check className="h-5 w-5 text-verde-brasil shrink-0 mt-0.5" />
                 ) : feature.basic === false ? (
-                  <X className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
+                  <X className="h-5 w-5 text-gray-600 shrink-0 mt-0.5" />
                 ) : (
-                  <span className="w-5 h-5 shrink-0 mt-0.5 text-center text-sm font-medium">
-                    {feature.basic}
-                  </span>
+                  <span className="w-5 h-5 shrink-0 mt-0.5" />
                 )}
-                <span className={feature.basic === false ? "text-gray-400" : ""}>
+                <span className={feature.basic === false ? "text-gray-600" : "text-gray-300"}>
                   {feature.name}
+                  {typeof feature.basic === 'string' && (
+                    <span className="text-verde-brasil font-medium ml-2">({feature.basic})</span>
+                  )}
                 </span>
               </li>
             ))}
@@ -74,33 +77,38 @@ export function PricingPlans() {
       </Card>
 
       {/* Pro Plan */}
-      <Card className="relative border-primary">
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <Badge className="bg-primary text-primary-foreground">Mais Popular</Badge>
+      <Card className="relative glass-morph-pricing-pro stadium-spotlight pattern-brazilian">
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+          <div className="badge-popular badge-championship">
+            Mais Popular
+          </div>
         </div>
         <CardHeader>
-          <CardTitle>Revela Pro</CardTitle>
-          <CardDescription>Para atletas sérios sobre seu futuro</CardDescription>
+          <CardTitle className="text-2xl font-bold text-white">Revela Pro</CardTitle>
+          <CardDescription className="text-gray-400">Para atletas sérios sobre seu futuro</CardDescription>
           <div className="mt-4">
-            <span className="text-4xl font-bold">R$ 29,90</span>
-            <span className="text-muted-foreground">/mês</span>
+            <span className="text-4xl font-bold text-white">R$ 29,90</span>
+            <span className="text-gray-400">/mês</span>
           </div>
         </CardHeader>
         <CardContent>
           <ul className="space-y-3">
             {features.map((feature) => (
               <li key={feature.name} className="flex items-start gap-2">
-                {feature.pro === true ? (
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                {typeof feature.icon === 'function' && typeof feature.pro === 'string' ? (
+                  <feature.icon className="h-5 w-5 icon-soccer-ball shrink-0 mt-0.5" />
+                ) : feature.pro === true ? (
+                  <Check className="h-5 w-5 text-verde-brasil shrink-0 mt-0.5" />
                 ) : feature.pro === false ? (
-                  <X className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
+                  <X className="h-5 w-5 text-gray-600 shrink-0 mt-0.5" />
                 ) : (
-                  <span className="w-5 h-5 shrink-0 mt-0.5 text-center text-sm font-medium">
-                    {feature.pro}
-                  </span>
+                  <span className="w-5 h-5 shrink-0 mt-0.5" />
                 )}
-                <span className={feature.pro === false ? "text-gray-400" : ""}>
+                <span className={feature.pro === false ? "text-gray-600" : "text-gray-300"}>
                   {feature.name}
+                  {typeof feature.pro === 'string' && (
+                    <span className="text-verde-brasil font-medium ml-2">({feature.pro})</span>
+                  )}
                 </span>
               </li>
             ))}
@@ -108,8 +116,7 @@ export function PricingPlans() {
         </CardContent>
         <CardFooter>
           <Button 
-            className="w-full" 
-            variant={currentPlanId === proPlan?.id ? "secondary" : "default"}
+            className="w-full bg-verde-brasil hover:bg-verde-brasil/90 text-white shadow-lg hover:shadow-verde-brasil/50 transition-all duration-300 font-bold" 
             disabled={currentPlanId === proPlan?.id || isCreatingCheckout}
             onClick={() => proPlan && createCheckout(proPlan.id)}
           >
@@ -119,30 +126,33 @@ export function PricingPlans() {
       </Card>
 
       {/* Elite Plan */}
-      <Card className="relative">
+      <Card className="relative glass-morph-pricing-elite stadium-spotlight pattern-brazilian">
         <CardHeader>
-          <CardTitle>Revela Elite</CardTitle>
-          <CardDescription>Máximo desempenho e visibilidade</CardDescription>
+          <CardTitle className="text-2xl font-bold text-white">Revela Elite</CardTitle>
+          <CardDescription className="text-gray-400">Máximo desempenho e visibilidade</CardDescription>
           <div className="mt-4">
-            <span className="text-4xl font-bold">R$ 79,90</span>
-            <span className="text-muted-foreground">/mês</span>
+            <span className="text-4xl font-bold text-white">R$ 79,90</span>
+            <span className="text-gray-400">/mês</span>
           </div>
         </CardHeader>
         <CardContent>
           <ul className="space-y-3">
             {features.map((feature) => (
               <li key={feature.name} className="flex items-start gap-2">
-                {feature.elite === true ? (
-                  <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                {typeof feature.icon === 'function' && typeof feature.elite === 'string' ? (
+                  <feature.icon className="h-5 w-5 icon-goalpost shrink-0 mt-0.5" />
+                ) : feature.elite === true ? (
+                  <Check className="h-5 w-5 text-verde-brasil shrink-0 mt-0.5" />
                 ) : feature.elite === false ? (
-                  <X className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
+                  <X className="h-5 w-5 text-gray-600 shrink-0 mt-0.5" />
                 ) : (
-                  <span className="w-5 h-5 shrink-0 mt-0.5 text-center text-sm font-medium">
-                    {feature.elite}
-                  </span>
+                  <span className="w-5 h-5 shrink-0 mt-0.5" />
                 )}
-                <span className={feature.elite === false ? "text-gray-400" : ""}>
+                <span className={feature.elite === false ? "text-gray-600" : "text-gray-300"}>
                   {feature.name}
+                  {typeof feature.elite === 'string' && (
+                    <span className="text-amarelo-ouro font-medium ml-2">({feature.elite})</span>
+                  )}
                 </span>
               </li>
             ))}
@@ -150,8 +160,7 @@ export function PricingPlans() {
         </CardContent>
         <CardFooter>
           <Button 
-            className="w-full" 
-            variant={currentPlanId === elitePlan?.id ? "secondary" : "outline"}
+            className="w-full btn-elite" 
             disabled={currentPlanId === elitePlan?.id || isCreatingCheckout}
             onClick={() => elitePlan && createCheckout(elitePlan.id)}
           >

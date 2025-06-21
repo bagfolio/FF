@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
+import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { 
   Loader2, 
@@ -132,6 +133,7 @@ export function DevQuickLogin() {
   const [loadingProfile, setLoadingProfile] = useState<string | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
   // Don't render in production
   if (import.meta.env.PROD) {
@@ -147,15 +149,21 @@ export function DevQuickLogin() {
         profileId: profile.id
       });
 
+      // Invalidate user query to ensure fresh data
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
+      // Small delay to ensure query cache is updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       toast({
         title: 'Login realizado!',
         description: `Conectado como ${profile.name}`,
       });
 
-      // Refresh to get new auth state
-      window.location.href = profile.type === 'athlete' 
+      // Navigate using router instead of full page refresh
+      setLocation(profile.type === 'athlete' 
         ? '/athlete/dashboard' 
-        : '/scout/dashboard';
+        : '/scout/dashboard');
     } catch (error) {
       toast({
         title: 'Erro ao fazer login',

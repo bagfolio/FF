@@ -35,17 +35,18 @@ export default defineConfig({
     },
     hmr: {
       clientPort: 443,
+      protocol: 'wss',
+      timeout: 5000,
     },
     host: true,
-    // Allow all hosts in development (Replit uses dynamic hostnames)
-    // Check for DANGEROUSLY_DISABLE_HOST_CHECK for complete bypass
-    ...(process.env.DANGEROUSLY_DISABLE_HOST_CHECK === 'true' 
-      ? {}
-      : {
-          allowedHosts: process.env.NODE_ENV === 'production' 
-            ? [".replit.dev", ".repl.co", ".repl.run", ".replit.app", ".kirk.replit.dev"]
-            : "all"
-        }
-    ),
+    cors: true,
+    // Disable strict port to allow Replit's dynamic ports
+    strictPort: false,
+    // Allow Replit subdomains
+    allowedHosts: [
+      'localhost',
+      '.replit.dev',  // Allow all replit.dev subdomains
+      '.repl.co',     // Also allow repl.co subdomains
+    ],
   },
 });

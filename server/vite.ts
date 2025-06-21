@@ -23,6 +23,15 @@ export async function setupVite(app: Express, server: Server) {
   log(`Setting up Vite in development mode`);
   log(`Environment: NODE_ENV=${process.env.NODE_ENV}, DANGEROUSLY_DISABLE_HOST_CHECK=${process.env.DANGEROUSLY_DISABLE_HOST_CHECK}`);
   
+  // Create a custom middleware to bypass host checking for Replit
+  app.use((req, res, next) => {
+    // Store original host but don't modify it to avoid breaking cookies
+    if (req.headers.host && req.headers.host.includes('replit.dev')) {
+      req.headers['x-original-host'] = req.headers.host;
+    }
+    next();
+  });
+  
   const vite = await createViteServer({
     ...viteConfig,
     configFile: false,
@@ -40,6 +49,8 @@ export async function setupVite(app: Express, server: Server) {
         ...viteConfig.server?.hmr,
         server 
       },
+      // Explicitly disable host check in middleware mode
+      cors: true,
     },
     appType: "custom",
   });

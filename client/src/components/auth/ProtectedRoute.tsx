@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-export function ProtectedRoute({ children, requireUserType, redirectTo = "/api/login" }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, requireUserType, redirectTo = "/" }: ProtectedRouteProps) {
   const { user, isLoading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 

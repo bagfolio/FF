@@ -10,8 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoginForm } from './LoginForm';
 import { SignupForm } from './SignupForm';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
-import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthModalProps {
   open: boolean;
@@ -25,10 +25,11 @@ export function AuthModal({ open, onOpenChange, defaultTab = 'login', userType, 
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [, setLocation] = useLocation();
-  const { refetch } = useAuth();
+  const queryClient = useQueryClient();
 
   const handleSuccess = async () => {
-    await refetch();
+    // Invalidate auth query to refetch user data
+    await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     onOpenChange(false);
     
     // Store selected plan in session storage for post-onboarding checkout
@@ -36,14 +37,13 @@ export function AuthModal({ open, onOpenChange, defaultTab = 'login', userType, 
       sessionStorage.setItem('selectedPlan', selectedPlan);
     }
     
-    // Redirect based on user type
-    if (userType === 'athlete') {
-      setLocation('/athlete/onboarding');
-    } else if (userType === 'scout') {
-      setLocation('/scout/onboarding');
-    } else {
-      setLocation('/auth/welcome');
+    // Store user type for the onboarding flow
+    if (userType) {
+      sessionStorage.setItem('selectedUserType', userType);
     }
+    
+    // Always redirect to the beautiful onboarding flow
+    setLocation('/auth/welcome');
   };
 
   const handleForgotPassword = () => {

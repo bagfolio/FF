@@ -32,7 +32,13 @@
       "Bash(ls:*)",
       "Bash(NODE_ENV=development node -e \"console.log('NODE_ENV:', process.env.NODE_ENV); console.log('DANGEROUSLY_DISABLE_HOST_CHECK:', process.env.DANGEROUSLY_DISABLE_HOST_CHECK);\")",
       "Bash(source:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(timeout 3 npm run dev 2 >& 1)",
+      "Bash(NODE_ENV=development npx vite 2 >& 1)",
+      "Bash(npm ls:*)",
+      "Bash(npm outdated)",
+      "Bash(npm audit:*)",
+      "Bash(npm dedupe:*)"
     ],
     "deny": []
   }

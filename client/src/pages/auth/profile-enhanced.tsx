@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { brazilianCities } from "@/lib/brazilianData";
 import { Camera, Upload, Trophy, Shield, Star } from "lucide-react";
-import ProgressJourney from "@/components/features/auth/ProgressJourney";
+import { ProgressJourney } from "@/components/features/auth/ProgressJourney";
 import SoundController from "@/components/features/auth/SoundController";
 import CulturalTooltips from "@/components/features/auth/CulturalTooltips";
 import PlayerCard3D from "@/components/3d/PlayerCard3D";
@@ -144,7 +144,7 @@ export default function AuthProfileEnhanced() {
 
       {/* Progress Journey */}
       <div className="relative z-20">
-        <ProgressJourney currentStep={2} />
+        <ProgressJourney currentStep={1} totalSteps={4} />
       </div>
 
       {/* Sound Controller */}

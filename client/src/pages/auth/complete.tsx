@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Star, Users, Target } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import type { User } from "@/types/auth";
 
 export default function AuthComplete() {
   const [, setLocation] = useLocation();
@@ -14,45 +15,41 @@ export default function AuthComplete() {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
+  const { data: user } = useQuery<User>({ queryKey: ["/api/auth/user"] });
 
   useEffect(() => {
-    // Ensure athlete profile is created before proceeding
-    const createAthleteIfNeeded = async () => {
+    // Ensure profile is created before proceeding
+    const createProfileIfNeeded = async () => {
       if (!user?.roleData?.id) {
         const authProfile = JSON.parse(localStorage.getItem("authProfile") || "{}");
         const authPosition = JSON.parse(localStorage.getItem("authPosition") || "{}");
+        const userType = user?.userType || sessionStorage.getItem('selectedUserType');
         
         if (authProfile.fullName) {
           try {
-            // Create athlete profile
-            const response = await fetch('/api/athletes', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                fullName: authProfile.fullName,
-                birthDate: authProfile.birthDate,
-                city: authProfile.city,
-                state: authProfile.state,
-                phone: authProfile.phone || "",
-                position: authPosition.name || "Atacante",
-                dominantFoot: "right"
-              })
-            });
-            
-            if (response.ok) {
-              // Update user type
-              const userTypeResponse = await fetch('/api/auth/user-type', {
+            if (userType === 'athlete') {
+              // Create athlete profile
+              const response = await fetch('/api/athletes', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ userType: 'athlete' })
+                body: JSON.stringify({
+                  fullName: authProfile.fullName,
+                  birthDate: authProfile.birthDate,
+                  cpf: authProfile.cpf || "",
+                  city: authProfile.city,
+                  state: authProfile.state,
+                  phone: authProfile.phone || "",
+                  position: authPosition.name || "Atacante",
+                  dominantFoot: "right",
+                  height: authProfile.height,
+                  weight: authProfile.weight,
+                  currentTeam: authProfile.club || ""
+                })
               });
               
-              if (userTypeResponse.ok) {
+              if (response.ok) {
                 // Invalidate user query to get updated data
                 queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
                 
@@ -73,15 +70,35 @@ export default function AuthComplete() {
                   }
                 }
               }
+            } else if (userType === 'scout') {
+              // Create scout profile
+              const response = await fetch('/api/scouts', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  fullName: authProfile.fullName,
+                  organization: authProfile.club || "Independente",
+                  position: "Scout",
+                  phone: authProfile.phone || "",
+                  email: user?.email || ""
+                })
+              });
+              
+              if (response.ok) {
+                // Invalidate user query to get updated data
+                queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+              }
             }
           } catch (error) {
-            console.error('Error creating athlete profile:', error);
+            console.error('Error creating profile:', error);
           }
         }
       }
     };
     
-    createAthleteIfNeeded();
+    createProfileIfNeeded();
     
     // Stadium entrance sequence
     const timer1 = setTimeout(() => {
@@ -200,8 +217,14 @@ export default function AuthComplete() {
 
   const handleEnterDashboard = () => {
     triggerConfetti();
+    const userType = user?.userType || sessionStorage.getItem('selectedUserType');
+    
     setTimeout(() => {
-      setLocation("/athlete/dashboard");
+      if (userType === 'scout') {
+        setLocation("/scout/dashboard");
+      } else {
+        setLocation("/athlete/dashboard");
+      }
     }, 1000);
   };
 

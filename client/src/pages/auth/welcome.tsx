@@ -1,17 +1,63 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { UserTypeModal } from "@/components/features/UserTypeModal";
+import { api } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function AuthWelcome() {
   const [, setLocation] = useLocation();
   const [isButtonClicked, setIsButtonClicked] = useState(false);
+  const [showUserTypeModal, setShowUserTypeModal] = useState(false);
+  const [selectedUserType, setSelectedUserType] = useState<'athlete' | 'scout' | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // Check if user type was pre-selected from landing page
+    const storedUserType = sessionStorage.getItem('selectedUserType');
+    if (storedUserType === 'athlete' || storedUserType === 'scout') {
+      setSelectedUserType(storedUserType);
+      sessionStorage.removeItem('selectedUserType');
+    }
+  }, []);
 
   const handleStart = () => {
     setIsButtonClicked(true);
     setTimeout(() => {
-      setLocation("/auth/position");
+      if (selectedUserType) {
+        handleUserTypeSelection(selectedUserType);
+      } else {
+        setShowUserTypeModal(true);
+        setIsButtonClicked(false);
+      }
     }, 1200);
+  };
+
+  const handleUserTypeSelection = async (userType: 'athlete' | 'scout') => {
+    try {
+      // Update user type in the backend
+      await api.post('/api/auth/user-type', { userType });
+      
+      // Invalidate user query to get fresh data
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
+      // Navigate to appropriate onboarding flow
+      if (userType === 'athlete') {
+        setLocation("/auth/position");
+      } else {
+        setLocation("/auth/profile"); // Scouts skip position selection
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o tipo de usuário",
+        variant: "destructive"
+      });
+      setIsButtonClicked(false);
+    }
   };
 
   return (
@@ -283,6 +329,13 @@ export default function AuthWelcome() {
           transition={{ delay: 0.8, duration: 0.5 }}
         />
       )}
+
+      {/* User Type Selection Modal */}
+      <UserTypeModal
+        open={showUserTypeModal}
+        onOpenChange={setShowUserTypeModal}
+        onSelectType={handleUserTypeSelection}
+      />
     </div>
   );
 }

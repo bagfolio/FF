@@ -98,7 +98,7 @@ export function NextStepWidget({ profileCompletion, tests }: NextStepWidgetProps
               <Button 
                 size="lg"
                 className="bg-gradient-to-r from-verde-brasil to-verde-brasil/80 hover:from-verde-brasil/90 hover:to-verde-brasil/70 text-white font-bold shadow-lg shadow-verde-brasil/20 transform hover:scale-105 transition-all group/btn"
-                onClick={() => setLocation('/athlete/onboarding')}
+                onClick={() => setLocation('/auth/welcome')}
               >
                 <span className="flex items-center gap-2">
                   Completar Perfil Agora

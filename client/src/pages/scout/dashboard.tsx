@@ -11,10 +11,11 @@ import { Search, Users, Eye, TrendingUp, Filter, MapPin, Medal, Star, Crown, Tro
 import { useLocation } from "wouter";
 import VerificationBadge from "@/components/ui/verification-badge";
 import { scoutService } from "@/services/api";
+import type { User, ScoutProfile } from "@/types/auth";
 
 export default function ScoutDashboard() {
-  const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
-  const { data: scout } = useQuery({ queryKey: ["/api/scouts/me"] });
+  const { data: user } = useQuery<User>({ queryKey: ["/api/auth/user"] });
+  const { data: scout } = useQuery<ScoutProfile>({ queryKey: ["/api/scouts/me"] });
   const { data: athletes } = useQuery({ queryKey: ["/api/athletes"] });
   const [, setLocation] = useLocation();
 
@@ -29,7 +30,7 @@ export default function ScoutDashboard() {
   // Fetch scout statistics from API
   const { data: scoutStats } = useQuery({ 
     queryKey: ['scout-stats', scout?.id],
-    queryFn: () => scoutService.getScoutStats(scout!.id),
+    queryFn: () => scoutService.getScoutStats(scout!.id.toString()),
     enabled: !!scout?.id
   });
   
@@ -85,7 +86,7 @@ export default function ScoutDashboard() {
           <div className="flex justify-between items-start">
             <div>
               <h1 className="font-bebas text-3xl azul-celeste mb-2">DASHBOARD SCOUT</h1>
-              <p className="text-gray-600">{scout.fullName} - {scout.organization}</p>
+              <p className="text-gray-600">{scout?.fullName} - {scout?.club}</p>
             </div>
             <Button 
               onClick={() => setLocation("/scout/search")}
@@ -226,7 +227,7 @@ export default function ScoutDashboard() {
                   />
                 ) : (
                   <div className="space-y-4">
-                    {recentAthletes.slice(0, 5).map((athlete, index) => (
+                    {recentAthletes.slice(0, 5).map((athlete: any, index: number) => (
                       <div 
                         key={index} 
                         className={`p-5 border-2 rounded-xl transition-all duration-300 cursor-pointer transform hover:scale-[1.02] hover:shadow-lg group ${

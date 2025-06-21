@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAthleteStats } from "@/hooks/useAthleteStats";
 import { useFeatureAccess } from "@/hooks/useSubscription";
 import { FeatureGate } from "@/components/features/subscription/FeatureGate";
+import type { User } from "@/types/auth";
 
 interface Test {
   id: string;
@@ -241,25 +242,25 @@ export default function CombinePage() {
   const access = useFeatureAccess();
   
   // Fetch athlete data and stats
-  const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
+  const { data: user } = useQuery<User>({ queryKey: ["/api/auth/user"] });
   const { data: athlete } = useQuery({ 
     queryKey: ["/api/athletes/me"],
     enabled: !!user 
   });
   
   // Fetch real stats
-  const { data: stats } = useAthleteStats(athlete?.id);
+  const { data: stats } = useAthleteStats(user?.id || '');
   
   // Fetch real test results
   const { data: realTests = [] } = useQuery({
-    queryKey: ['/api/tests/athlete', athlete?.id],
+    queryKey: ['/api/tests/athlete', user?.id],
     queryFn: async () => {
-      if (!athlete?.id) return [];
-      const response = await fetch(`/api/tests/athlete/${athlete.id}`);
+      if (!user?.id) return [];
+      const response = await fetch(`/api/tests/athlete/${user.id}`);
       if (!response.ok) return [];
       return response.json();
     },
-    enabled: !!athlete?.id
+    enabled: !!user?.id
   });
   
   // Merge real test results with test definitions
@@ -441,7 +442,9 @@ export default function CombinePage() {
               transition={{ delay: 0.3 }}
               className="mt-4"
             >
-              <FeatureGate feature="combine" />
+              <FeatureGate feature="combine">
+                <div />
+              </FeatureGate>
             </motion.div>
           )}
           

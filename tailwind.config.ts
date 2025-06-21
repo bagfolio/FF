@@ -61,6 +61,9 @@ export default {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
+        "verde-brasil": "var(--verde-brasil)",
+        "amarelo-ouro": "var(--amarelo-ouro)",
+        "azul-celeste": "var(--azul-celeste)",
       },
       keyframes: {
         "accordion-down": {

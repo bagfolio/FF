@@ -26,6 +26,12 @@ const profileSchema = z.object({
       const minDate = new Date('1900-01-01');
       return birthDate >= minDate;
     }, "Data inválida"),
+  cpf: z.string()
+    .regex(/^\d{11}$/, "CPF deve conter 11 dígitos")
+    .optional(),
+  phone: z.string()
+    .regex(/^\d{10,11}$/, "Telefone deve conter 10 ou 11 dígitos")
+    .optional(),
   city: z.string().min(2, "Cidade é obrigatória"),
   state: z.string().min(2, "Estado é obrigatório"),
   height: z.number().min(100).max(250).optional(),
@@ -61,6 +67,8 @@ export default function AuthProfile() {
     defaultValues: {
       fullName: "",
       birthDate: "",
+      cpf: "",
+      phone: "",
       city: "",
       state: "",
       photo: "",
@@ -100,9 +108,20 @@ export default function AuthProfile() {
     setCardTilt({ x: 0, y: 0 });
   };
 
-  const handleContinue = (data: ProfileFormData) => {
+  const handleContinue = async (data: ProfileFormData) => {
+    // Save profile data to localStorage
     localStorage.setItem("authProfile", JSON.stringify({ ...data, club: selectedClub.name }));
-    setLocation("/auth/skills");
+    
+    // Check user type from session storage or user data
+    const userType = sessionStorage.getItem('selectedUserType');
+    
+    if (userType === 'scout') {
+      // Scouts skip skills assessment and go straight to complete
+      setLocation("/auth/complete");
+    } else {
+      // Athletes continue to skills assessment
+      setLocation("/auth/skills");
+    }
   };
 
   const calculateAge = (birthDate: string) => {
@@ -414,6 +433,47 @@ export default function AuthProfile() {
                       </FormItem>
                     )}
                   />
+
+                  {/* CPF and Phone */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="cpf"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white font-bebas text-lg">CPF (opcional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder="00000000000"
+                              maxLength={11}
+                              className="bg-white/10 border-white/30 text-white placeholder:text-white/50 h-12"
+                            />
+                          </FormControl>
+                          <FormMessage className="text-red-400" />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white font-bebas text-lg">Telefone (opcional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder="11999999999"
+                              maxLength={11}
+                              className="bg-white/10 border-white/30 text-white placeholder:text-white/50 h-12"
+                            />
+                          </FormControl>
+                          <FormMessage className="text-red-400" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   {/* Location */}
                   <div className="grid grid-cols-2 gap-4">

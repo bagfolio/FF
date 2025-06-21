@@ -24,4 +24,5 @@ export function checkEnvLoaded() {
   console.log('- DANGEROUSLY_DISABLE_HOST_CHECK:', process.env.DANGEROUSLY_DISABLE_HOST_CHECK);
   console.log('- VITE_ALLOW_ALL_HOSTS:', process.env.VITE_ALLOW_ALL_HOSTS);
   console.log('- HOST:', process.env.HOST);
+  console.log('- BYPASS_AUTH:', process.env.BYPASS_AUTH);
 }

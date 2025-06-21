@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react";
+import { Check, X, Trophy, CircleDot, Goal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,16 +9,16 @@ interface LandingPricingPlansProps {
 }
 
 const features = [
-  { name: "Perfil básico de atleta", basic: true, pro: true, elite: true },
-  { name: "Upload de fotos", basic: true, pro: true, elite: true },
-  { name: "Autoavaliação de habilidades", basic: true, pro: true, elite: true },
+  { name: "Perfil completo de atleta", basic: true, pro: true, elite: true },
+  { name: "Vídeos de highlights", basic: "2 vídeos", pro: "10 vídeos", elite: "Ilimitado" },
+  { name: "Estatísticas de desempenho", basic: true, pro: true, elite: true },
   { name: "Visibilidade para scouts", basic: false, pro: true, elite: true },
-  { name: "Testes de verificação mensais", basic: "0", pro: "3", elite: "Ilimitados" },
-  { name: "Selo de verificação", basic: false, pro: true, elite: true },
-  { name: "Análise prioritária", basic: false, pro: false, elite: true },
-  { name: "Suporte prioritário", basic: false, pro: false, elite: true },
-  { name: "Destaque nas buscas", basic: false, pro: false, elite: true },
-  { name: "Perfis adicionais", basic: "1", pro: "1", elite: "3" },
+  { name: "Testes físicos verificados", basic: false, pro: "3/mês", elite: "Ilimitado", icon: CircleDot },
+  { name: "Selo de atleta verificado", basic: false, pro: true, elite: true, icon: Trophy },
+  { name: "Análise técnica por IA", basic: false, pro: "Básica", elite: "Avançada" },
+  { name: "Conexão direta com clubes", basic: false, pro: false, elite: true },
+  { name: "Destaque em pesquisas", basic: false, pro: false, elite: true },
+  { name: "Relatórios de evolução", basic: false, pro: "Mensal", elite: "Semanal", icon: Goal },
 ];
 
 export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) {
@@ -51,13 +51,13 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.3 }}
-      className="grid gap-8 lg:grid-cols-3"
+      className="grid gap-8 lg:grid-cols-3 overflow-visible"
     >
       {/* Basic Plan */}
       <motion.div variants={cardVariants} whileHover={{ y: -8 }}>
-        <Card className="relative glass-morph-dark border-white/10 hover:border-white/20 transition-all duration-300 h-full">
+        <Card className="relative glass-morph-pricing-basic stadium-spotlight pattern-brazilian h-full">
         <CardHeader>
-          <CardTitle className="text-white">Revela Basic</CardTitle>
+          <CardTitle className="text-2xl font-bold text-white">Revela Basic</CardTitle>
           <CardDescription className="text-gray-400">Perfeito para começar sua jornada</CardDescription>
           <motion.div 
             className="mt-4"
@@ -80,7 +80,16 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
                 transition={{ delay: index * 0.05 }}
                 viewport={{ once: true }}
               >
-                {feature.basic === true ? (
+                {typeof feature.icon === 'function' && feature.basic === false ? (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    whileInView={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: index * 0.05 + 0.2, type: "spring" }}
+                    viewport={{ once: true }}
+                  >
+                    <feature.icon className="h-5 w-5 icon-referee shrink-0 mt-0.5" />
+                  </motion.div>
+                ) : feature.basic === true ? (
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     whileInView={{ scale: 1, rotate: 0 }}
@@ -99,18 +108,21 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
                     <X className="h-5 w-5 text-gray-600 shrink-0 mt-0.5" />
                   </motion.div>
                 ) : (
-                  <motion.span 
-                    className="w-5 h-5 shrink-0 mt-0.5 text-center text-sm font-medium text-white"
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ delay: index * 0.05 + 0.2 }}
-                    viewport={{ once: true }}
-                  >
-                    {feature.basic}
-                  </motion.span>
+                  <span className="w-5 h-5 shrink-0 mt-0.5" />
                 )}
                 <span className={feature.basic === false ? "text-gray-600" : "text-gray-300"}>
                   {feature.name}
+                  {typeof feature.basic === 'string' && (
+                    <motion.span 
+                      className="text-verde-brasil font-medium ml-2"
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      transition={{ delay: index * 0.05 + 0.3 }}
+                      viewport={{ once: true }}
+                    >
+                      ({feature.basic})
+                    </motion.span>
+                  )}
                 </span>
               </motion.li>
             ))}
@@ -119,7 +131,7 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
         <CardFooter>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full">
             <Button 
-              className="w-full glass-morph-green text-white hover:shadow-verde-brasil/30 transition-all duration-300"
+              className="w-full glass-morph-green text-white hover:shadow-verde-brasil/30 transition-all duration-300 font-bold"
               onClick={() => onSelectPlan('basic')}
             >
               Começar Grátis
@@ -132,7 +144,7 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
       {/* Pro Plan */}
       <motion.div 
         variants={cardVariants} 
-        whileHover={{ y: -12, scale: 1.05 }}
+        whileHover={{ y: -12, scale: 1.02 }}
         className="relative"
       >
         <motion.div
@@ -146,17 +158,19 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
           transition={{ duration: 2, repeat: Infinity }}
           className="absolute inset-0 rounded-2xl"
         />
-        <Card className="relative glass-morph-dark border-verde-brasil/50 hover:border-verde-brasil transition-all duration-300 h-full">
+        <Card className="relative glass-morph-pricing-pro stadium-spotlight pattern-brazilian h-full">
           <motion.div 
-            className="absolute -top-3 left-1/2 -translate-x-1/2"
+            className="absolute -top-4 left-1/2 -translate-x-1/2 z-10"
             initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, type: "spring" }}
           >
-            <Badge className="bg-verde-brasil text-white border-0">Mais Popular</Badge>
+            <div className="badge-popular badge-championship">
+              Mais Popular
+            </div>
           </motion.div>
         <CardHeader>
-          <CardTitle className="text-white">Revela Pro</CardTitle>
+          <CardTitle className="text-2xl font-bold text-white">Revela Pro</CardTitle>
           <CardDescription className="text-gray-400">Para atletas sérios sobre seu futuro</CardDescription>
           <motion.div 
             className="mt-4"
@@ -192,7 +206,16 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
                 transition={{ delay: index * 0.05 }}
                 viewport={{ once: true }}
               >
-                {feature.pro === true ? (
+                {typeof feature.icon === 'function' && typeof feature.pro === 'string' ? (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    whileInView={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: index * 0.05 + 0.2, type: "spring" }}
+                    viewport={{ once: true }}
+                  >
+                    <feature.icon className="h-5 w-5 icon-soccer-ball shrink-0 mt-0.5" />
+                  </motion.div>
+                ) : feature.pro === true ? (
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     whileInView={{ scale: 1, rotate: 0 }}
@@ -211,18 +234,21 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
                     <X className="h-5 w-5 text-gray-600 shrink-0 mt-0.5" />
                   </motion.div>
                 ) : (
-                  <motion.span 
-                    className="w-5 h-5 shrink-0 mt-0.5 text-center text-sm font-medium text-white"
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ delay: index * 0.05 + 0.2 }}
-                    viewport={{ once: true }}
-                  >
-                    {feature.pro}
-                  </motion.span>
+                  <span className="w-5 h-5 shrink-0 mt-0.5" />
                 )}
                 <span className={feature.pro === false ? "text-gray-600" : "text-gray-300"}>
                   {feature.name}
+                  {typeof feature.pro === 'string' && (
+                    <motion.span 
+                      className="text-verde-brasil font-medium ml-2"
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      transition={{ delay: index * 0.05 + 0.3 }}
+                      viewport={{ once: true }}
+                    >
+                      ({feature.pro})
+                    </motion.span>
+                  )}
                 </span>
               </motion.li>
             ))}
@@ -231,7 +257,7 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
         <CardFooter>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full">
             <Button 
-              className="w-full bg-verde-brasil hover:bg-verde-brasil/90 text-white shadow-lg hover:shadow-verde-brasil/50 transition-all duration-300"
+              className="w-full bg-verde-brasil hover:bg-verde-brasil/90 text-white shadow-lg hover:shadow-verde-brasil/50 transition-all duration-300 font-bold"
               onClick={() => onSelectPlan('pro')}
             >
               Assinar Pro
@@ -243,9 +269,9 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
 
       {/* Elite Plan */}
       <motion.div variants={cardVariants} whileHover={{ y: -8 }}>
-        <Card className="relative glass-morph-dark border-amarelo-ouro/30 hover:border-amarelo-ouro/50 transition-all duration-300 h-full">
+        <Card className="relative glass-morph-pricing-elite stadium-spotlight pattern-brazilian h-full">
         <CardHeader>
-          <CardTitle className="text-white">Revela Elite</CardTitle>
+          <CardTitle className="text-2xl font-bold text-white">Revela Elite</CardTitle>
           <CardDescription className="text-gray-400">Máximo desempenho e visibilidade</CardDescription>
           <motion.div 
             className="mt-4"
@@ -269,7 +295,16 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
                 transition={{ delay: index * 0.05 }}
                 viewport={{ once: true }}
               >
-                {feature.elite === true ? (
+                {typeof feature.icon === 'function' && typeof feature.elite === 'string' ? (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    whileInView={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: index * 0.05 + 0.2, type: "spring" }}
+                    viewport={{ once: true }}
+                  >
+                    <feature.icon className="h-5 w-5 icon-goalpost shrink-0 mt-0.5" />
+                  </motion.div>
+                ) : feature.elite === true ? (
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     whileInView={{ scale: 1, rotate: 0 }}
@@ -288,18 +323,21 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
                     <X className="h-5 w-5 text-gray-600 shrink-0 mt-0.5" />
                   </motion.div>
                 ) : (
-                  <motion.span 
-                    className="w-5 h-5 shrink-0 mt-0.5 text-center text-sm font-medium text-white"
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ delay: index * 0.05 + 0.2 }}
-                    viewport={{ once: true }}
-                  >
-                    {feature.elite}
-                  </motion.span>
+                  <span className="w-5 h-5 shrink-0 mt-0.5" />
                 )}
                 <span className={feature.elite === false ? "text-gray-600" : "text-gray-300"}>
                   {feature.name}
+                  {typeof feature.elite === 'string' && (
+                    <motion.span 
+                      className="text-amarelo-ouro font-medium ml-2"
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      transition={{ delay: index * 0.05 + 0.3 }}
+                      viewport={{ once: true }}
+                    >
+                      ({feature.elite})
+                    </motion.span>
+                  )}
                 </span>
               </motion.li>
             ))}
@@ -308,7 +346,7 @@ export function LandingPricingPlans({ onSelectPlan }: LandingPricingPlansProps) 
         <CardFooter>
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full">
             <Button 
-              className="w-full glass-morph-yellow text-black hover:shadow-amarelo-ouro/30 transition-all duration-300"
+              className="w-full btn-elite"
               onClick={() => onSelectPlan('elite')}
             >
               Assinar Elite

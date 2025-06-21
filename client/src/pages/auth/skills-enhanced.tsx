@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Zap, Dumbbell, Target, Heart, Timer, MousePointer2, Gauge } from "lucide-react";
-import ProgressJourney from "@/components/features/auth/ProgressJourney";
+import { ProgressJourney } from "@/components/features/auth/ProgressJourney";
 import SoundController from "@/components/features/auth/SoundController";
 import CulturalTooltips from "@/components/features/auth/CulturalTooltips";
 import confetti from "canvas-confetti";
@@ -465,7 +465,7 @@ export default function AuthSkillsEnhanced() {
       </div>
 
       {/* Progress Journey */}
-      <ProgressJourney currentStep={3} />
+      <ProgressJourney currentStep={1} totalSteps={4} />
 
       {/* Sound Controller */}
       <SoundController variant="training" />

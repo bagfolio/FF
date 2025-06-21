@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Star, Users, Target, Sparkles, Crown } from "lucide-react";
 import BrazilianStadiumScene from "@/components/3d/BrazilianStadiumScene";
-import ProgressJourney from "@/components/features/auth/ProgressJourney";
+import { ProgressJourney } from "@/components/features/auth/ProgressJourney";
 import SoundController from "@/components/features/auth/SoundController";
 import CulturalTooltips from "@/components/features/auth/CulturalTooltips";
 import { Canvas } from '@react-three/fiber';
@@ -183,7 +183,7 @@ export default function AuthCompleteEnhanced() {
 
       {/* Progress Journey - Complete */}
       <div className="relative z-20">
-        <ProgressJourney currentStep={4} />
+        <ProgressJourney currentStep={1} totalSteps={4} />
       </div>
 
       {/* Sound Controller */}

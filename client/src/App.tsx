@@ -5,9 +5,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
-import AthleteOnboarding from "@/pages/athlete/onboarding";
 import AthleteDashboard from "@/pages/athlete/dashboard";
 import AthleteCombine from "@/pages/athlete/combine";
 import AthleteAchievements from "@/pages/athlete/achievements";
@@ -16,7 +16,6 @@ import DailyCheckIn from "@/pages/athlete/daily-checkin";
 import AthleteSubscription from "@/pages/athlete/subscription";
 import ScoutDashboard from "@/pages/scout/dashboard";
 import ScoutSearch from "@/pages/scout/search";
-import ScoutOnboarding from "@/pages/scout/onboarding";
 import NotFound from "@/pages/not-found";
 import LoadingScreen from "@/components/ui/loading-screen";
 import TestPage from "@/pages/test";
@@ -59,11 +58,6 @@ function Router() {
       </Route>
       
       {/* Athlete routes - require athlete user type */}
-      <Route path="/athlete/onboarding">
-        <ProtectedRoute>
-          <AthleteOnboarding />
-        </ProtectedRoute>
-      </Route>
       <Route path="/athlete/dashboard">
         <ProtectedRoute requireUserType="athlete">
           <AthleteDashboard />
@@ -96,11 +90,6 @@ function Router() {
       </Route>
       
       {/* Scout routes - require scout user type */}
-      <Route path="/scout/onboarding">
-        <ProtectedRoute>
-          <ScoutOnboarding />
-        </ProtectedRoute>
-      </Route>
       <Route path="/scout/dashboard">
         <ProtectedRoute requireUserType="scout">
           <ScoutDashboard />
@@ -127,12 +116,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-          {/* Development Quick Login Panel */}
-          <DevQuickLogin />
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+            {/* Development Quick Login Panel */}
+            <DevQuickLogin />
+          </TooltipProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

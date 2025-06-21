@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text, Box, Sphere, Float, MeshWobbleMaterial } from '@react-three/drei';
 import { Button } from "@/components/ui/button";
-import ProgressJourney from "@/components/features/auth/ProgressJourney";
+import { ProgressJourney } from "@/components/features/auth/ProgressJourney";
 import SoundController from "@/components/features/auth/SoundController";
 import CulturalTooltips from "@/components/features/auth/CulturalTooltips";
 import * as THREE from 'three';
@@ -248,7 +248,7 @@ export default function AuthPositionEnhanced() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black relative overflow-hidden">
       {/* Progress Journey */}
-      <ProgressJourney currentStep={1} />
+      <ProgressJourney currentStep={1} totalSteps={4} />
 
       {/* Sound Controller */}
       <SoundController variant="training" />
@@ -383,7 +383,7 @@ export default function AuthPositionEnhanced() {
               y: Math.random() * window.innerHeight
             }}
             animate={{
-              y: [null, -20, null],
+              y: [0, -20, 0],
               opacity: [0.2, 0.5, 0.2]
             }}
             transition={{

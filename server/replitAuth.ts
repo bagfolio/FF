@@ -38,7 +38,8 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // Only secure in production
+      sameSite: 'lax',
       maxAge: sessionTtl,
     },
   });
@@ -132,9 +133,11 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   if (process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true') {
     // In development, simulate a user session
     if (!req.user) {
+      // Use a stable dev user ID to avoid creating multiple users
+      const devUserId = "dev-user-bypass-auth";
       req.user = {
         claims: {
-          sub: "dev-user-" + Date.now(),
+          sub: devUserId,
           email: "dev@futebol-futuro.com",
           first_name: "Dev",
           last_name: "User",

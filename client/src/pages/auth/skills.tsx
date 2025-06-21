@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { useOfflineQueue } from "@/lib/offlineQueue";
+import type { User } from "@/types/auth";
 
 interface SkillAssessment {
   id: string;
@@ -514,7 +515,7 @@ export default function AuthSkills() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: user } = useQuery({ queryKey: ["/api/auth/user"] });
+  const { data: user } = useQuery<User>({ queryKey: ["/api/auth/user"] });
   const [currentAssessment, setCurrentAssessment] = useState(0);
   const { isOnline, queueSize } = useOfflineQueue();
   const [assessments, setAssessments] = useState<SkillAssessment[]>([
@@ -561,7 +562,7 @@ export default function AuthSkills() {
         
         // Queue for sync when online
         if (user?.roleData?.id) {
-          queueSkillsSync(skillsData, user.roleData.id);
+          queueSkillsSync(skillsData, user.roleData.id.toString());
         }
         
         toast({

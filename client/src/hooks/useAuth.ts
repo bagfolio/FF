@@ -12,9 +12,13 @@ export function useAuth() {
   
   const { data: user, isLoading, error, isSuccess, refetch } = useQuery<User>({
     queryKey: ["/api/auth/user"],
-    retry: (failureCount, error) => {
+    queryFn: async () => {
+      const response = await api.get("/api/auth/user");
+      return response.data;
+    },
+    retry: (failureCount, error: any) => {
       // Don't retry on 401 errors
-      if (isUnauthorizedError(error as Error)) {
+      if (error?.response?.status === 401 || isUnauthorizedError(error)) {
         return false;
       }
       return failureCount < 3;
@@ -26,14 +30,23 @@ export function useAuth() {
   });
 
   // Handle authentication errors
-  if (error && isUnauthorizedError(error as Error)) {
+  const isAuthError = error && (
+    (error as any)?.response?.status === 401 || 
+    isUnauthorizedError(error as Error)
+  );
+  
+  if (isAuthError) {
     // Clear all queries
     queryClient.clear();
-    // Only redirect if not already on an auth page
-    if (!window.location.pathname.startsWith('/auth') && 
-        !window.location.pathname.startsWith('/api/login') &&
-        window.location.pathname !== '/') {
-      // For email/password auth, redirect to landing page instead of OAuth login
+    // Only redirect from protected pages, not from public pages
+    const publicPaths = ['/', '/auth', '/test', '/trust-pyramid-demo', '/style-guide'];
+    const isPublicPath = publicPaths.some(path => 
+      window.location.pathname === path || 
+      window.location.pathname.startsWith(path + '/')
+    );
+    
+    if (!isPublicPath) {
+      // Redirect to landing page from protected routes
       setLocation('/');
     }
   }

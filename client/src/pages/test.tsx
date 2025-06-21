@@ -147,9 +147,9 @@ export default function TestPage() {
               </Button>
               <Button 
                 variant="outline"
-                onClick={() => setLocation('/athlete/onboarding')}
+                onClick={() => setLocation('/auth/welcome')}
               >
-                Onboarding Atleta
+                Onboarding Flow
               </Button>
               <Button 
                 variant="outline"
