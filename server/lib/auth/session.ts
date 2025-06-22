@@ -1,5 +1,15 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { storage } from '../../storage';
+
+/**
+ * Custom error class for authentication errors
+ */
+export class AuthError extends Error {
+  constructor(message: string, public status: number, public data?: any) {
+    super(message);
+    this.name = 'AuthError';
+  }
+}
 
 /**
  * Consolidated authentication utilities for consistent auth handling
@@ -105,7 +115,7 @@ export async function requireAuth(req: Request): Promise<AuthenticatedUser> {
       emailVerified: user.emailVerified || false,
     };
   } catch (error) {
-    throw new Response('Unauthorized', { status: 401 });
+    throw new AuthError('Unauthorized', 401);
   }
 }
 
@@ -123,13 +133,10 @@ export async function requireProfile(req: Request): Promise<UserWithProfile> {
   const scout = await storage.getScoutByUserId(user.id);
   
   if (!athlete && !scout) {
-    throw new Response(JSON.stringify({
+    throw new AuthError('Profile required', 403, {
       error: 'PROFILE_REQUIRED',
       message: 'Complete your profile to continue',
       redirectTo: '/auth/welcome'
-    }), { 
-      status: 403,
-      headers: { 'Content-Type': 'application/json' }
     });
   }
   
@@ -149,14 +156,11 @@ export async function requireUserType(req: Request, userType: 'athlete' | 'scout
   const profile = await requireProfile(req);
   
   if (profile.profileType !== userType) {
-    throw new Response(JSON.stringify({
+    throw new AuthError('Wrong user type', 403, {
       error: 'WRONG_USER_TYPE',
       message: `This action requires ${userType} access`,
       currentType: profile.profileType,
       redirectTo: profile.profileType ? `/${profile.profileType}/dashboard` : '/auth/welcome'
-    }), { 
-      status: 403,
-      headers: { 'Content-Type': 'application/json' }
     });
   }
   
@@ -192,15 +196,18 @@ export async function checkSubscription(userId: string) {
  * Middleware to handle auth errors consistently
  */
 export function handleAuthError(error: any, req: Request, res: Response) {
-  if (error instanceof Response) {
-    // Custom Response errors with specific status/body
-    error.text().then(body => {
-      res.status(error.status).send(body);
-    });
+  if (error instanceof AuthError) {
+    // Custom auth errors with specific status and data
+    if (error.data) {
+      res.status(error.status).json(error.data);
+    } else {
+      res.status(error.status).json({ message: error.message });
+    }
   } else if (error.message === 'Unauthorized' || error.message === 'User not authenticated') {
     res.status(401).json({ message: 'Unauthorized' });
   } else {
-    // Generic server error
+    // Log error for debugging but don't expose details
+    console.error('Auth error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 }

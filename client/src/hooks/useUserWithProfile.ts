@@ -11,7 +11,7 @@ interface UserProfile {
   hasProfile: boolean;
   isAthlete: boolean;
   isScout: boolean;
-  profileType: 'athlete' | 'scout' | null;
+  profileType: 'athlete' | 'scout' | 'admin' | null;
 }
 
 /**
