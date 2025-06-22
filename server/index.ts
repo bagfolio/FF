@@ -12,7 +12,7 @@ import { validateEnv } from "./validateEnv";
 // Global error handlers
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  // Don't exit - let the server continue running
+  // Log but don't crash the server
 });
 
 process.on('uncaughtException', (error) => {
@@ -82,13 +82,27 @@ app.use((req, res, next) => {
   try {
     console.log('🚀 Starting server initialization...');
     
+    // Add health check route first - critical for deployment
+    app.get('/health', (req, res) => {
+      res.status(200).json({ 
+        status: 'healthy', 
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+      });
+    });
+    
     // Setup authentication before routes
     await setupAuth(app);
     console.log('✅ Authentication setup complete');
     
-    // Seed subscription plans if needed
-    await seedSubscriptionPlans();
-    console.log('✅ Database connection verified and seeded');
+    // Seed subscription plans if needed (non-blocking)
+    try {
+      await seedSubscriptionPlans();
+      console.log('✅ Database connection verified and seeded');
+    } catch (error) {
+      console.error('⚠️ Warning: Failed to seed subscription plans:', error);
+      // Don't exit - continue with server startup
+    }
     
     await registerRoutes(app);
     console.log('✅ Routes registered successfully');
@@ -157,6 +171,11 @@ app.use((req, res, next) => {
         process.exit(0);
       });
     });
+    
+    console.log('✅ Server startup complete - ready for connections');
+    
+    // Keep the process alive - this is critical for deployment
+    // The server will continue running and handling requests
 
   } catch (error) {
     console.error('❌ Server startup failed:', error);

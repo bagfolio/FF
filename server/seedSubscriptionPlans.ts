@@ -93,9 +93,12 @@ const isMainModule = argv[1] === fileURLToPath(import.meta.url);
 
 if (isMainModule) {
   seedSubscriptionPlans()
-    .then(() => process.exit(0))
+    .then(() => {
+      console.log('Seeding completed successfully');
+      // Don't exit when called as a module
+    })
     .catch((error) => {
       console.error(error);
-      process.exit(1);
+      // Don't exit when called as a module - let the parent handle it
     });
 }
