@@ -19,7 +19,7 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
-export async function setupVite(app: Express) {
+export async function setupVite(app: Express, server?: Server) {
   log(`Setting up Vite in development mode`);
   log(`Environment: NODE_ENV=${process.env.NODE_ENV}`);
   
@@ -52,8 +52,12 @@ export async function setupVite(app: Express) {
       cors: true,
       strictPort: false,
       // Force allowedHosts to 'all' for Replit compatibility
-      hmr: {
+      hmr: server ? {
         server,
+        host: "localhost",
+        clientPort: 443,
+        protocol: "wss"
+      } : {
         host: "localhost",
         clientPort: 443,
         protocol: "wss"

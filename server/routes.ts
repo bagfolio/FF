@@ -87,27 +87,17 @@ function calculateOverallTrustLevel(verifications: any[]): "bronze" | "silver" |
 
 export async function registerRoutes(app: Express): Promise<void> {
   
-  // Root route handler for deployment health checks
-  app.get('/', (req, res) => {
-    res.status(200).json({
-      status: 'ok',
-      message: 'Revela API is running',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: process.env.NODE_ENV || 'development'
-    });
-  });
-
-  // Health check endpoint
-  app.get('/health', async (req, res) => {
+  // Health check endpoint - moved from root to avoid conflicting with client app
+  app.get('/api/health', async (req, res) => {
     try {
       // Check database connection
       const dbHealthy = await storage.healthCheck();
       
       const health = {
         status: 'ok',
+        message: 'Revela API is running',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'unknown',
+        environment: process.env.NODE_ENV || 'development',
         version: process.env.npm_package_version || 'unknown',
         uptime: process.uptime(),
         checks: {
@@ -132,6 +122,15 @@ export async function registerRoutes(app: Express): Promise<void> {
         error: 'Health check failed'
       });
     }
+  });
+
+  // Simple health check endpoint for deployment monitoring
+  app.get('/health', (req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      message: 'Revela API is healthy',
+      timestamp: new Date().toISOString()
+    });
   });
   
   // Test route for debugging auth

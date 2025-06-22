@@ -152,7 +152,7 @@ app.use((req, res, next) => {
     // Only setup vite in development environment
     if (process.env.NODE_ENV === "development") {
       try {
-        await setupVite(app);
+        await setupVite(app, server);
       } catch (error) {
         console.error('⚠️ Vite setup failed, continuing with static serving:', error);
         serveStatic(app);
