@@ -1,0 +1,56 @@
+/* Journey Page Styles */
+
+@keyframes gradient-shift {
+  0%, 100% { 
+    background-position: 0% 50%;
+  }
+  50% { 
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 6s ease-in-out 3s infinite;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.glass-journey-card {
+  background: linear-gradient(
+    135deg, 
+    rgba(0, 156, 59, 0.05) 0%, 
+    rgba(255, 223, 0, 0.03) 50%,
+    rgba(0, 114, 206, 0.05) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@keyframes milestone-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(255, 223, 0, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(255, 223, 0, 0.6);
+  }
+}
+
+.milestone-glow {
+  animation: milestone-glow 2s ease-in-out infinite;
+}

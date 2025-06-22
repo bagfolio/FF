@@ -5,6 +5,8 @@ import type {
   PaymentMethod,
   PaymentTransaction 
 } from '@shared/schema';
+import { StripeErrorHandler, logStripeEvent, warnIfLiveMode } from '../utils/stripe-error-handler';
+import { WebhookLogger } from '../utils/webhook-logger';
 
 // Initialize Stripe with secret key from environment
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -12,6 +14,11 @@ const stripe = process.env.STRIPE_SECRET_KEY
       apiVersion: '2025-05-28.basil',
     })
   : null;
+
+// Warn if using live keys in development
+if (stripe && process.env.NODE_ENV === 'development') {
+  warnIfLiveMode();
+}
 
 export class StripeService {
   // Check if Stripe is properly configured
@@ -34,7 +41,6 @@ export class StripeService {
 
       return customer.id;
     } catch (error) {
-      console.error('Error creating Stripe customer:', error);
       throw new Error('Falha ao criar cliente no Stripe. Por favor, tente novamente.');
     }
   }
@@ -51,6 +57,8 @@ export class StripeService {
     }
 
     try {
+      logStripeEvent('checkout.session.create.start', { userId, planId });
+      
       // Get subscription plan details
       const plan = await storage.getSubscriptionPlan(planId);
       if (!plan || !plan.stripePriceId) {
@@ -99,30 +107,37 @@ export class StripeService {
           },
         },
         locale: 'pt-BR',
+        // Allow promotion codes
+        allow_promotion_codes: true,
       });
 
       if (!session.url) {
         throw new Error('Falha ao criar sessão de checkout.');
       }
 
+      logStripeEvent('checkout.session.create.success', { 
+        sessionId: session.id, 
+        userId, 
+        planId,
+        checkoutUrl: session.url 
+      });
+
       return session.url;
     } catch (error: any) {
-      console.error('Error creating checkout session:', error);
-      
-      // Handle specific Stripe errors
-      if (error.type === 'StripeInvalidRequestError') {
-        if (error.message.includes('No such price')) {
-          throw new Error('Plano não encontrado no Stripe. Verifique a configuração dos price IDs.');
-        }
-        throw new Error('Configuração inválida. Entre em contato com o suporte.');
-      }
+      logStripeEvent('checkout.session.create.error', { 
+        userId, 
+        planId, 
+        error: error.message 
+      });
       
       // Re-throw our custom errors
       if (error.message && !error.type) {
         throw error;
       }
       
-      throw new Error('Falha ao criar sessão de pagamento. Por favor, tente novamente.');
+      // Use centralized error handler
+      const errorDetails = StripeErrorHandler.handleError(error);
+      throw new Error(errorDetails.userMessage);
     }
   }
 
@@ -146,7 +161,6 @@ export class StripeService {
 
       return session.url;
     } catch (error: any) {
-      console.error('Error creating portal session:', error);
       
       // Re-throw our custom errors
       if (error.message && !error.type) {
@@ -174,33 +188,46 @@ export class StripeService {
         throw new Error('Stripe não está configurado');
       }
       event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
-    } catch (err) {
+      logStripeEvent('webhook.received', { eventType: event.type, eventId: event.id });
+    } catch (err: any) {
+      logStripeEvent('webhook.signature.failed', { error: err.message || 'Unknown error' });
       throw new Error('Webhook signature inválida');
     }
 
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await this.handleCheckoutComplete(event.data.object as Stripe.Checkout.Session);
-        break;
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await this.handleCheckoutComplete(event.data.object as Stripe.Checkout.Session);
+          break;
 
-      case 'customer.subscription.updated':
-        await this.handleSubscriptionUpdate(event.data.object as Stripe.Subscription);
-        break;
+        case 'customer.subscription.updated':
+          await this.handleSubscriptionUpdate(event.data.object as Stripe.Subscription);
+          break;
 
-      case 'customer.subscription.deleted':
-        await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
-        break;
+        case 'customer.subscription.deleted':
+          await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+          break;
 
-      case 'invoice.payment_succeeded':
-        await this.handlePaymentSucceeded(event.data.object as Stripe.Invoice);
-        break;
+        case 'invoice.payment_succeeded':
+          await this.handlePaymentSucceeded(event.data.object as Stripe.Invoice);
+          break;
 
-      case 'invoice.payment_failed':
-        await this.handlePaymentFailed(event.data.object as Stripe.Invoice);
-        break;
+        case 'invoice.payment_failed':
+          await this.handlePaymentFailed(event.data.object as Stripe.Invoice);
+          break;
 
-      default:
-        console.log(`Unhandled webhook event type: ${event.type}`);
+        default:
+          logStripeEvent('webhook.unhandled', { eventType: event.type });
+      }
+      
+      logStripeEvent('webhook.processed', { eventType: event.type, eventId: event.id });
+    } catch (error: any) {
+      logStripeEvent('webhook.processing.error', { 
+        eventType: event.type, 
+        eventId: event.id, 
+        error: error?.message || 'Unknown error' 
+      });
+      throw error;
     }
   }
 
@@ -210,9 +237,14 @@ export class StripeService {
     const planId = session.metadata?.planId;
 
     if (!userId || !planId) {
-      console.error('Missing metadata in checkout session');
-      return;
+      logStripeEvent('checkout.complete.error', { 
+        sessionId: session.id, 
+        error: 'Missing metadata' 
+      });
+      throw new Error('Missing user or plan information in checkout session');
     }
+    
+    logStripeEvent('checkout.complete.start', { sessionId: session.id, userId, planId });
 
     if (!stripe) {
       throw new Error('Stripe não está configurado');
@@ -243,6 +275,12 @@ export class StripeService {
       status: 'succeeded',
       type: 'subscription',
       description: 'Assinatura inicial',
+    });
+    
+    logStripeEvent('checkout.complete.success', { 
+      sessionId: session.id, 
+      userId, 
+      subscriptionId: subscription.id 
     });
   }
 
@@ -414,7 +452,6 @@ export class StripeService {
         },
       };
     } catch (error) {
-      console.error('Error fetching Stripe subscription:', error);
       return subscription;
     }
   }

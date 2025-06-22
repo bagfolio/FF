@@ -41,7 +41,12 @@
       "Bash(npm dedupe:*)",
       "Bash(NODE_ENV=production npm run build 2 >& 1)",
       "Bash(NODE_ENV=production npm run build 2>&1)",
-      "Bash(NODE_ENV=production npm run build)"
+      "Bash(NODE_ENV=production npm run build)",
+      "Bash(NODE_ENV=production npm run prebuild 2>&1)",
+      "Bash(NODE_ENV=production npm ci --omit=dev --omit=optional)",
+      "Bash(chmod:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)"
     ],
     "deny": []
   }

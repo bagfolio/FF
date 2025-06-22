@@ -9,6 +9,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import AthleteDashboard from "@/pages/athlete/dashboard";
+import AthleteJourney from "@/pages/athlete/journey";
 import AthleteCombine from "@/pages/athlete/combine";
 import AthleteAchievements from "@/pages/athlete/achievements";
 import AthleteActivity from "@/pages/athlete/activity";
@@ -17,7 +18,6 @@ import AthleteSubscription from "@/pages/athlete/subscription";
 import ScoutDashboard from "@/pages/scout/dashboard";
 import ScoutSearch from "@/pages/scout/search";
 import NotFound from "@/pages/not-found";
-import LoadingScreen from "@/components/ui/loading-screen";
 import TestPage from "@/pages/test";
 import TrustPyramidDemo from "@/pages/trust-pyramid-demo";
 import StyleGuide from "@/pages/style-guide";
@@ -27,9 +27,6 @@ import AuthPosition from "@/pages/auth/position";
 import AuthProfile from "@/pages/auth/profile";
 import AuthSkills from "@/pages/auth/skills";
 import AuthComplete from "@/pages/auth/complete";
-import VerifyEmail from "@/pages/auth/verify-email";
-import ResetPassword from "@/pages/auth/reset-password";
-import ForgotPassword from "@/pages/auth/forgot-password";
 // Development tools
 import { DevQuickLogin } from "@/components/dev/DevQuickLogin";
 
@@ -46,9 +43,6 @@ function Router() {
       <Route path="/auth/profile" component={AuthProfile} />
       <Route path="/auth/skills" component={AuthSkills} />
       <Route path="/auth/complete" component={AuthComplete} />
-      <Route path="/auth/verify-email" component={VerifyEmail} />
-      <Route path="/auth/reset-password" component={ResetPassword} />
-      <Route path="/auth/forgot-password" component={ForgotPassword} />
       
       {/* Protected routes */}
       <Route path="/home">
@@ -61,6 +55,11 @@ function Router() {
       <Route path="/athlete/dashboard">
         <ProtectedRoute requireUserType="athlete">
           <AthleteDashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/athlete/journey">
+        <ProtectedRoute requireUserType="athlete">
+          <AthleteJourney />
         </ProtectedRoute>
       </Route>
       <Route path="/athlete/combine">

@@ -618,7 +618,6 @@ export default function AuthSkills() {
             queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
           }
         } catch (error) {
-          console.error("Error creating athlete:", error);
           throw error;
         }
       } else if (user?.roleData?.id) {
@@ -626,7 +625,6 @@ export default function AuthSkills() {
         await saveSkillsForAthlete(user.roleData.id, skillsData);
       }
     } catch (error) {
-      console.error("Error in saveSkillsToDatabase:", error);
       
       // Save to localStorage as fallback
       localStorage.setItem("authSkills", JSON.stringify(skillsData));
@@ -653,7 +651,6 @@ export default function AuthSkills() {
       // First check if athlete exists
       const checkResponse = await fetch(`/api/athletes/${athleteId}`);
       if (checkResponse.status === 404) {
-        console.warn(`Athlete ${athleteId} not found - skills will be saved locally only`);
         throw new Error('Athlete not found');
       }
       
@@ -678,7 +675,6 @@ export default function AuthSkills() {
           }
         });
       } catch (error) {
-        console.error("Error updating verification level:", error);
       }
       
       // Invalidate queries to trigger refetch
@@ -693,7 +689,6 @@ export default function AuthSkills() {
         variant: "default"
       });
     } catch (error) {
-      console.error("Error saving skills to database:", error);
       toast({
         title: "Aviso",
         description: "Suas habilidades foram salvas localmente e serão sincronizadas em breve.",
@@ -722,7 +717,6 @@ export default function AuthSkills() {
       
       // Also save to database with error handling
       saveSkillsToDatabase(dataToSave).catch(error => {
-        console.error('Failed to save skills to database:', error);
       });
       
       // Navigate to complete page

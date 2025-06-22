@@ -8,6 +8,7 @@ import { Play, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAthleteSkills } from "@/hooks/useAthleteSkills";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { useRequireUserType } from "@/hooks/useUserWithProfile";
 
 // Import new modular components
 import { HeroSection } from "@/components/features/athlete/HeroSection";

@@ -5,15 +5,27 @@ import { isAuthenticated } from "./replitAuth";
 import { insertAthleteSchema, insertScoutSchema, insertTestSchema, insertCheckinSchema } from "@shared/schema";
 import { z } from "zod";
 import { checkAndAwardAchievements } from "./achievementSeeder";
-import { AuthService } from "./services/auth.service";
-import { passwordSchema, generateSecureToken } from "./utils/password";
-import { emailSchema, cpfSchema } from "./utils/validation";
 import { setupDevRoutes } from "./routes/dev.routes";
 import { emailService } from "./services/email.service";
 import { setupMediaRoutes } from "./routes/media.routes";
 import { setupNotificationRoutes } from "./routes/notification.routes";
 import { notificationService } from "./services/notification.service";
 import path from "path";
+import { requireAuth, requireProfile, requireUserType, handleAuthError, getAuthenticatedUserId } from "./lib/auth/session";
+
+// Helper function to get the base URL for the application
+function getBaseUrl(req: any): string {
+  // Use APP_URL from environment if available (recommended for production)
+  if (process.env.APP_URL) {
+    return process.env.APP_URL;
+  }
+  
+  // Fallback to constructing from request
+  // When behind a proxy, these values might not be accurate
+  const protocol = req.protocol;
+  const host = req.get('host');
+  return `${protocol}://${host}`;
+}
 
 // Helper function to format time ago in Portuguese
 function formatTimeAgo(date: Date): string {
@@ -75,7 +87,6 @@ function calculateOverallTrustLevel(verifications: any[]): "bronze" | "silver" |
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  const authService = new AuthService();
   
   // Health check endpoint
   app.get('/health', async (req, res) => {
@@ -119,78 +130,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Helper to get authenticated user ID from request
-  async function getAuthenticatedUserId(req: any): Promise<string> {
-    // Check if we're in development mode with bypass auth
-    if (process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true') {
-      // Use the simulated user from the auth middleware
-      if (req.user?.claims?.sub) {
-        // Ensure the dev user exists in the database
-        let user = await storage.getUser(req.user.claims.sub);
-        if (!user) {
-          // Create the dev user if it doesn't exist
-          user = await storage.createUser({
-            id: req.user.claims.sub,
-            email: req.user.claims.email || "dev@futebol-futuro.com",
-            firstName: req.user.claims.first_name || "Dev",
-            lastName: req.user.claims.last_name || "User",
-            profileImageUrl: req.user.claims.profile_image_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-            userType: null,
-            emailVerified: true
-          });
-        }
-        return user.id;
-      }
-      
-      // Fallback: get or create a dev user
-      const users = await storage.getAllUsers();
-      if (users.length > 0) {
-        return users[0].id;
-      }
-      
-      // Create a development user if none exists
-      const devUser = await storage.createUser({
-        id: "dev-user-" + Date.now(),
-        email: "dev@futebol-futuro.com",
-        firstName: "Dev",
-        lastName: "User",
-        profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-        userType: null,
-        emailVerified: true
-      });
-      
-      return devUser.id;
-    }
-    
-    // Production: get user ID from authenticated session
-    if (!req.user?.claims?.sub) {
-      throw new Error("User not authenticated");
-    }
-    
-    return req.user.claims.sub;
-  }
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = await getAuthenticatedUserId(req);
-      
-      // Get user from database
-      let user = await storage.getUser(userId);
+      const user = await storage.getUser(userId);
       
       if (!user) {
-        // Create user if doesn't exist (development only)
-        user = await storage.createUser({
-          id: userId,
-          email: "dev@futebol-futuro.com",
-          firstName: "Dev",
-          lastName: "User",
-          profileImageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-          userType: null,
-          emailVerified: true
-        });
+        return res.status(404).json({ error: "User not found" });
       }
       
-      // Get role-specific data from database
+      // Get role-specific data if user has a type
       let roleData = null;
       if (user.userType === 'athlete') {
         roleData = await storage.getAthleteByUserId(userId);
@@ -198,10 +149,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         roleData = await storage.getScoutByUserId(userId);
       }
       
-      res.json({ ...user, roleData });
+      // Clean response - only send necessary data
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
+        userType: user.userType,
+        emailVerified: user.emailVerified,
+        roleData
+      });
     } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 
@@ -230,7 +190,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ ...updatedUser, roleData });
     } catch (error) {
-      console.error("Error setting user type:", error);
       res.status(500).json({ message: "Failed to set user type" });
     }
   });
@@ -265,7 +224,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         athlete
       });
     } catch (error) {
-      console.error("Error registering athlete:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
@@ -302,7 +260,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scout
       });
     } catch (error) {
-      console.error("Error registering scout:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
@@ -310,289 +267,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Email/Password Auth Routes
-  
-  // Register with email/password
-  app.post('/api/auth/register', async (req, res) => {
-    try {
-      // Define registration schema
-      const registerSchema = z.object({
-        email: emailSchema,
-        password: passwordSchema,
-        firstName: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-        lastName: z.string().min(2, 'Sobrenome deve ter pelo menos 2 caracteres'),
-        userType: z.enum(['athlete', 'scout'])
-      });
 
-      const data = registerSchema.parse(req.body);
-      
-      // Register user
-      const user = await authService.register(data);
-      
-      // Set session
-      req.session.userId = user.id;
-      req.session.save();
-      
-      res.json({ 
-        message: 'Cadastro realizado com sucesso! Verifique seu email.',
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          userType: user.userType,
-          emailVerified: user.emailVerified
-        }
-      });
-    } catch (error) {
-      console.error("Error registering user:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Erro de validação", 
-          errors: error.errors 
-        });
-      }
-      if (error instanceof Error && error.message === 'Este email já está cadastrado') {
-        return res.status(409).json({ message: error.message });
-      }
-      res.status(500).json({ message: "Falha ao criar conta" });
-    }
-  });
 
-  // Login with email/password
-  app.post('/api/auth/login', async (req, res) => {
-    try {
-      const loginSchema = z.object({
-        email: emailSchema,
-        password: z.string().min(1, 'Senha é obrigatória'),
-        rememberMe: z.boolean().optional()
-      });
 
-      const credentials = loginSchema.parse(req.body);
-      
-      // Login user
-      const { user, rememberMeToken } = await authService.login(credentials);
-      
-      // Set session
-      req.session.userId = user.id;
-      req.session.save();
-      
-      // Set remember me cookie if requested
-      if (rememberMeToken) {
-        res.cookie('remember_me', rememberMeToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production', // Only secure in production
-          sameSite: 'lax',
-          maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-        });
-      }
-      
-      // Get role data
-      let roleData = null;
-      if (user.userType === 'athlete') {
-        roleData = await storage.getAthleteByUserId(user.id);
-      } else if (user.userType === 'scout') {
-        roleData = await storage.getScoutByUserId(user.id);
-      }
-      
-      res.json({ 
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          userType: user.userType,
-          emailVerified: user.emailVerified,
-          profileImageUrl: user.profileImageUrl
-        },
-        roleData
-      });
-    } catch (error) {
-      console.error("Error logging in:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Erro de validação", 
-          errors: error.errors 
-        });
-      }
-      if (error instanceof Error) {
-        if (error.message === 'Email ou senha incorretos' || 
-            error.message === 'Por favor, faça login com sua conta social') {
-          return res.status(401).json({ message: error.message });
-        }
-      }
-      res.status(500).json({ message: "Falha ao fazer login" });
-    }
-  });
 
-  // Verify email
-  app.get('/api/auth/verify-email', async (req, res) => {
-    try {
-      const { token } = req.query;
-      
-      if (!token || typeof token !== 'string') {
-        return res.status(400).json({ message: 'Token inválido' });
-      }
-      
-      await authService.verifyEmail(token);
-      
-      // Redirect to success page
-      res.redirect('/auth/email-verified');
-    } catch (error) {
-      console.error("Error verifying email:", error);
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      res.status(500).json({ message: "Falha ao verificar email" });
-    }
-  });
 
-  // Request password reset
-  app.post('/api/auth/forgot-password', async (req, res) => {
-    try {
-      const { email } = z.object({ email: emailSchema }).parse(req.body);
-      
-      await authService.requestPasswordReset(email);
-      
-      // Always return success to prevent email enumeration
-      res.json({ 
-        message: 'Se o email estiver cadastrado, você receberá instruções para redefinir sua senha.' 
-      });
-    } catch (error) {
-      console.error("Error requesting password reset:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Email inválido", 
-          errors: error.errors 
-        });
-      }
-      res.status(500).json({ message: "Falha ao solicitar redefinição de senha" });
-    }
-  });
 
-  // Reset password
-  app.post('/api/auth/reset-password', async (req, res) => {
-    try {
-      const resetSchema = z.object({
-        token: z.string().min(1, 'Token é obrigatório'),
-        password: passwordSchema
-      });
 
-      const { token, password } = resetSchema.parse(req.body);
-      
-      await authService.resetPassword(token, password);
-      
-      res.json({ message: 'Senha redefinida com sucesso!' });
-    } catch (error) {
-      console.error("Error resetting password:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Erro de validação", 
-          errors: error.errors 
-        });
-      }
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      res.status(500).json({ message: "Falha ao redefinir senha" });
-    }
-  });
-
-  // Enhanced logout with cleanup
-  app.post('/api/auth/logout', async (req: any, res) => {
-    try {
-      const userId = req.session?.userId || req.user?.claims?.sub;
-      
-      if (userId) {
-        await authService.logout(userId);
-      }
-      
-      // Clear session
-      req.session?.destroy((err: any) => {
-        if (err) {
-          console.error("Error destroying session:", err);
-        }
-      });
-      
-      // Clear remember me cookie
-      res.clearCookie('remember_me');
-      
-      res.json({ message: 'Logout realizado com sucesso' });
-    } catch (error) {
-      console.error("Error logging out:", error);
-      res.status(500).json({ message: "Falha ao fazer logout" });
-    }
-  });
-
-  // Email verification
-  app.post('/api/auth/verify-email', async (req, res) => {
-    try {
-      const { token } = req.body;
-      
-      if (!token) {
-        return res.status(400).json({ message: 'Token de verificação é obrigatório' });
-      }
-      
-      await authService.verifyEmail(token);
-      
-      res.json({ message: 'Email verificado com sucesso!' });
-    } catch (error) {
-      console.error("Error verifying email:", error);
-      if (error instanceof Error) {
-        return res.status(400).json({ message: error.message });
-      }
-      res.status(500).json({ message: "Falha ao verificar email" });
-    }
-  });
-
-  // Resend verification email
-  app.post('/api/auth/resend-verification', async (req: any, res) => {
-    try {
-      const userId = req.session?.userId || req.user?.claims?.sub;
-      
-      if (!userId) {
-        return res.status(401).json({ message: 'Não autenticado' });
-      }
-      
-      const user = await storage.getUser(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: 'Usuário não encontrado' });
-      }
-      
-      if (user.emailVerified) {
-        return res.status(400).json({ message: 'Email já verificado' });
-      }
-      
-      // Generate new verification token
-      const emailVerificationToken = generateSecureToken();
-      const emailVerificationExpires = new Date();
-      emailVerificationExpires.setHours(emailVerificationExpires.getHours() + 24);
-      
-      // Update user with new token
-      await storage.updateUser(userId, {
-        emailVerificationToken,
-        emailVerificationExpires
-      });
-      
-      // Send email
-      try {
-        await emailService.sendVerificationEmail(
-          user.email,
-          `${user.firstName} ${user.lastName}`,
-          emailVerificationToken
-        );
-      } catch (error) {
-        console.error('Failed to send verification email:', error);
-        return res.status(500).json({ message: 'Falha ao enviar email de verificação' });
-      }
-      
-      res.json({ message: 'Email de verificação enviado' });
-    } catch (error) {
-      console.error("Error resending verification email:", error);
-      res.status(500).json({ message: "Falha ao reenviar email de verificação" });
-    }
-  });
 
   // Athlete routes
   app.post('/api/athletes', async (req: any, res) => {
@@ -603,7 +284,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const athlete = await storage.createAthlete(athleteData);
       res.json(athlete);
     } catch (error) {
-      console.error("Error creating athlete:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
@@ -627,7 +307,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         skillsAssessment: athlete.skillsAssessment || null
       });
     } catch (error) {
-      console.error("Error fetching athlete:", error);
       res.status(500).json({ message: "Failed to fetch athlete profile" });
     }
   });
@@ -670,7 +349,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         athlete: updatedAthlete
       });
     } catch (error) {
-      console.error("Error updating verification level:", error);
       res.status(500).json({ error: "Failed to update verification level" });
     }
   });
@@ -697,7 +375,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         skillsAssessment: updatedAthlete.skillsAssessment
       });
     } catch (error) {
-      console.error("Error updating athlete skills:", error);
       res.status(500).json({ error: "Failed to update athlete skills" });
     }
   });
@@ -724,7 +401,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         skillsAssessment: updatedAthlete.skillsAssessment
       });
     } catch (error) {
-      console.error("Error updating athlete skills:", error);
       res.status(500).json({ error: "Failed to update athlete skills" });
     }
   });
@@ -740,7 +416,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(athlete);
     } catch (error) {
-      console.error("Error fetching athlete:", error);
       res.status(500).json({ message: "Failed to fetch athlete" });
     }
   });
@@ -757,7 +432,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(athletes);
     } catch (error) {
-      console.error("Error searching athletes:", error);
       res.status(500).json({ message: "Failed to search athletes" });
     }
   });
@@ -772,7 +446,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(athletes);
     } catch (error) {
-      console.error("Error fetching recent athletes:", error);
       res.status(500).json({ message: "Failed to fetch recent athletes" });
     }
   });
@@ -797,7 +470,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(formattedAchievements);
     } catch (error) {
-      console.error("Error fetching achievements:", error);
       res.status(500).json({ message: "Failed to fetch achievements" });
     }
   });
@@ -863,7 +535,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true, skills: updated.skillsAssessment });
     } catch (error) {
-      console.error("Error saving skills:", error);
       res.status(500).json({ error: "Failed to save skills" });
     }
   });
@@ -880,7 +551,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ skills: athlete.skillsAssessment || null });
     } catch (error) {
-      console.error("Error fetching skills:", error);
       res.status(500).json({ error: "Failed to fetch skills" });
     }
   });
@@ -943,7 +613,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         skillVerifications: verifications.length
       });
     } catch (error) {
-      console.error("Error updating verification level:", error);
       res.status(500).json({ error: "Failed to update verification level" });
     }
   });
@@ -986,7 +655,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         newTrustLevel: newLevel
       });
     } catch (error) {
-      console.error("Error verifying skill:", error);
       res.status(500).json({ error: "Failed to verify skill" });
     }
   });
@@ -999,7 +667,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ verifications });
     } catch (error) {
-      console.error("Error fetching skill verifications:", error);
       res.status(500).json({ error: "Failed to fetch skill verifications" });
     }
   });
@@ -1026,7 +693,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         newTrustLevel: newLevel
       });
     } catch (error) {
-      console.error("Error deleting skill verification:", error);
       res.status(500).json({ error: "Failed to delete skill verification" });
     }
   });
@@ -1115,7 +781,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ trustScore });
     } catch (error) {
-      console.error("Error calculating trust score:", error);
       res.status(500).json({ error: "Failed to calculate trust score" });
     }
   });
@@ -1129,7 +794,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const scout = await storage.createScout(scoutData);
       res.json(scout);
     } catch (error) {
-      console.error("Error creating scout:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
@@ -1149,7 +813,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(scout);
     } catch (error) {
-      console.error("Error fetching scout:", error);
       res.status(500).json({ message: "Failed to fetch scout profile" });
     }
   });
@@ -1192,7 +855,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(test);
     } catch (error) {
-      console.error("Error creating test:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
@@ -1206,7 +868,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tests = await storage.getTestsByAthlete(athleteId);
       res.json(tests);
     } catch (error) {
-      console.error("Error fetching tests:", error);
       res.status(500).json({ message: "Failed to fetch tests" });
     }
   });
@@ -1217,7 +878,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stats = await storage.getAthleteStats();
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch statistics" });
     }
   });
@@ -1260,7 +920,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(history);
     } catch (error) {
-      console.error("Error fetching performance history:", error);
       res.status(500).json({ message: "Failed to fetch performance history" });
     }
   });
@@ -1283,7 +942,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(metrics);
     } catch (error) {
-      console.error("Error fetching performance metrics:", error);
       res.status(500).json({ message: "Failed to fetch performance metrics" });
     }
   });
@@ -1306,7 +964,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching scout stats:", error);
       res.status(500).json({ message: "Failed to fetch scout stats" });
     }
   });
@@ -1330,7 +987,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(notifications);
     } catch (error) {
-      console.error("Error fetching social proof notifications:", error);
       res.status(500).json({ message: "Failed to fetch notifications" });
     }
   });
@@ -1377,39 +1033,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true });
     } catch (error) {
-      console.error("Error recording view:", error);
       res.status(500).json({ message: "Failed to record view" });
     }
   });
 
   // Dashboard aggregation endpoint
-  app.get('/api/dashboard/athlete', async (req: any, res) => {
+  app.get('/api/dashboard/athlete', isAuthenticated, async (req: any, res) => {
     try {
       const userId = await getAuthenticatedUserId(req);
-      
-      // Get athlete profile
       const athlete = await storage.getAthleteByUserId(userId);
       
       if (!athlete) {
-        return res.status(404).json({ message: "Athlete profile not found" });
+        return res.status(404).json({ error: "Athlete profile not found" });
       }
       
-      // Fetch all dashboard data in parallel
+      // Fetch all dashboard data with error handling
       const [
-        profileViews,
-        recentViews,
-        achievements,
-        tests,
-        streak,
-        percentile
-      ] = await Promise.all([
+        profileViewsResult,
+        recentViewsResult,
+        achievementsResult,
+        testsResult,
+        streakResult,
+        percentileResult
+      ] = await Promise.allSettled([
         storage.getAthleteViewCount(athlete.id),
         storage.getRecentAthleteViews(athlete.id, 7),
         storage.getAthleteAchievements(athlete.id),
         storage.getTestsByAthlete(athlete.id),
-        storage.getCheckinStreak(athlete.id), // Use checkin streak instead
+        storage.getCheckinStreak(athlete.id),
         storage.getAthletePercentile(athlete.id)
       ]);
+      
+      // Extract values with defaults
+      const profileViews = profileViewsResult.status === 'fulfilled' ? profileViewsResult.value : 0;
+      const recentViews = recentViewsResult.status === 'fulfilled' ? recentViewsResult.value : [];
+      const achievements = achievementsResult.status === 'fulfilled' ? achievementsResult.value : [];
+      const tests = testsResult.status === 'fulfilled' ? testsResult.value : [];
+      const streak = streakResult.status === 'fulfilled' ? streakResult.value : 0;
+      const percentile = percentileResult.status === 'fulfilled' ? percentileResult.value : 50;
       
       // Calculate profile completion
       const profileFields = [
@@ -1426,10 +1087,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const filledFields = profileFields.filter(field => field !== null && field !== undefined && field !== '').length;
       const profileCompletion = Math.round((filledFields / profileFields.length) * 100);
       
-      // Generate activity feed from real data
+      // Generate activity feed
       const activities: any[] = [];
       
-      // Add recent views to activities
+      // Add recent views
       recentViews.slice(0, 3).forEach(view => {
         activities.push({
           type: "view",
@@ -1438,7 +1099,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
       
-      // Add achievements to activities
+      // Add achievements
       achievements.slice(0, 2).forEach(achievement => {
         activities.push({
           type: "achievement",
@@ -1447,7 +1108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
       
-      // Add recent tests to activities
+      // Add tests
       tests.slice(0, 2).forEach(test => {
         const testNames: Record<string, string> = {
           speed_20m: "Velocidade 20m",
@@ -1461,28 +1122,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
       
-      // Sort activities by time
+      // Sort activities
       activities.sort((a, b) => {
-        // This is a simplified sort - in production you'd want to store actual timestamps
         const timeOrder = ["agora", "minutos", "hora", "horas", "ontem", "dias"];
         const aIndex = timeOrder.findIndex(t => a.time.includes(t));
         const bIndex = timeOrder.findIndex(t => b.time.includes(t));
         return aIndex - bIndex;
       });
       
-      // Check for any new achievements
-      await checkAndAwardAchievements(athlete.id);
+      // Try to award achievements but don't fail if it errors
+      try {
+        await checkAndAwardAchievements(athlete.id);
+      } catch (error) {
+        // Silent fail - don't break dashboard
+      }
       
       const dashboardData = {
         athlete: {
           ...athlete,
           profileCompletion,
-          // Ensure skillsAssessment is included
           skillsAssessment: athlete.skillsAssessment || null
         },
         stats: {
-          profileViews: profileViews * 3, // Total profile views (multiplied for impressiveness)
-          scoutViews: profileViews, // Unique scout views
+          profileViews: profileViews * 3,
+          scoutViews: profileViews,
           testsCompleted: tests.length,
           streakDays: streak,
           percentile,
@@ -1490,13 +1153,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         recentViews,
         achievements,
-        activities: activities.slice(0, 5) // Limit to 5 most recent
+        activities: activities.slice(0, 5)
       };
       
       res.json(dashboardData);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-      res.status(500).json({ message: "Failed to fetch dashboard data" });
+      res.status(500).json({ error: "Failed to fetch dashboard data" });
     }
   });
 
@@ -1507,7 +1169,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const verifications = await storage.getSkillVerifications(athleteId);
       res.json(verifications);
     } catch (error) {
-      console.error("Error fetching skill verifications:", error);
       res.status(500).json({ message: "Failed to fetch skill verifications" });
     }
   });
@@ -1544,7 +1205,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(verification);
     } catch (error) {
-      console.error("Error creating skill verification:", error);
       res.status(500).json({ message: "Failed to create skill verification" });
     }
   });
@@ -1587,7 +1247,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ verificationLevel: lowestLevel });
     } catch (error) {
-      console.error("Error updating verification level:", error);
       res.status(500).json({ message: "Failed to update verification level" });
     }
   });
@@ -1595,12 +1254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Daily check-in endpoints
   app.post('/api/checkin/submit', async (req: any, res) => {
     try {
-      const userId = await getAuthenticatedUserId(req);
-      const athlete = await storage.getAthleteByUserId(userId);
-      
-      if (!athlete) {
-        return res.status(403).json({ message: "Only athletes can submit check-ins" });
-      }
+      const { athlete } = await requireUserType(req, 'athlete');
       
       // Check if already checked in today
       const todayCheckin = await storage.getTodayCheckin(athlete.id);
@@ -1638,27 +1292,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         streak: await storage.getCheckinStreak(athlete.id)
       });
     } catch (error) {
-      console.error("Error submitting check-in:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to submit check-in" });
+      handleAuthError(error, req, res);
     }
   });
   
   app.get('/api/checkin/today', async (req: any, res) => {
     try {
-      const userId = await getAuthenticatedUserId(req);
-      const athlete = await storage.getAthleteByUserId(userId);
-      
-      if (!athlete) {
-        return res.status(403).json({ message: "Only athletes can check daily status" });
-      }
+      const { athlete } = await requireUserType(req, 'athlete');
       
       const todayCheckin = await storage.getTodayCheckin(athlete.id);
       res.json({ hasCheckedIn: !!todayCheckin, checkin: todayCheckin });
     } catch (error) {
-      console.error("Error checking today's check-in:", error);
       res.status(500).json({ message: "Failed to check today's status" });
     }
   });
@@ -1673,7 +1320,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ history, streak });
     } catch (error) {
-      console.error("Error fetching check-in history:", error);
       res.status(500).json({ message: "Failed to fetch check-in history" });
     }
   });
@@ -1702,7 +1348,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(formattedActivities);
     } catch (error) {
-      console.error("Error fetching activities:", error);
       res.status(500).json({ message: "Failed to fetch activities" });
     }
   });
@@ -1719,7 +1364,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.markActivitiesAsRead(athleteId, activityIds);
       res.json({ success: true });
     } catch (error) {
-      console.error("Error marking activities as read:", error);
       res.status(500).json({ message: "Failed to mark activities as read" });
     }
   });
@@ -1761,7 +1405,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const plans = await storage.getSubscriptionPlans();
       res.json(plans);
     } catch (error) {
-      console.error("Error fetching subscription plans:", error);
       res.status(500).json({ message: "Failed to fetch subscription plans" });
     }
   });
@@ -1784,7 +1427,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         plan
       });
     } catch (error) {
-      console.error("Error fetching user subscription:", error);
       res.status(500).json({ message: "Failed to fetch subscription" });
     }
   });
@@ -1808,8 +1450,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const successUrl = `${req.protocol}://${req.get('host')}/athlete/dashboard?subscription=success`;
-      const cancelUrl = `${req.protocol}://${req.get('host')}/athlete/dashboard?subscription=cancelled`;
+      // Get the correct base URL for redirects
+      const baseUrl = getBaseUrl(req);
+      const successUrl = `${baseUrl}/athlete/dashboard?subscription=success`;
+      const cancelUrl = `${baseUrl}/athlete/dashboard?subscription=cancelled`;
       
       const checkoutUrl = await stripeService.createCheckoutSession(
         userId,
@@ -1820,8 +1464,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ url: checkoutUrl });
     } catch (error) {
-      console.error("Error creating checkout session:", error);
-      res.status(500).json({ message: "Failed to create checkout session" });
+      const { StripeErrorHandler } = await import('./utils/stripe-error-handler');
+      StripeErrorHandler.sendErrorResponse(res, error);
     }
   });
   
@@ -1838,13 +1482,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const returnUrl = `${req.protocol}://${req.get('host')}/athlete/dashboard`;
+      // Get the correct base URL for redirects
+      const baseUrl = getBaseUrl(req);
+      const returnUrl = `${baseUrl}/athlete/dashboard`;
       const portalUrl = await stripeService.createPortalSession(userId, returnUrl);
       
       res.json({ url: portalUrl });
     } catch (error) {
-      console.error("Error creating portal session:", error);
-      res.status(500).json({ message: error instanceof Error ? error.message : "Failed to create portal session" });
+      const { StripeErrorHandler } = await import('./utils/stripe-error-handler');
+      StripeErrorHandler.sendErrorResponse(res, error);
     }
   });
   
@@ -1870,8 +1516,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await stripeService.cancelSubscription(userId);
       res.json({ message: "Subscription will be cancelled at the end of the billing period" });
     } catch (error) {
-      console.error("Error cancelling subscription:", error);
-      res.status(500).json({ message: error instanceof Error ? error.message : "Failed to cancel subscription" });
+      const { StripeErrorHandler } = await import('./utils/stripe-error-handler');
+      StripeErrorHandler.sendErrorResponse(res, error);
     }
   });
   
@@ -1891,7 +1537,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await stripeService.resumeSubscription(userId);
       res.json({ message: "Subscription resumed successfully" });
     } catch (error) {
-      console.error("Error resuming subscription:", error);
       res.status(500).json({ message: error instanceof Error ? error.message : "Failed to resume subscription" });
     }
   });
@@ -1912,8 +1557,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ received: true });
     } catch (error) {
-      console.error("Error handling Stripe webhook:", error);
-      res.status(400).json({ message: error instanceof Error ? error.message : "Webhook error" });
+      // For webhook errors, we need to be careful about status codes
+      // Stripe will retry on 5xx errors but not 4xx
+      if (error instanceof Error && error.message && error.message.includes('signature')) {
+        // Invalid signature - don't retry
+        res.status(400).json({ message: "Invalid webhook signature" });
+      } else {
+        // Other errors - let Stripe retry
+        res.status(500).json({ message: "Webhook processing failed" });
+      }
+    }
+  });
+  
+  // Check if using live Stripe keys
+  app.get('/api/stripe/mode', async (req, res) => {
+    try {
+      const isLive = process.env.STRIPE_SECRET_KEY?.startsWith('sk_live_') || false;
+      const isConfigured = !!process.env.STRIPE_SECRET_KEY;
+      
+      res.json({ 
+        isLive,
+        isConfigured,
+        mode: isLive ? 'live' : 'test'
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check Stripe mode" });
+    }
+  });
+  
+  // Get webhook health status
+  app.get('/api/stripe/webhook-health', async (req, res) => {
+    try {
+      const { getWebhookHealth } = await import('./utils/webhook-logger');
+      const health = getWebhookHealth();
+      
+      res.json(health);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get webhook health" });
     }
   });
   
@@ -1924,7 +1604,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const methods = await storage.getUserPaymentMethods(userId);
       res.json(methods);
     } catch (error) {
-      console.error("Error fetching payment methods:", error);
       res.status(500).json({ message: "Failed to fetch payment methods" });
     }
   });
@@ -1937,7 +1616,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const transactions = await storage.getUserTransactions(userId, limit);
       res.json(transactions);
     } catch (error) {
-      console.error("Error fetching transactions:", error);
       res.status(500).json({ message: "Failed to fetch transactions" });
     }
   });

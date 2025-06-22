@@ -116,7 +116,6 @@ export function useAthleteSkills(athleteId: number | undefined): UseAthleteSkill
       });
     },
     onError: (error: Error) => {
-      console.error('Error syncing skills:', error);
       
       if (error.message === 'offline') {
         toast({
@@ -164,7 +163,6 @@ export function useAthleteSkills(athleteId: number | undefined): UseAthleteSkill
   const syncLocalToDatabase = useCallback(async () => {
     if (!athleteId || !hasLocalData || isSyncing) {
       if (!athleteId && hasLocalData) {
-        console.log('Skills in localStorage but no athlete ID yet - waiting for profile creation');
       }
       return;
     }
@@ -179,7 +177,6 @@ export function useAthleteSkills(athleteId: number | undefined): UseAthleteSkill
         }
       }
     } catch (error) {
-      console.error('Error parsing or syncing skills:', error);
       // If JSON parsing fails, clear corrupted data
       if (error instanceof SyntaxError) {
         localStorage.removeItem('authSkills');
@@ -205,7 +202,6 @@ export function useAthleteSkills(athleteId: number | undefined): UseAthleteSkill
             // Athlete exists, proceed with sync
             syncLocalToDatabase();
           } else if (response.status === 404) {
-            console.warn(`Athlete with ID ${athleteId} not found. Skipping skills sync.`);
             // Clear the invalid athlete ID from localStorage if needed
             toast({
               title: "Perfil não encontrado",
@@ -215,7 +211,6 @@ export function useAthleteSkills(athleteId: number | undefined): UseAthleteSkill
           }
         })
         .catch(error => {
-          console.error('Error checking athlete existence:', error);
         });
     }
   }, [athleteId, hasLocalData, isLoading, skills, isOnline, syncLocalToDatabase, toast]);
@@ -263,7 +258,6 @@ export function useAthleteSkills(athleteId: number | undefined): UseAthleteSkill
         description: "Suas habilidades foram salvas e serão sincronizadas quando você estiver online.",
       });
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
       toast({
         title: "Erro ao salvar",
         description: "Não foi possível salvar suas habilidades localmente.",

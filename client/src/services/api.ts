@@ -152,3 +152,6 @@ export const checkinService = {
     return response.json();
   },
 };
+
+// Re-export journey service
+export { journeyService } from './journeyService';

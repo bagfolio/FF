@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,13 @@ import {
   ChevronRight,
   Target,
   TrendingUp,
-  Bell,
   Star,
   Menu,
   X,
   Flame,
   Calendar,
-  CreditCard
+  CreditCard,
+  Route
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
@@ -142,6 +142,15 @@ export default function AthleteSidebar({ collapsed = false, onToggle }: AthleteS
       url: "/athlete/dashboard",
       icon: Home,
       description: "Visão geral do seu progresso"
+    },
+    {
+      id: "journey",
+      title: "Minha Jornada",
+      url: "/athlete/journey",
+      icon: Route,
+      badge: "NOVO",
+      badgeType: "new",
+      description: "Sua evolução completa"
     },
     {
       id: "daily-checkin",

@@ -11,7 +11,11 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx server/seedSubscriptionPlans.ts",
     "prebuild": "node scripts/pre-build.js",
-    "validate": "node scripts/validate-deployment.js"
+    "validate": "node scripts/validate-deployment.js",
+    "stripe:setup-products": "node scripts/setup-stripe-products.js",
+    "stripe:setup-webhook": "node scripts/setup-stripe-webhook.js",
+    "stripe:test": "node scripts/test-stripe-integration.js",
+    "stripe:cli-setup": "./scripts/stripe-cli-setup.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

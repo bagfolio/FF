@@ -22,7 +22,6 @@ function StadiumLights({ intensity = 1 }: { intensity?: number }) {
       }
     } catch (error) {
       // Silently handle WebGL context errors
-      console.warn('Light animation error:', error);
     }
   });
 
@@ -94,7 +93,6 @@ function BrazilianFlag() {
         setFlagTexture(canvas);
       }
     } catch (error) {
-      console.warn('Flag texture creation error:', error);
     }
   }, []);
   
@@ -106,7 +104,6 @@ function BrazilianFlag() {
         meshRef.current.position.y = Math.sin(state.clock.elapsedTime) * 0.2;
       }
     } catch (error) {
-      console.warn('Flag animation error:', error);
     }
   });
 
@@ -147,7 +144,6 @@ function AtmosphereParticles() {
         particlesRef.current.rotation.y = state.clock.elapsedTime * 0.05;
       }
     } catch (error) {
-      console.warn('Particle animation error:', error);
     }
   });
 
@@ -164,7 +160,6 @@ function AtmosphereParticles() {
       
       setPositions(positionsArray);
     } catch (error) {
-      console.warn('Failed to create particles:', error);
     }
   }, []);
 
@@ -199,7 +194,6 @@ function Safe3DWrapper({ children }: { children: React.ReactNode }) {
     const handleError = (event: ErrorEvent) => {
       if (event.message.includes('WebGL') || event.message.includes('THREE')) {
         setHasError(true);
-        console.warn('3D rendering error detected, falling back to basic view');
       }
     };
 

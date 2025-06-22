@@ -5,7 +5,7 @@ import passport from "passport";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
-import MemoryStore from "memorystore";
+import createMemoryStore from "memorystore";
 import { storage } from "./storage";
 
 if (!process.env.REPLIT_DOMAINS) {
@@ -24,8 +24,8 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const MemStore = MemoryStore(session);
-  const sessionStore = new MemStore({
+  const MemoryStore = createMemoryStore(session);
+  const sessionStore = new MemoryStore({
     checkPeriod: 86400000, // prune expired entries every 24h
     ttl: sessionTtl,
     max: 1000, // max number of sessions
@@ -110,8 +110,41 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/callback", (req, res, next) => {
     passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/home",
       failureRedirect: "/api/login",
+    }, async (err, user) => {
+      if (err || !user) {
+        return res.redirect("/api/login");
+      }
+      
+      req.login(user, async (loginErr) => {
+        if (loginErr) {
+          return res.redirect("/api/login");
+        }
+        
+        try {
+          // Check if user has a profile
+          const userId = user.claims?.sub;
+          if (!userId) {
+            return res.redirect("/");
+          }
+          
+          // Check for athlete or scout profile
+          const athlete = await storage.getAthleteByUserId(userId);
+          const scout = await storage.getScoutByUserId(userId);
+          
+          if (!athlete && !scout) {
+            // No profile, redirect to onboarding
+            return res.redirect("/auth/welcome");
+          }
+          
+          // Has profile, redirect to appropriate dashboard
+          const userType = athlete ? "athlete" : "scout";
+          return res.redirect(`/${userType}/dashboard`);
+        } catch (error) {
+          // On error, redirect to welcome
+          return res.redirect("/auth/welcome");
+        }
+      });
     })(req, res, next);
   });
 

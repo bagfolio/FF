@@ -98,7 +98,6 @@ class OfflineQueueManager {
         this.queue = JSON.parse(stored);
       }
     } catch (error) {
-      console.error('Failed to load offline queue from storage:', error);
       this.queue = [];
     }
   }
@@ -107,7 +106,6 @@ class OfflineQueueManager {
     try {
       localStorage.setItem(this.config.storageKey, JSON.stringify(this.queue));
     } catch (error) {
-      console.error('Failed to save offline queue to storage:', error);
     }
   }
 
@@ -277,7 +275,6 @@ class OfflineQueueManager {
       try {
         listener(event);
       } catch (error) {
-        console.error('Error in queue listener:', error);
       }
     });
   }

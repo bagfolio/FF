@@ -69,7 +69,6 @@ export function TrustPyramidProgressWidget({
       
       return calculateTrustPyramidProgress(athleteWithSkills, testsArray, []);
     } catch (error) {
-      console.error('Error calculating trust pyramid progress:', error);
       // Return default values on error
       return {
         progress: {

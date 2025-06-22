@@ -12,12 +12,10 @@ export function SoundControllerProvider({ children }: { children: React.ReactNod
 
   const playSound = (soundName: string) => {
     // Stub implementation
-    console.log(`Playing sound: ${soundName}`);
   };
 
   const stopSound = (soundName: string) => {
     // Stub implementation
-    console.log(`Stopping sound: ${soundName}`);
   };
 
   useEffect(() => {

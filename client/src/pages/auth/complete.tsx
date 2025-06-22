@@ -66,7 +66,6 @@ export default function AuthComplete() {
                       body: authSkills
                     });
                   } catch (error) {
-                    console.error('Error syncing skills:', error);
                   }
                 }
               }
@@ -92,7 +91,6 @@ export default function AuthComplete() {
               }
             }
           } catch (error) {
-            console.error('Error creating profile:', error);
           }
         }
       }
