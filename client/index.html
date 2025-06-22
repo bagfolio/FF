@@ -108,6 +108,15 @@
     
     <!-- Remove loading screen when app loads -->
     <script>
+      // Add error handling for module loading
+      window.addEventListener('error', function(e) {
+        console.error('Global error:', e.message, e.filename, e.lineno, e.colno, e.error);
+      });
+      
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('Unhandled promise rejection:', e.reason);
+      });
+      
       // Remove loading screen as soon as React mounts
       window.removeInitialLoading = function() {
         const loading = document.getElementById('initial-loading');
@@ -119,6 +128,15 @@
           }, 300);
         }
       };
+      
+      // Fallback: Remove loading screen after 10 seconds if React fails to mount
+      setTimeout(function() {
+        const loading = document.getElementById('initial-loading');
+        if (loading) {
+          console.error('React failed to mount after 10 seconds');
+          loading.innerHTML = '<div style="text-align: center; padding: 20px;"><h2>Error Loading Application</h2><p>Please refresh the page</p></div>';
+        }
+      }, 10000);
     </script>
     
     <!-- Service Worker Registration - Disabled for now to prevent caching issues -->
