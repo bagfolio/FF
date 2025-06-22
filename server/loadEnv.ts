@@ -6,23 +6,24 @@ import path from 'path';
 const nodeEnv = process.env.NODE_ENV || 'development';
 const envFiles = [];
 
-// Priority order: .env.{NODE_ENV}.local, .env.{NODE_ENV}, .env.local, .env
+// Priority order: server/.env.{NODE_ENV}.local, server/.env.{NODE_ENV}, server/.env.local, server/.env
+// Also check root directory for backwards compatibility
 if (nodeEnv === 'production') {
   // In production, only load production-specific files
-  envFiles.push('.env.production.local', '.env.production');
+  envFiles.push('server/.env.production.local', 'server/.env.production', '.env.production.local', '.env.production');
 } else if (nodeEnv === 'test') {
   // In test, load test-specific files
-  envFiles.push('.env.test.local', '.env.test');
+  envFiles.push('server/.env.test.local', 'server/.env.test', '.env.test.local', '.env.test');
 } else {
   // In development, load development files and .env.local
-  envFiles.push('.env.development.local', '.env.development', '.env.local');
+  envFiles.push('server/.env.development.local', 'server/.env.development', 'server/.env.local', '.env.development.local', '.env.development', '.env.local');
 }
 
-// Always load .env as fallback
-envFiles.push('.env');
+// Always load .env as fallback (check server directory first)
+envFiles.push('server/.env', '.env');
 
-// Load environment variables from the first file that exists
-let loaded = false;
+// Load environment variables from ALL files that exist (server-specific override root)
+const loadedFiles: string[] = [];
 for (const envFile of envFiles) {
   const envPath = path.resolve(process.cwd(), envFile);
   
@@ -33,11 +34,12 @@ for (const envFile of envFiles) {
       console.error(`Error loading ${envFile}:`, result.error);
     } else {
       console.log(`Loaded environment variables from ${envFile}`);
-      loaded = true;
-      break; // Stop after loading the first valid file
+      loadedFiles.push(envFile);
     }
   }
 }
+
+const loaded = loadedFiles.length > 0;
 
 if (!loaded) {
   console.log('No environment file found, using system environment variables');

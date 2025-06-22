@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   GlassModal, 
   GlassModalContent, 
@@ -6,12 +6,8 @@ import {
   GlassModalTitle,
   GlassModalDescription 
 } from '@/components/ui/glass-modal';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LoginForm } from './LoginForm';
-import { SignupForm } from './SignupForm';
-import { ForgotPasswordForm } from './ForgotPasswordForm';
+import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
-import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthModalProps {
   open: boolean;
@@ -21,17 +17,10 @@ interface AuthModalProps {
   selectedPlan?: 'basic' | 'pro' | 'elite' | null;
 }
 
-export function AuthModal({ open, onOpenChange, defaultTab = 'login', userType, selectedPlan }: AuthModalProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
+export function AuthModal({ open, onOpenChange, userType, selectedPlan }: AuthModalProps) {
   const [, setLocation] = useLocation();
-  const queryClient = useQueryClient();
 
-  const handleSuccess = async () => {
-    // Invalidate auth query to refetch user data
-    await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-    onOpenChange(false);
-    
+  const handleLogin = () => {
     // Store selected plan in session storage for post-onboarding checkout
     if (selectedPlan && selectedPlan !== 'basic') {
       sessionStorage.setItem('selectedPlan', selectedPlan);
@@ -42,17 +31,8 @@ export function AuthModal({ open, onOpenChange, defaultTab = 'login', userType, 
       sessionStorage.setItem('selectedUserType', userType);
     }
     
-    // Always redirect to the beautiful onboarding flow
-    setLocation('/auth/welcome');
-  };
-
-  const handleForgotPassword = () => {
-    setShowForgotPassword(true);
-  };
-
-  const handleBackToLogin = () => {
-    setShowForgotPassword(false);
-    setActiveTab('login');
+    // Redirect to Replit OAuth
+    window.location.href = '/api/login';
   };
 
   return (
@@ -60,58 +40,39 @@ export function AuthModal({ open, onOpenChange, defaultTab = 'login', userType, 
       <GlassModalContent variant="dark" className="max-w-md">
         <GlassModalHeader>
           <GlassModalTitle className="text-2xl font-bold text-white text-center">
-            {showForgotPassword 
-              ? 'Recuperar Senha' 
-              : activeTab === 'login' 
-                ? 'Bem-vindo de volta!' 
-                : 'Crie sua conta'}
+            Bem-vindo ao Revela
           </GlassModalTitle>
           <GlassModalDescription className="text-center text-white/70">
-            {showForgotPassword
-              ? 'Digite seu email para receber instruções'
-              : activeTab === 'login'
-                ? 'Entre para acessar sua conta'
-                : 'Junte-se à revolução do futebol brasileiro'}
+            A revolução do futebol brasileiro começa aqui
           </GlassModalDescription>
         </GlassModalHeader>
 
-        {showForgotPassword ? (
-          <ForgotPasswordForm 
-            onSuccess={handleBackToLogin}
-            onCancel={handleBackToLogin}
-          />
-        ) : (
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'login' | 'signup')}>
-            <TabsList className="grid w-full grid-cols-2 bg-white/10">
-              <TabsTrigger 
-                value="login" 
-                className="data-[state=active]:bg-verde-brasil data-[state=active]:text-white"
-              >
-                Entrar
-              </TabsTrigger>
-              <TabsTrigger 
-                value="signup"
-                className="data-[state=active]:bg-verde-brasil data-[state=active]:text-white"
-              >
-                Cadastrar
-              </TabsTrigger>
-            </TabsList>
+        <div className="mt-6 space-y-4">
+          <Button
+            onClick={handleLogin}
+            className="w-full bg-gradient-to-r from-verde-brasil to-amarelo-ouro hover:from-verde-brasil/90 hover:to-amarelo-ouro/90 text-white font-semibold py-6 text-lg"
+          >
+            <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-8c0 1.1.9 2 2 2s2-.9 2-2-.9-2-2-2-2 .9-2 2z"/>
+            </svg>
+            Continuar com Login Seguro
+          </Button>
 
-            <TabsContent value="login" className="mt-6">
-              <LoginForm 
-                onSuccess={handleSuccess}
-                onForgotPassword={handleForgotPassword}
-              />
-            </TabsContent>
+          <p className="text-sm text-white/60 text-center mt-2">
+            Use sua conta existente para acessar a plataforma
+          </p>
 
-            <TabsContent value="signup" className="mt-6">
-              <SignupForm 
-                onSuccess={handleSuccess}
-                userType={userType}
-              />
-            </TabsContent>
-          </Tabs>
-        )}
+          <p className="text-xs text-white/50 text-center">
+            Ao continuar, você concorda com nossos{' '}
+            <a href="/termos" className="text-verde-brasil hover:underline">
+              termos de uso
+            </a>{' '}
+            e{' '}
+            <a href="/privacidade" className="text-verde-brasil hover:underline">
+              política de privacidade
+            </a>
+          </p>
+        </div>
       </GlassModalContent>
     </GlassModal>
   );
