@@ -82,14 +82,7 @@ app.use((req, res, next) => {
   try {
     console.log('🚀 Starting server initialization...');
     
-    // Add health check route first - critical for deployment
-    app.get('/health', (req, res) => {
-      res.status(200).json({ 
-        status: 'healthy', 
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
-      });
-    });
+
     
     // Setup authentication before routes
     await setupAuth(app);
@@ -119,10 +112,9 @@ app.use((req, res, next) => {
     // Create HTTP server BEFORE setting up Vite
     const server = createServer(app);
     
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
-    if (app.get("env") === "development") {
+    // Setup static file serving for production or if Vite fails
+    // Only setup vite in development environment
+    if (process.env.NODE_ENV === "development") {
       try {
         await setupVite(app);
       } catch (error) {
@@ -181,9 +173,13 @@ app.use((req, res, next) => {
     
     // Keep the process alive - this is critical for deployment
     // The server will continue running and handling requests
+    // DO NOT add process.exit() here - it would terminate the server
 
   } catch (error) {
     console.error('❌ Server startup failed:', error);
     process.exit(1);
   }
 })();
+
+// Prevent the process from exiting - critical for deployment
+process.stdin.resume();

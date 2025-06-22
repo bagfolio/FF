@@ -87,6 +87,17 @@ function calculateOverallTrustLevel(verifications: any[]): "bronze" | "silver" |
 
 export async function registerRoutes(app: Express): Promise<void> {
   
+  // Root route handler for deployment health checks
+  app.get('/', (req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      message: 'Revela API is running',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+
   // Health check endpoint
   app.get('/health', async (req, res) => {
     try {
