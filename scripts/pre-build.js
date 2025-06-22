@@ -61,25 +61,8 @@ try {
   warnings++;
 }
 
-// Check for uncommitted changes (skip in CI/deployment environments)
-if (!process.env.CI && !process.env.REPLIT_DEPLOYMENT) {
-  console.log('\n📋 Checking git status...');
-  try {
-    const gitStatus = execSync('git status --porcelain', { encoding: 'utf-8', cwd: rootDir });
-    if (gitStatus.trim()) {
-      console.warn('⚠️  You have uncommitted changes:');
-      console.warn(gitStatus.trim().split('\n').map(line => '   ' + line).join('\n'));
-      warnings++;
-    } else {
-      console.log('✅ No uncommitted changes');
-    }
-  } catch (error) {
-    console.warn('⚠️  Could not check git status');
-    warnings++;
-  }
-} else {
-  console.log('📋 Skipping git status check in deployment environment');
-}
+// Skip git checks in Replit environment to avoid permission issues
+console.log('\n📋 Skipping git status check in Replit environment');
 
 // Summary
 console.log('\n' + '='.repeat(50));
@@ -93,6 +76,8 @@ if (errors > 0) {
 } else if (warnings > 0) {
   console.warn('\n⚠️  Build validation passed with warnings.');
   console.log('   Consider addressing the warnings above.');
+  process.exit(0);
 } else {
   console.log('\n✅ Build validation passed!');
+  process.exit(0);
 }
