@@ -46,7 +46,13 @@
       "Bash(NODE_ENV=production npm ci --omit=dev --omit=optional)",
       "Bash(chmod:*)",
       "Bash(git commit:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(NODE_ENV=production npm ci --production --omit=optional)",
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(./node_modules/.bin/vite build:*)",
+      "Bash(npm ci:*)",
+      "Bash(NODE_ENV=production timeout 3 node index.js)",
+      "Bash(sh -c \"npm ci && npm run build && npm run validate\" 2 >& 1)"
     ],
     "deny": []
   }

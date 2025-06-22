@@ -11,7 +11,24 @@ const externalModules = [
   'ws',
   'bufferutil',
   'utf-8-validate',
-  'lightningcss'
+  'lightningcss',
+  '@neondatabase/serverless',
+  'drizzle-orm',
+  'drizzle-zod',
+  'express',
+  'express-session',
+  'bcryptjs',
+  'passport',
+  'passport-local',
+  'cloudinary',
+  'resend',
+  'stripe',
+  'dotenv',
+  'multer',
+  'memorystore',
+  'openid-client',
+  'zod',
+  'zod-validation-error'
 ];
 
 console.log('Building server bundle...');
@@ -24,16 +41,10 @@ try {
     format: 'esm',
     outdir: 'dist',
     external: externalModules,
-    minify: false, // Keep readable for debugging
+    minify: false,
     sourcemap: true,
     target: 'node20',
-    banner: {
-      js: `
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-global.require = require;
-      `.trim()
-    }
+    packages: 'external'  // External all packages by default
   });
   
   console.log('✅ Server bundle created successfully');

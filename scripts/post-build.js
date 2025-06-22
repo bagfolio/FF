@@ -13,22 +13,15 @@ if (!fs.existsSync(distDir)) {
   process.exit(1);
 }
 
-// Create minimal package.json for production
+// Create package.json for production with all dependencies
 const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf-8'));
 const productionPackageJson = {
   name: packageJson.name,
   version: packageJson.version,
   type: "module",
   main: "index.js",
-  dependencies: {
-    // Only include native/binary dependencies that can't be bundled
-    "ws": packageJson.dependencies.ws
-  },
-  optionalDependencies: {
-    // These are optional and won't fail the build if they can't be installed
-    "bufferutil": packageJson.optionalDependencies?.bufferutil,
-    "utf-8-validate": packageJson.optionalDependencies?.["utf-8-validate"]
-  }
+  dependencies: packageJson.dependencies,
+  optionalDependencies: packageJson.optionalDependencies
 };
 
 // Write production package.json
@@ -38,6 +31,29 @@ fs.writeFileSync(
 );
 
 console.log('✅ Created production package.json in dist/');
+
+// Create minimal package-lock.json for production dependencies
+const packageLock = {
+  "name": packageJson.name,
+  "version": packageJson.version,
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": packageJson.name,
+      "version": packageJson.version,
+      "dependencies": productionPackageJson.dependencies,
+      "optionalDependencies": productionPackageJson.optionalDependencies
+    }
+  }
+};
+
+fs.writeFileSync(
+  path.join(distDir, 'package-lock.json'),
+  JSON.stringify(packageLock, null, 2)
+);
+
+console.log('✅ Created minimal package-lock.json in dist/');
 
 // Copy production environment file if it exists
 const prodEnvPath = path.join(rootDir, '.env.production');

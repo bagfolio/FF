@@ -36,45 +36,22 @@ for (const file of requiredFiles) {
   }
 }
 
-// Check index.js for import statements (should be bundled)
+// Check index.js for import statements
 console.log('\n📋 Checking bundle integrity...');
 const indexJs = fs.readFileSync(path.join(distDir, 'index.js'), 'utf-8');
 const importStatements = indexJs.match(/^import .+ from ['"].+['"];?$/gm) || [];
 
 if (importStatements.length > 0) {
   console.log(`📦 Found ${importStatements.length} import statements in bundled code`);
-  const allowedExternals = ['ws', 'bufferutil', 'utf-8-validate', 'lightningcss'];
-  const nodeBuiltins = new Set([
-    'assert', 'buffer', 'child_process', 'cluster', 'console', 'constants',
-    'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https',
-    'module', 'net', 'os', 'path', 'perf_hooks', 'process', 'punycode',
-    'querystring', 'readline', 'repl', 'stream', 'string_decoder', 'sys',
-    'timers', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'worker_threads', 'zlib'
-  ]);
+  console.log('✅ Using external packages strategy (all packages are external)');
   
-  let unexpectedImports = 0;
-  importStatements.forEach(stmt => {
-    const match = stmt.match(/from ['"](.+?)['"]/);
-    if (match) {
-      const module = match[1];
-      const baseModule = module.startsWith('node:') ? module.slice(5) : module;
-      
-      if (allowedExternals.includes(module) || nodeBuiltins.has(baseModule) || module.startsWith('node:')) {
-        // These are expected external modules
-      } else if (module.includes('${')) {
-        // Dynamic imports, skip
-      } else {
-        console.error(`   ✗ Unexpected import: ${module}`);
-        unexpectedImports++;
-      }
-    }
-  });
-  
-  if (unexpectedImports === 0) {
-    console.log('✅ All imports are properly externalized');
+  // Check if package.json has the dependencies
+  const distPackageJson = JSON.parse(fs.readFileSync(path.join(distDir, 'package.json'), 'utf-8'));
+  if (!distPackageJson.dependencies || Object.keys(distPackageJson.dependencies).length === 0) {
+    console.error('❌ No dependencies found in dist/package.json but imports are present');
+    errors++;
   } else {
-    console.error(`❌ Found ${unexpectedImports} unexpected imports`);
-    errors += unexpectedImports;
+    console.log('✅ Package.json has dependencies for external imports');
   }
 } else {
   console.log('✅ No import statements found (fully bundled)');
