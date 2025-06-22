@@ -8,6 +8,18 @@ import { setupAuth } from "./replitAuth";
 import { seedSubscriptionPlans } from "./seedSubscriptionPlans";
 import { validateEnv } from "./validateEnv";
 
+// Global error handlers
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit - let the server continue running
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Exit and let the process manager restart
+  process.exit(1);
+});
+
 // Check environment variables are loaded
 checkEnvLoaded();
 
@@ -66,20 +78,27 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Setup authentication before routes
-  await setupAuth(app);
-  
-  // Seed subscription plans if needed
-  await seedSubscriptionPlans();
-  
-  const server = await registerRoutes(app);
+  try {
+    console.log('🚀 Starting server initialization...');
+    
+    // Setup authentication before routes
+    await setupAuth(app);
+    console.log('✅ Authentication setup complete');
+    
+    // Seed subscription plans if needed
+    await seedSubscriptionPlans();
+    console.log('✅ Database connection verified and seeded');
+    
+    const server = await registerRoutes(app);
+    console.log('✅ Routes registered successfully');
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    console.error('Server error:', err);
     res.status(status).json({ message });
-    throw err;
+    // Don't throw - it crashes the server!
   });
 
   // importantly only setup vite in development and after
@@ -100,5 +119,10 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    console.log('✅ Server is ready to accept connections');
   });
+  } catch (error) {
+    console.error('❌ Server startup failed:', error);
+    process.exit(1);
+  }
 })();

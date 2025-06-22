@@ -37,11 +37,11 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       // Critical: Use array with dot prefix to match all subdomains
       allowedHosts: [".replit.dev", ".repl.co", ".replit.app", "localhost"],
-      hmr: {
+      hmr: mode === 'development' ? {
         clientPort: 443,
         protocol: "wss",
         host: "localhost",
-      },
+      } : false,
       cors: true,
       fs: {
         strict: false,
