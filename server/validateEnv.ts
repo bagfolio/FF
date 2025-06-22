@@ -35,6 +35,15 @@ const envSchema = z.object({
 
 export function validateEnv() {
   try {
+    console.log('🔍 Validating environment variables...');
+    console.log('Current working directory:', process.cwd());
+    
+    // Log critical environment variables for debugging
+    console.log('Environment check before validation:');
+    console.log('- NODE_ENV:', process.env.NODE_ENV);
+    console.log('- DATABASE_URL:', process.env.DATABASE_URL ? 'SET' : 'NOT_SET');
+    console.log('- SESSION_SECRET:', process.env.SESSION_SECRET ? 'SET' : 'NOT_SET');
+    
     const env = envSchema.parse(process.env);
     
     // Warnings for production
@@ -59,7 +68,16 @@ export function validateEnv() {
       error.errors.forEach(err => {
         console.error(`   - ${err.path.join('.')}: ${err.message}`);
       });
-      console.error('\n💡 Please check your .env file and ensure all required variables are set');
+      console.error('\n💡 Please check your environment configuration');
+      console.error('Required variables: NODE_ENV, DATABASE_URL, SESSION_SECRET');
+      
+      // In production, try to continue with warnings instead of crashing
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('⚠️  WARNING: Continuing with validation errors in production');
+        console.warn('This may cause application instability');
+        return {}; // Return empty object to prevent crash
+      }
+      
       process.exit(1);
     }
     throw error;

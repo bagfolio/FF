@@ -28,12 +28,12 @@ for (const envFile of envFiles) {
   const envPath = path.resolve(process.cwd(), envFile);
   
   if (existsSync(envPath)) {
-    const result = config({ path: envPath });
+    const result = config({ path: envPath, override: false });
     
     if (result.error) {
-      console.error(`Error loading ${envFile}:`, result.error);
+      console.error(`❌ Error loading ${envFile}:`, result.error);
     } else {
-      console.log(`Loaded environment variables from ${envFile}`);
+      console.log(`✅ Loaded environment variables from ${envFile}`);
       loadedFiles.push(envFile);
     }
   }

@@ -84,6 +84,20 @@ app.use((req, res, next) => {
     
 
     
+    // Add diagnostic endpoint for production debugging
+    app.get('/debug/env', (req, res) => {
+      if (process.env.NODE_ENV !== 'production') {
+        return res.json({
+          NODE_ENV: process.env.NODE_ENV,
+          PORT: process.env.PORT,
+          DATABASE_URL: process.env.DATABASE_URL ? 'SET' : 'NOT_SET',
+          SESSION_SECRET: process.env.SESSION_SECRET ? 'SET' : 'NOT_SET',
+          BYPASS_AUTH: process.env.BYPASS_AUTH
+        });
+      }
+      res.status(403).json({ error: 'Debug endpoint disabled in production' });
+    });
+
     // Setup authentication before routes
     await setupAuth(app);
     console.log('✅ Authentication setup complete');
@@ -104,9 +118,18 @@ app.use((req, res, next) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
 
-      console.error('Server error:', err);
-      res.status(status).json({ message });
-      // Don't throw - it crashes the server!
+      console.error('❌ Application error:', {
+        message: err.message,
+        stack: err.stack,
+        url: _req.url,
+        method: _req.method,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.status(status).json({ 
+        error: message,
+        timestamp: new Date().toISOString()
+      });
     });
 
     // Create HTTP server BEFORE setting up Vite
@@ -177,6 +200,11 @@ app.use((req, res, next) => {
 
   } catch (error) {
     console.error('❌ Server startup failed:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause
+    });
     process.exit(1);
   }
 })();
