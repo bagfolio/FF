@@ -116,18 +116,23 @@ app.use((req, res, next) => {
       // Don't throw - it crashes the server!
     });
 
+    // Create HTTP server BEFORE setting up Vite
+    const server = createServer(app);
+    
     // importantly only setup vite in development and after
     // setting up all the other routes so the catch-all route
     // doesn't interfere with the other routes
     if (app.get("env") === "development") {
-      await setupVite(app);
+      try {
+        await setupVite(app);
+      } catch (error) {
+        console.error('⚠️ Vite setup failed, continuing with static serving:', error);
+        serveStatic(app);
+      }
     } else {
       serveStatic(app);
     }
     console.log('✅ Static file serving configured');
-
-    // Create HTTP server AFTER all middleware is setup
-    const server = createServer(app);
     
     // Use PORT environment variable if available, otherwise default to 5000
     const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;

@@ -95,10 +95,10 @@ if (isMainModule) {
   seedSubscriptionPlans()
     .then(() => {
       console.log('Seeding completed successfully');
-      // Don't exit when called as a module
+      process.exit(0);
     })
     .catch((error) => {
       console.error(error);
-      // Don't exit when called as a module - let the parent handle it
+      process.exit(1);
     });
 }
