@@ -44,6 +44,8 @@ const prodEnvPath = path.join(rootDir, '.env.production');
 if (fs.existsSync(prodEnvPath)) {
   fs.copyFileSync(prodEnvPath, path.join(distDir, '.env.production'));
   console.log('✅ Copied .env.production to dist/');
+} else {
+  console.log('📋 No .env.production file found, using deployment environment variables');
 }
 
 console.log('✅ Post-build tasks completed');
