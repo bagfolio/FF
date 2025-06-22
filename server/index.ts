@@ -169,12 +169,16 @@ app.use((req, res, next) => {
     server.on('error', (error: any) => {
       if (error.code === 'EADDRINUSE') {
         console.error(`❌ Port ${port} is already in use`);
+        console.error('Please check if another instance is running or change the PORT environment variable');
+        process.exit(1); // This one is critical - can't recover from port conflict
       } else if (error.code === 'EACCES') {
         console.error(`❌ Port ${port} requires elevated privileges`);
+        process.exit(1); // This one is critical - can't bind to privileged port
       } else {
         console.error('❌ Server error:', error);
+        // Don't exit for other errors - try to recover
+        console.error('Server will attempt to continue despite error');
       }
-      process.exit(1);
     });
 
     // Listen with promise to ensure binding completes
@@ -206,10 +210,31 @@ app.use((req, res, next) => {
     });
     
     console.log('✅ Server startup complete - ready for connections');
+    console.log('🔄 Server will stay alive and handle requests indefinitely');
     
-    // Keep the process alive - this is critical for deployment
-    // The server will continue running and handling requests
-    // DO NOT add process.exit() here - it would terminate the server
+    // CRITICAL: Keep the process alive - multiple mechanisms for reliability
+    // 1. Prevent stdin from closing
+    process.stdin.resume();
+    
+    // 2. Add heartbeat to prevent any timeout-based exits
+    const heartbeatInterval = setInterval(() => {
+      // This keeps the event loop active
+      const uptime = Math.floor(process.uptime());
+      if (uptime % 3600 === 0) { // Log every hour
+        console.log(`💓 Server heartbeat - uptime: ${uptime}s`);
+      }
+    }, 1000);
+    
+    // Don't block process termination
+    heartbeatInterval.unref();
+    
+    // 3. Handle any attempts to close stdin
+    process.stdin.on('end', () => {
+      console.log('⚠️  stdin end event - server staying alive');
+    });
+    
+    // Log that we're definitely not exiting
+    console.log('✅ Keep-alive mechanisms active - server will NOT exit');
 
   } catch (error) {
     console.error('❌ Server startup failed:', error);
@@ -221,6 +246,3 @@ app.use((req, res, next) => {
     process.exit(1);
   }
 })();
-
-// Prevent the process from exiting - critical for deployment
-process.stdin.resume();

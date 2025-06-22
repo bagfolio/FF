@@ -12,12 +12,8 @@ if (!process.env.DATABASE_URL) {
   console.error('2. Add a new secret named DATABASE_URL');
   console.error('3. Set it to your Neon database connection string');
   
-  // In production, exit immediately
-  if (process.env.NODE_ENV === 'production') {
-    process.exit(1);
-  }
-  
-  // In development, throw error
+  // Always throw error instead of exiting
+  // Let the main process handle the error appropriately
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?",
   );

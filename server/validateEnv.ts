@@ -78,11 +78,13 @@ export function validateEnv() {
           NODE_ENV: 'production',
           PORT: process.env.PORT || '5000',
           DATABASE_URL: process.env.DATABASE_URL || '',
-          SESSION_SECRET: process.env.SESSION_SECRET || 'fallback-secret'
-        };
+          SESSION_SECRET: process.env.SESSION_SECRET || 'fallback-secret',
+          APP_URL: process.env.APP_URL || 'http://localhost:5000'
+        } as any; // Type assertion needed for fallback
       }
       
-      process.exit(1);
+      // In development, throw error instead of exiting
+      throw new Error('Environment validation failed');
     }
     throw error;
   }

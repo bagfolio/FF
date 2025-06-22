@@ -85,20 +85,5 @@ export async function seedSubscriptionPlans() {
   }
 }
 
-// Run if executed directly
-import { fileURLToPath } from 'url';
-import { argv } from 'process';
-
-const isMainModule = argv[1] === fileURLToPath(import.meta.url);
-
-if (isMainModule) {
-  seedSubscriptionPlans()
-    .then(() => {
-      console.log('Seeding completed successfully');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error(error);
-      process.exit(1);
-    });
-}
+// This file should only export the function, never auto-execute
+// Auto-execution was causing the server to exit after import
