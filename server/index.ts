@@ -22,10 +22,23 @@ process.on('uncaughtException', (error) => {
 });
 
 // Check environment variables are loaded
-checkEnvLoaded();
+try {
+  checkEnvLoaded();
+} catch (error) {
+  console.error('Environment loading failed:', error);
+}
 
-// Validate environment configuration
-validateEnv();
+// Validate environment configuration with fallback
+try {
+  validateEnv();
+} catch (error) {
+  console.error('Environment validation failed:', error);
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('Continuing in production with fallback configuration');
+  } else {
+    throw error;
+  }
+}
 
 const app = express();
 

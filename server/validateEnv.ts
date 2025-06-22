@@ -71,11 +71,15 @@ export function validateEnv() {
       console.error('\n💡 Please check your environment configuration');
       console.error('Required variables: NODE_ENV, DATABASE_URL, SESSION_SECRET');
       
-      // In production, try to continue with warnings instead of crashing
+      // In production, try to continue with minimal config instead of crashing
       if (process.env.NODE_ENV === 'production') {
         console.warn('⚠️  WARNING: Continuing with validation errors in production');
-        console.warn('This may cause application instability');
-        return {}; // Return empty object to prevent crash
+        return {
+          NODE_ENV: 'production',
+          PORT: process.env.PORT || '5000',
+          DATABASE_URL: process.env.DATABASE_URL || '',
+          SESSION_SECRET: process.env.SESSION_SECRET || 'fallback-secret'
+        };
       }
       
       process.exit(1);
