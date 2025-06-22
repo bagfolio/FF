@@ -161,6 +161,8 @@ if (errors > 0) {
 } else if (warnings > 0) {
   console.warn('\n⚠️  Deployment validation passed with warnings.');
   console.log('   Review warnings before deploying.');
+  process.exit(0);
 } else {
   console.log('\n✅ Deployment validation passed! Ready to deploy.');
+  process.exit(0);
 }
