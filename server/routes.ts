@@ -1,5 +1,4 @@
 import type { Express } from "./types/express";
-import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { isAuthenticated } from "./replitAuth";
 import { insertAthleteSchema, insertScoutSchema, insertTestSchema, insertCheckinSchema } from "@shared/schema";
@@ -86,7 +85,7 @@ function calculateOverallTrustLevel(verifications: any[]): "bronze" | "silver" |
   return "bronze";
 }
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export async function registerRoutes(app: Express): Promise<void> {
   
   // Health check endpoint
   app.get('/health', async (req, res) => {
@@ -1630,7 +1629,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   if (process.env.NODE_ENV !== 'production') {
     setupDevRoutes(app);
   }
-
-  const httpServer = createServer(app);
-  return httpServer;
+  
+  // Don't create server here - let main index.ts handle it
 }

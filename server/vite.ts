@@ -19,7 +19,7 @@ export function log(message: string, source = "express") {
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
-export async function setupVite(app: Express, server: Server) {
+export async function setupVite(app: Express) {
   log(`Setting up Vite in development mode`);
   log(`Environment: NODE_ENV=${process.env.NODE_ENV}`);
   
@@ -91,11 +91,38 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  // In production, files are in dist/public relative to cwd
+  const distPath = process.env.NODE_ENV === 'production' 
+    ? path.resolve(process.cwd(), "public")
+    : path.resolve(import.meta.dirname, "../dist/public");
 
+  console.log(`📁 Serving static files from: ${distPath}`);
+  console.log(`📍 Current directory: ${process.cwd()}`);
+  
   if (!fs.existsSync(distPath)) {
+    console.error(`❌ Static files directory not found: ${distPath}`);
+    console.error('📂 Files in current directory:', fs.readdirSync(process.cwd()));
+    
+    // Try alternate paths
+    const alternatePaths = [
+      path.resolve(process.cwd(), "dist/public"),
+      path.resolve(process.cwd(), "../dist/public"),
+      path.resolve(import.meta.dirname, "public"),
+    ];
+    
+    for (const altPath of alternatePaths) {
+      if (fs.existsSync(altPath)) {
+        console.log(`✅ Found static files at alternate path: ${altPath}`);
+        app.use(express.static(altPath));
+        app.use("*", (_req, res) => {
+          res.sendFile(path.resolve(altPath, "index.html"));
+        });
+        return;
+      }
+    }
+    
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      `Could not find the build directory. Tried: ${distPath} and alternates`,
     );
   }
 
