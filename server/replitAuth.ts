@@ -3,7 +3,7 @@ import { Strategy, type VerifyFunction } from "openid-client/passport";
 
 import passport from "passport";
 import session from "express-session";
-import type { Express, RequestHandler } from "express";
+import type { Express, RequestHandler } from "./types/express";
 import memoize from "memoizee";
 import createMemoryStore from "memorystore";
 import { storage } from "./storage";

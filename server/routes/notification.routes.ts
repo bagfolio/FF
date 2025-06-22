@@ -1,4 +1,4 @@
-import { Express, Request, Response } from 'express';
+import type { Express, Request, Response } from '../types/express';
 import { notificationService } from '../services/notification.service';
 import { z } from 'zod';
 

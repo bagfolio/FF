@@ -1,4 +1,4 @@
-import type { Response } from 'express';
+import type { Response } from '../types/express';
 
 export enum StripeErrorType {
   API_KEY_INVALID = 'API_KEY_INVALID',

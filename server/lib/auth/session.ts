@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { Request, Response } from '../../types/express';
 import { storage } from '../../storage';
 
 /**

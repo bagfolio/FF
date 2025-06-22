@@ -1,4 +1,4 @@
-import { Express, Request, Response } from 'express';
+import type { Express, Request, Response } from '../types/express';
 import { mediaService, videoUpload } from '../services/media.service';
 import { storage } from '../storage';
 

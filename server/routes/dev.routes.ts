@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express } from "../types/express";
 import { storage } from "../storage";
 import { nanoid } from "nanoid";
 import { hashPassword } from "../utils/password";

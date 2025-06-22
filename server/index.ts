@@ -1,6 +1,7 @@
 import './loadEnv';
 import { checkEnvLoaded } from './loadEnv';
-import express, { type Request, Response, NextFunction } from "express";
+import express from "express";
+import type { Request, Response, NextFunction } from "./types/express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupAuth } from "./replitAuth";
