@@ -79,6 +79,7 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 600,
     },
     optimizeDeps: {
+      include: ['react', 'react-dom', 'react/jsx-runtime'],
       exclude: [
         "@replit/vite-plugin-runtime-error-modal",
         "@replit/vite-plugin-cartographer",

@@ -2,8 +2,15 @@ import { config } from 'dotenv';
 import { existsSync } from 'fs';
 import path from 'path';
 
+// Set default NODE_ENV if not set (common in production deployments)
+if (!process.env.NODE_ENV) {
+  // Default to production if not set - safer for deployments
+  process.env.NODE_ENV = 'production';
+  console.log('⚠️  NODE_ENV not set, defaulting to production');
+}
+
 // Determine which env file to load based on NODE_ENV
-const nodeEnv = process.env.NODE_ENV || 'development';
+const nodeEnv = process.env.NODE_ENV;
 const envFiles = [];
 
 // Priority order: server/.env.{NODE_ENV}.local, server/.env.{NODE_ENV}, server/.env.local, server/.env

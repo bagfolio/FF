@@ -64,4 +64,15 @@ if (fs.existsSync(prodEnvPath)) {
   console.log('📋 No .env.production file found, using deployment environment variables');
 }
 
+// Verify manifest has correct protocol
+const manifestPath = path.join(distDir, 'public', 'manifest.json');
+if (fs.existsSync(manifestPath)) {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  if (manifest.protocol_handlers?.[0]?.protocol !== 'web+futebol-futuro') {
+    console.error('❌ Manifest has wrong protocol!');
+    process.exit(1);
+  }
+  console.log('✅ Manifest protocol verified');
+}
+
 console.log('✅ Post-build tasks completed');

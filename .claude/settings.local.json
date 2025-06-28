@@ -54,7 +54,12 @@
       "Bash(NODE_ENV=production timeout 3 node index.js)",
       "Bash(sh -c \"npm ci && npm run build && npm run validate\" 2 >& 1)",
       "Bash(NODE_ENV=production timeout 5 node index.js)",
-      "Bash(NODE_ENV=production timeout 10 node index.js)"
+      "Bash(NODE_ENV=production timeout 10 node index.js)",
+      "Bash(pm2 list:*)",
+      "Bash(kill:*)",
+      "Bash([ -f public/manifest.json ])",
+      "Bash(./scripts/test-deployment.sh:*)",
+      "Bash(# Start a simple server on port 5000 in background\nnode -e \"require('http').createServer((req,res)=>res.end('test')).listen(5000)\" &\necho \"Started test server on port 5000\"\nsleep 1)"
     ],
     "deny": []
   }

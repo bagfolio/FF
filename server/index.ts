@@ -150,14 +150,19 @@ app.use((req, res, next) => {
     
     // Setup static file serving for production or if Vite fails
     // Only setup vite in development environment
-    if (process.env.NODE_ENV === "development") {
+    const isDevelopment = process.env.NODE_ENV === "development";
+    console.log(`🔧 Server mode: ${process.env.NODE_ENV || 'not set'} (isDevelopment: ${isDevelopment})`);
+    
+    if (isDevelopment) {
       try {
         await setupVite(app, server);
+        console.log('✅ Vite development server configured');
       } catch (error) {
-        console.error('⚠️ Vite setup failed, continuing with static serving:', error);
+        console.error('⚠️ Vite setup failed, falling back to static serving:', error);
         serveStatic(app);
       }
     } else {
+      console.log('📦 Running in production mode - serving static files');
       serveStatic(app);
     }
     console.log('✅ Static file serving configured');
