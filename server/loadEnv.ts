@@ -52,6 +52,15 @@ if (!loaded) {
   console.log('No environment file found, using system environment variables');
 }
 
+// Detect Replit deployment environment and adjust NODE_ENV accordingly
+const isReplitDeployment = process.env.REPLIT_DOMAINS || process.env.REPL_ID || process.env.REPLIT_DB_URL;
+
+// Only force production mode if in actual Replit deployment, not development
+if (isReplitDeployment && !process.env.NODE_ENV) {
+  console.log('🚀 Replit deployment detected - setting NODE_ENV=production');
+  process.env.NODE_ENV = 'production';
+}
+
 // Export a function to check if environment is properly loaded
 export function checkEnvLoaded() {
   console.log('Environment check:');

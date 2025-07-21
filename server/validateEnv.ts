@@ -56,7 +56,9 @@ export function validateEnv() {
       }
       if (env.BYPASS_AUTH === 'true') {
         console.error('❌ CRITICAL: BYPASS_AUTH is enabled in production!');
-        process.exit(1);
+        console.error('Disabling BYPASS_AUTH for production deployment...');
+        // Disable BYPASS_AUTH in production instead of crashing
+        process.env.BYPASS_AUTH = 'false';
       }
     }
     
