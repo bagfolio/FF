@@ -1,10 +1,17 @@
+// CRITICAL: Force production mode in Replit deployment
+// This MUST be before any other imports to ensure correct behavior
+if (process.env.REPL_OWNER || process.env.REPLIT_DEPLOYMENT) {
+  process.env.NODE_ENV = 'production';
+  console.log('🚀 Replit deployment detected - forcing NODE_ENV=production');
+}
+
 import './loadEnv';
 import { checkEnvLoaded } from './loadEnv';
 import express from "express";
 import { createServer } from "http";
 import type { Request, Response, NextFunction } from "./types/express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { serveStatic, log } from "./vite";
 import { setupAuth } from "./replitAuth";
 import { seedSubscriptionPlans } from "./seedSubscriptionPlans";
 import { validateEnv } from "./validateEnv";
@@ -42,6 +49,22 @@ try {
 
 const app = express();
 
+// Request timeout middleware - prevent hanging requests
+app.use((req, res, next) => {
+  // Set a 30 second timeout for all requests
+  req.setTimeout(30000, () => {
+    console.error(`Request timeout: ${req.method} ${req.path}`);
+    res.status(408).json({ error: 'Request timeout' });
+  });
+  
+  res.setTimeout(30000, () => {
+    console.error(`Response timeout: ${req.method} ${req.path}`);
+    res.status(503).json({ error: 'Response timeout' });
+  });
+  
+  next();
+});
+
 // Enable CORS for development
 if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
@@ -58,8 +81,9 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Limit request body size to prevent memory exhaustion
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -97,6 +121,24 @@ app.use((req, res, next) => {
     
 
     
+    // Root health check endpoint for Replit monitoring
+    app.get('/__replit_health__', (req, res) => {
+      // Dedicated health check endpoint
+      res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        service: 'revela-platform',
+        environment: process.env.NODE_ENV || 'development',
+        uptime: process.uptime()
+      });
+    });
+    
+    // Also handle root path health checks
+    app.head('/', (req, res) => {
+      // HEAD requests to root are often health checks
+      res.status(200).end();
+    });
+    
     // Add diagnostic endpoint for production debugging
     app.get('/debug/env', (req, res) => {
       if (process.env.NODE_ENV !== 'production') {
@@ -126,6 +168,47 @@ app.use((req, res, next) => {
     
     await registerRoutes(app);
     console.log('✅ Routes registered successfully');
+    
+    // Add static file handlers for common files BEFORE the error handler
+    // This prevents 404s for favicon, robots.txt, etc.
+    app.get('/favicon.ico', (req, res) => {
+      res.status(204).end(); // No content for now
+    });
+    
+    app.get('/robots.txt', (req, res) => {
+      res.type('text/plain');
+      res.send('User-agent: *\nAllow: /');
+    });
+    
+    // CRITICAL: Add comprehensive request debugging for production issues
+    app.use((req, res, next) => {
+      const timestamp = new Date().toISOString();
+      const userAgent = req.get('User-Agent') || 'unknown';
+      const referer = req.get('Referer') || 'direct';
+      
+      console.log(`🌐 [${timestamp}] ${req.method} ${req.path}`);
+      console.log(`   📍 IP: ${req.ip}, Host: ${req.get('host')}`);
+      
+      // Log detailed info for critical requests
+      if (req.path.includes('.tsx') || req.path.includes('src/') || req.path.includes('assets/')) {
+        console.log(`   🔍 ASSET REQUEST: ${req.path}`);
+        console.log(`   📱 User-Agent: ${userAgent.substring(0, 100)}`);
+        console.log(`   🔗 Referer: ${referer}`);
+      }
+      
+      // Track response
+      const originalSend = res.send;
+      res.send = function(data) {
+        if (res.statusCode >= 400) {
+          console.log(`   ❌ Response: ${res.statusCode} for ${req.path}`);
+        } else if (req.path.includes('.tsx') || req.path.includes('src/') || req.path.includes('assets/')) {
+          console.log(`   ✅ Response: ${res.statusCode} for ${req.path}`);
+        }
+        return originalSend.call(this, data);
+      };
+      
+      next();
+    });
 
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
@@ -155,6 +238,8 @@ app.use((req, res, next) => {
     
     if (isDevelopment) {
       try {
+        // Dynamically import setupVite only in development
+        const { setupVite } = await import('./vite');
         await setupVite(app, server);
         console.log('✅ Vite development server configured');
       } catch (error) {

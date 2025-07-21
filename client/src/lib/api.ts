@@ -1,10 +1,19 @@
 import axios from 'axios';
 
-// In development, ensure we're making requests to the correct origin
-const baseURL = process.env.NODE_ENV === 'development' ? '' : '';
+// Determine base URL based on environment
+const getBaseURL = () => {
+  // In development, Vite proxy handles /api routes
+  if (process.env.NODE_ENV === 'development') {
+    return '';
+  }
+  
+  // In production, use relative URLs
+  // This ensures it works regardless of the domain
+  return window.location.origin;
+};
 
 export const api = axios.create({
-  baseURL,
+  baseURL: getBaseURL(),
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -13,16 +22,41 @@ export const api = axios.create({
   timeout: 30000,
 });
 
-// Add request interceptor to handle CSRF tokens if needed
-api.interceptors.request.use((config) => {
-  return config;
-});
+// Add request interceptor for debugging and CSRF tokens
+api.interceptors.request.use(
+  (config) => {
+    // Log requests in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
+    }
+    return config;
+  },
+  (error) => {
+    console.error('[API] Request error:', error);
+    return Promise.reject(error);
+  }
+);
 
 // Add response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log successful responses in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[API] Response ${response.status} from ${response.config.url}`);
+    }
+    return response;
+  },
   (error: any) => {
-    // Let individual components handle 401 errors
+    // Log errors for debugging
+    if (error.response) {
+      console.error(`[API] Error ${error.response.status} from ${error.config?.url}:`, error.response.data);
+    } else if (error.request) {
+      console.error('[API] No response received:', error.request);
+    } else {
+      console.error('[API] Request setup error:', error.message);
+    }
+    
+    // Let individual components handle errors
     // to avoid redirect loops
     return Promise.reject(error);
   }

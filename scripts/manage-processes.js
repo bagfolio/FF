@@ -50,11 +50,15 @@ async function findSuspectProcesses() {
   const patterns = [
     { pattern: 'tsx.*server/index.ts', desc: 'Development server' },
     { pattern: 'tsx watch', desc: 'TSX watch process' },
-    { pattern: 'node.*dist/index.js', desc: 'Production server' },
     { pattern: 'vite', desc: 'Vite dev server' },
     { pattern: `node.*:${PORT}`, desc: 'Node on port' },
     { pattern: `PORT=${PORT}`, desc: 'Process with PORT env' }
   ];
+  
+  // Don't kill production server in production mode
+  if (process.env.NODE_ENV !== 'production') {
+    patterns.push({ pattern: 'node.*dist/index.js', desc: 'Production server' });
+  }
   
   const suspects = [];
   
@@ -80,7 +84,7 @@ async function findSuspectProcesses() {
   return suspects;
 }
 
-// Strategy 3: Find ALL Node processes (except system ones)
+// Strategy 3: Find ALL Node processes (except system ones and production server)
 async function findAllNodeProcesses() {
   try {
     const { stdout } = await execAsync('ps aux | grep -E "node|tsx" | grep -v grep | grep -v manage-processes');
@@ -100,6 +104,12 @@ async function findAllNodeProcesses() {
           cmd.includes('typescript-language-server') ||
           cmd.includes('vscode-') ||
           cmd.includes('node_modules/typescript/lib')) {
+        continue;
+      }
+      
+      // CRITICAL: Skip production server process
+      if (cmd.includes('node dist/index.js') && process.env.NODE_ENV === 'production') {
+        log(`  ⚠️  Skipping production server process (PID ${pid})`, 'yellow');
         continue;
       }
       

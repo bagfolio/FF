@@ -80,7 +80,7 @@
   "protocol_handlers": [
     {
       "protocol": "web+futebol-futuro",
-      "url": "/?profile=%s"
+      "url": "/?url=%s"
     }
   ]
 }

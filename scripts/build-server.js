@@ -28,7 +28,12 @@ const externalModules = [
   'memorystore',
   'openid-client',
   'zod',
-  'zod-validation-error'
+  'zod-validation-error',
+  // Exclude Vite and related dev dependencies from production bundle
+  'vite',
+  '@vitejs/plugin-react',
+  '@replit/vite-plugin-cartographer',
+  '@replit/vite-plugin-runtime-error-modal'
 ];
 
 console.log('Building server bundle...');

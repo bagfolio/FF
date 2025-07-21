@@ -10,6 +10,13 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
+  // Check if we're on a public page where auth is optional
+  const publicPaths = ['/', '/auth', '/test', '/trust-pyramid-demo', '/style-guide'];
+  const isPublicPath = publicPaths.some(path => 
+    window.location.pathname === path || 
+    window.location.pathname.startsWith(path + '/')
+  );
+  
   const { data: user, isLoading, error, isSuccess, refetch } = useQuery<User>({
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
@@ -25,30 +32,35 @@ export function useAuth() {
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchOnMount: !isPublicPath, // Don't refetch on mount for public pages
+    refetchOnWindowFocus: !isPublicPath, // Don't refetch on focus for public pages
+    enabled: true, // Always enabled, but won't refetch unnecessarily on public pages
   });
 
-  // Handle authentication errors
+  // Handle authentication errors - but prevent redirect loops
   const isAuthError = error && (
     (error as any)?.response?.status === 401 || 
     isUnauthorizedError(error as Error)
   );
   
-  if (isAuthError) {
+  // Only clear queries and redirect if:
+  // 1. We have an auth error
+  // 2. We're not on a public page
+  // 3. We're not already redirecting (prevent loops)
+  if (isAuthError && !isPublicPath && !sessionStorage.getItem('auth-redirecting')) {
+    // Set flag to prevent redirect loops
+    sessionStorage.setItem('auth-redirecting', 'true');
+    
     // Clear all queries
     queryClient.clear();
-    // Only redirect from protected pages, not from public pages
-    const publicPaths = ['/', '/auth', '/test', '/trust-pyramid-demo', '/style-guide'];
-    const isPublicPath = publicPaths.some(path => 
-      window.location.pathname === path || 
-      window.location.pathname.startsWith(path + '/')
-    );
     
-    if (!isPublicPath) {
-      // Redirect to landing page from protected routes
-      setLocation('/');
-    }
+    // Redirect to landing page
+    setLocation('/');
+    
+    // Clear flag after a delay
+    setTimeout(() => {
+      sessionStorage.removeItem('auth-redirecting');
+    }, 1000);
   }
 
   const isAuthenticated = isSuccess && !!user && !error;

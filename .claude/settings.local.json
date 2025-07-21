@@ -59,7 +59,10 @@
       "Bash(kill:*)",
       "Bash([ -f public/manifest.json ])",
       "Bash(./scripts/test-deployment.sh:*)",
-      "Bash(# Start a simple server on port 5000 in background\nnode -e \"require('http').createServer((req,res)=>res.end('test')).listen(5000)\" &\necho \"Started test server on port 5000\"\nsleep 1)"
+      "Bash(# Start a simple server on port 5000 in background\nnode -e \"require('http').createServer((req,res)=>res.end('test')).listen(5000)\" &\necho \"Started test server on port 5000\"\nsleep 1)",
+      "Bash(NODE_ENV=production node -e \"console.log(''NODE_ENV:'', process.env.NODE_ENV); console.log(''CWD:'', process.cwd()); console.log(''__dirname equivalent:'', import.meta.url);\")",
+      "Bash(timeout:*)",
+      "Bash(./scripts/start-production.sh:*)"
     ],
     "deny": []
   }

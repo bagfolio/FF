@@ -1,5 +1,5 @@
 modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npm run dev"
+run = "./scripts/start-production.sh"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
@@ -8,7 +8,7 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "autoscale"
 build = ["sh", "-c", "npm ci && npm run build && npm run validate"]
-run = ["sh", "-c", "cd dist && npm install --production && NODE_ENV=production node index.js"]
+run = ["sh", "-c", "./scripts/start-production.sh"]
 
 [workflows]
 runButton = "Project"
@@ -28,48 +28,12 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "./scripts/start-production.sh"
 waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 5173
-externalPort = 5173
-
-[[ports]]
-localPort = 11632
-externalPort = 3002
-exposeLocalhost = true
-
-[[ports]]
-localPort = 32754
-externalPort = 5000
-exposeLocalhost = true
-
-[[ports]]
-localPort = 40562
-externalPort = 3003
-exposeLocalhost = true
-
-[[ports]]
-localPort = 48185
-externalPort = 6000
-exposeLocalhost = true
-
-[[ports]]
-localPort = 48210
-externalPort = 4200
-exposeLocalhost = true
-
-[[ports]]
-localPort = 64468
-externalPort = 3001
-exposeLocalhost = true
-
-[[ports]]
-localPort = 64628
-externalPort = 3000
-exposeLocalhost = true
+# CRITICAL: Do NOT add port 5173 - it causes 502 errors in production
+# All requests (API + static files) go through port 5000

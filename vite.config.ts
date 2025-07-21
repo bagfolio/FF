@@ -40,7 +40,11 @@ export default defineConfig(({ mode }) => {
       hmr: mode === 'development' ? {
         clientPort: 443,
         protocol: "wss",
-        host: "localhost",
+        // Dynamic host detection for Replit
+        host: process.env.REPL_SLUG && process.env.REPL_OWNER 
+          ? `${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.replit.dev`
+          : undefined,
+        timeout: 60000,
       } : false,
       cors: true,
       fs: {
@@ -50,7 +54,16 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: "../dist/public",
       emptyOutDir: true,
-      sourcemap: true,
+      // CRITICAL: Disable sourcemaps in production to prevent dev artifacts
+      sourcemap: false,
+      // Ensure production minification
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true, // Remove console logs in production
+          drop_debugger: true // Remove debugger statements
+        }
+      },
       rollupOptions: {
         output: {
           manualChunks: (id) => {

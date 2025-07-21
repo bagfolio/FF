@@ -15,12 +15,20 @@ if (!fs.existsSync(distDir)) {
 
 // Create package.json for production with all dependencies
 const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf-8'));
+
+// Filter out development-only dependencies from production
+const productionDependencies = { ...packageJson.dependencies };
+const devOnlyDeps = ['vite', '@vitejs/plugin-react', '@replit/vite-plugin-cartographer', '@replit/vite-plugin-runtime-error-modal'];
+devOnlyDeps.forEach(dep => {
+  delete productionDependencies[dep];
+});
+
 const productionPackageJson = {
   name: packageJson.name,
   version: packageJson.version,
   type: "module",
   main: "index.js",
-  dependencies: packageJson.dependencies,
+  dependencies: productionDependencies,
   optionalDependencies: packageJson.optionalDependencies
 };
 
